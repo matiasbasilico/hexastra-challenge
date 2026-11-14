@@ -1,0 +1,50 @@
+{
+  "labels": [
+    "relative_relief_m",
+    "slope_deg",
+    "roughness_m"
+  ],
+  "n_samples": 1300,
+  "mean": [
+    46.244615384615386,
+    7.481401351602613,
+    15.747249462188998
+  ],
+  "sigma": [
+    [
+      4029.206374804437,
+      596.7764082744548,
+      1395.1820996531665
+    ],
+    [
+      596.7764082744548,
+      128.79937149903026,
+      210.92245465432907
+    ],
+    [
+      1395.1820996531665,
+      210.92245465432907,
+      526.8929744656127
+    ]
+  ],
+  "sigma_inv": [
+    [
+      0.0033130246838129285,
+      -0.0028576187053520586,
+      -0.00762875380307095
+    ],
+    [
+      -0.0028576187053520586,
+      0.025005493548318356,
+      -0.002443231692391952
+    ],
+    [
+      -0.007628753803070949,
+      -0.002443231692391952,
+      0.023076476179789536
+    ]
+  ],
+  "shrinkage": 0.019819640693358082,
+  "method": "Ledoit-Wolf 2004 shrinkage towards mu * I, estimated on Earth terrain-cell T vectors (relative relief, slope, roughness). Absolute elevation excluded.",
+  "source": "ASTER GDEM v3 via OpenTopoData, 3x3 subwindows inside a 7x7 grid (120 m) around each Earth candidate, 14 de noviembre de 2026 (America/Buenos_Aires). Ledoit-Wolf shrinkage. n=1300"
+}

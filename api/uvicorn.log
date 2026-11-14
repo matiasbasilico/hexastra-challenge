@@ -60,3 +60,7 @@ INFO:     127.0.0.1:55929 - "GET /css/style.css HTTP/1.1" 304 Not Modified
 INFO:     127.0.0.1:55929 - "GET /js/app.js HTTP/1.1" 200 OK
 INFO:     127.0.0.1:55930 - "GET /data/sites.json HTTP/1.1" 200 OK
 INFO:     127.0.0.1:55929 - "GET /data/catalog.json HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [95843]

@@ -56,7 +56,10 @@ Si los servicios no están, el buscador se deshabilita y el mapa (fichas de la A
 
 ```bash
 cd hexastra-analogos
-services/.venv/bin/python -m pytest -q services/planetary/tests services/earth/tests
+./services/run_tests.sh
+# o por separado (no juntos en un solo pytest: ambos servicios tienen catalog.py/main.py)
+services/.venv/bin/python -m pytest -q services/planetary/tests
+services/.venv/bin/python -m pytest -q services/earth/tests
 ```
 
 ### Comprobaciones con curl

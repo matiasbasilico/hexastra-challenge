@@ -19,7 +19,7 @@ EARTH_ROOT = HERE.parent
 if str(EARTH_ROOT) not in sys.path:
     sys.path.insert(0, str(EARTH_ROOT))
 
-from geocode import assign_country  # noqa: E402
+from geocode import assign_country_with_fallback  # noqa: E402
 from covariance import fit_from_samples  # noqa: E402
 from clients.opentopo import batch_elevations, grid_points, subwindow_samples, terrain_metrics  # noqa: E402
 from clients.openmeteo import climatology  # noqa: E402
@@ -74,7 +74,7 @@ def main() -> int:
         rec = sites_out.get(sid) or {}
         print("===", sid, "===", flush=True)
         # geocode always (cheap, local)
-        geo = assign_country(raw["lat"], raw["lon"])
+        geo = assign_country_with_fallback(raw["lat"], raw["lon"])
         rec["id"] = sid
         rec["body"] = "earth"
         rec["name"] = raw["name"]

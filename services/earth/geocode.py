@@ -114,3 +114,63 @@ def regions_from_sites(sites: List[Dict[str, Any]]) -> Dict[str, Any]:
         countries = sorted(continents[cont]["countries"].values(), key=lambda c: c["name"] or c["iso"])
         ordered.append({"name": cont, "countries": countries})
     return {"source": "Derived from candidates assigned with Natural Earth 50m admin-0.", "continents": ordered}
+
+
+def country_by_iso(iso: str):
+    """Look up continent and name for an ISO alpha-2 in Natural Earth (no geometry)."""
+    if not iso:
+        return None
+    want = iso.upper()
+    for feat in load_ne():
+        props = feat["properties"]
+        if iso_from_props(props) == want:
+            return {
+                "continent": props.get("CONTINENT"),
+                "country_iso": want,
+                "country_name": props.get("NAME_EN") or props.get("ADMIN"),
+            }
+    return None
+
+
+def nominatim_reverse(lat: float, lon: float, timeout: float = 20.0):
+    """OSM Nominatim reverse geocode. Used only when the point is not inside a Natural Earth polygon."""
+    import urllib.parse
+    import urllib.request
+    url = "https://nominatim.openstreetmap.org/reverse?" + urllib.parse.urlencode({
+        "lat": lat, "lon": lon, "format": "json",
+    })
+    req = urllib.request.Request(url, headers={"User-Agent": "HexastraAnalogos/0.1 (NASA Space Apps 2026 prototype)"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.load(resp)
+    addr = data.get("address") or {}
+    iso = (addr.get("country_code") or "").upper() or None
+    return {"iso": iso, "country": addr.get("country"), "raw_address": addr, "display_name": data.get("display_name")}
+
+
+def assign_country_with_fallback(lat: float, lon: float) -> Dict[str, Any]:
+    first = assign_country(lat, lon)
+    if first.get("found"):
+        return first
+    try:
+        nom = nominatim_reverse(lat, lon)
+    except Exception as exc:
+        first["source"] = first.get("source") + " Nominatim fallback failed: %s" % exc
+        return first
+    iso = nom.get("iso")
+    ne = country_by_iso(iso) if iso else None
+    if not iso or not ne:
+        first["source"] = first.get("source") + " Nominatim did not yield an ISO present in Natural Earth."
+        return first
+    return {
+        "continent": ne["continent"],
+        "country_iso": ne["country_iso"],
+        "country_name": ne["country_name"],
+        "source": (
+            "Natural Earth 50m polygon did not contain the point (often a shoreline / river). "
+            "ISO from OpenStreetMap Nominatim reverse geocode, continent and country name then "
+            "taken from the matching Natural Earth 50m country record (not guessed). "
+            "Nominatim display_name: %s" % (nom.get("display_name") or "")
+        ),
+        "found": True,
+        "fallback": "nominatim+natural_earth_iso",
+    }
