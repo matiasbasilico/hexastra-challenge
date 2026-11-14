@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-import json
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import dbsource
 
 CATALOG_PATH = Path(__file__).resolve().parent / "data" / "catalog.json"
 
 
-@lru_cache(maxsize=1)
 def load_catalog() -> Dict[str, Any]:
-    with CATALOG_PATH.open(encoding="utf-8") as f:
-        return json.load(f)
+    """Postgres if HEXASTRA_DATABASE_URL is set, else the merged/base JSON (see dbsource.py)."""
+    return dbsource.load("planetary", CATALOG_PATH.parent)
 
 
 def all_sites() -> List[Dict[str, Any]]:

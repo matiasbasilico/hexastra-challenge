@@ -46,6 +46,7 @@ def health() -> Dict[str, Any]:
         "ok": True,
         "service": "planetary",
         "n_sites": len(cat.get("sites") or []),
+        "catalog_origin": (cat.get("meta") or {}).get("catalog_origin"),
         "lunar_landing_site_api": cat.get("meta", {}).get("lunar_landing_site_api"),
         "trek": cat.get("meta", {}).get("trek"),
     }
