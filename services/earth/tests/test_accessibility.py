@@ -173,6 +173,12 @@ def test_file_known_values(rows):
     assert by[("haughton", "dist_airport_km")]["value"] == pytest.approx(169.8, abs=0.5)
     assert "CYRB" in by[("haughton", "dist_airport_km")]["note"]
     assert by[("base-marambio", "dist_airport_km")]["value"] < 2.0
+    # Censo 2010 de Cabo Verde (INE): Fogo 37 071 + Brava 5 995 = 43 066; no hay otra isla a 50 km del Pico do Fogo
+    assert by[("pico-do-fogo", "population_50km")]["value"] == pytest.approx(43066, rel=0.05)
+    # Meteor Crater queda unas 6 millas (9,7 km por camino) al sur de la I-40
+    assert 7.0 < by[("meteor-crater", "dist_road_km")]["value"] < 10.0
+    # Campo del Cielo: 12-15 km de Gancedo; su aeródromo más cercano está en Gancedo
+    assert by[("campo-del-cielo", "dist_airport_km")]["value"] == pytest.approx(15.0, abs=3.0)
     for sid in ("base-marambio", "base-esperanza", "university-valley", "taylor-valley"):
         assert by[(sid, "dist_road_km")]["value"] is None
     for r in rows:

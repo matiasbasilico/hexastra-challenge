@@ -71,3 +71,77 @@ Decisiones y sus motivos:
 2. ¿Pesos y umbrales así, o se ajustan?
 3. ¿El término de aeródromo usa cualquier pista (`dist_airport_km`) o sólo las de vuelos regulares (`dist_airport_scheduled_km`)? La propuesta usa cualquier pista, porque las campañas a sitios remotos vuelan chárter.
 4. ¿Se suma el gráfico TASI contra P al front del MVP o queda para después?
+
+## Resultado con los datos cargados (14 de noviembre de 2026)
+
+P calculado con la fórmula de arriba sobre los 60 sitios, ordenado de mayor a menor. Es una vista previa para discutir la propuesta: no está guardado como feature ni se usa en ningún lado.
+
+| Sitio | Ruta (km) | Aeródromo (km) | Población 50 km | Altitud (m) | P | Cobertura |
+|---|---|---|---|---|---|---|
+| yungay-atacama | 0.02 | 6.24 | 121997 | 1039 | 100 | 100 % |
+| rio-tinto | 0.80 | 17.19 | 510673 | 0 | 100 | 100 % |
+| base-marambio | null | 0.53 | null | 195 | 100 | 45 % |
+| base-esperanza | null | 0.81 | null | 1 | 100 | 45 % |
+| tswaing | 1.01 | 22.17 | 3979416 | 1076 | 100 | 100 % |
+| wadi-rum | 0.23 | 27.10 | 179766 | 938 | 99 | 100 % |
+| white-sands | 0.06 | 10.16 | 51066 | 1220 | 98 | 100 % |
+| nordlinger-ries | 1.50 | 4.74 | 974488 | 421 | 98 | 100 % |
+| kilauea | 0.60 | 41.78 | 120645 | 1236 | 97 | 100 % |
+| valle-de-la-luna-chile | 0.99 | 16.93 | 27650 | 2417 | 96 | 100 % |
+| vredefort | 2.03 | 12.27 | 439709 | 1439 | 96 | 100 % |
+| dallol | 0.40 | 71.55 | 211533 | -99 | 93 | 100 % |
+| craters-of-the-moon | 0.04 | 15.50 | 4519 | 1791 | 91 | 100 % |
+| lonar | 0.20 | 98.56 | 2186204 | 477 | 91 | 100 % |
+| timanfaya | 4.97 | 19.11 | 195174 | 137 | 90 | 100 % |
+| dunas-de-taton | 1.37 | 34.16 | 9887 | 1834 | 89 | 100 % |
+| crateres-rio-cuarto | 3.73 | 37.18 | 112220 | 486 | 89 | 100 % |
+| campo-del-cielo | 4.27 | 15.57 | 35091 | 80 | 88 | 100 % |
+| pico-do-fogo | 3.85 | 10.51 | 43478 | 2725 | 88 | 100 % |
+| karijini | 0.72 | 7.35 | 573 | 772 | 85 | 100 % |
+| teide | 3.55 | 26.17 | 948573 | 3553 | 85 | 100 % |
+| sp-crater | 9.21 | 36.03 | 96695 | 2102 | 84 | 100 % |
+| lake-natron | 15.96 | 13.45 | 104167 | 593 | 83 | 100 % |
+| meteor-crater | 8.75 | 3.48 | 19471 | 1556 | 82 | 100 % |
+| undara | 0.66 | 2.02 | 176 | 740 | 82 | 100 % |
+| taylor-valley | null | 96.71 | null | 210 | 80 | 45 % |
+| badwater | 5.27 | 24.21 | 2354 | -92 | 79 | 100 % |
+| pinacate | 19.82 | 33.17 | 69841 | 978 | 79 | 100 % |
+| mauna-kea | 5.74 | 11.02 | 106535 | 4163 | 78 | 100 % |
+| pali-aike | 9.04 | 46.80 | 18421 | 146 | 77 | 100 % |
+| chott-el-djerid | 24.63 | 39.77 | 120974 | 24 | 77 | 100 % |
+| erta-ale | 6.78 | 123.05 | 75556 | 565 | 77 | 100 % |
+| lava-beds | 17.67 | 20.45 | 9319 | 1450 | 76 | 100 % |
+| da-qaidam | 0.24 | 154.71 | 6447 | 3189 | 75 | 100 % |
+| university-valley | null | 141.83 | null | 1679 | 74 | 45 % |
+| wolfe-creek | 3.45 | 39.81 | 285 | 320 | 72 | 100 % |
+| ischigualasto | 10.86 | 89.28 | 8630 | 1384 | 70 | 100 % |
+| laguna-antofagasta | 1.79 | 134.28 | 1331 | 3320 | 67 | 100 % |
+| campo-piedra-pomez | 4.63 | 102.93 | 4475 | 3453 | 66 | 100 % |
+| tso-kar | 5.12 | 71.06 | 28120 | 4546 | 66 | 100 % |
+| acraman | 8.38 | 31.24 | 26 | 145 | 65 | 100 % |
+| askja | 36.58 | 32.36 | 1443 | 1025 | 64 | 100 % |
+| laguna-diamante | 2.15 | 111.41 | 6437 | 4577 | 63 | 100 % |
+| lut-desert | 62.39 | 178.84 | 117025 | 580 | 61 | 100 % |
+| llullaillaco | 5.99 | 77.06 | 77955 | 6418 | 61 | 100 % |
+| ubehebe | 15.67 | 37.13 | 50 | 647 | 60 | 100 % |
+| payun-matru | 25.61 | 47.04 | 6604 | 3648 | 60 | 100 % |
+| laguna-negra | 9.68 | 90.85 | 7180 | 4080 | 59 | 100 % |
+| meseta-de-somuncura | 35.58 | 88.26 | 1737 | 1204 | 58 | 100 % |
+| socompa | 7.47 | 82.97 | 50133 | 6011 | 58 | 100 % |
+| tolbachik | 22.05 | 61.09 | 2513 | 3685 | 56 | 100 % |
+| richat | 9.51 | 177.20 | 276 | 420 | 56 | 100 % |
+| popigai | 18.09 | 105.72 | 287 | 26 | 56 | 100 % |
+| salar-de-uyuni | 28.18 | 72.03 | 3440 | 3664 | 55 | 100 % |
+| sossusvlei | 53.52 | 51.55 | 299 | 571 | 54 | 100 % |
+| mcgill-arctic | 534.71 | 1.94 | 0 | 451 | 45 | 100 % |
+| valley-10000-smokes | 150.36 | 67.29 | 1 | 145 | 43 | 100 % |
+| bockfjorden | 985.71 | 67.69 | 339 | 0 | 42 | 100 % |
+| haughton | 292.66 | 169.83 | 0 | 121 | 32 | 100 % |
+| devon-island-fmars | 299.50 | 168.05 | 0 | 235 | 32 | 100 % |
+
+Qué muestra la tabla:
+
+- **Los análogos árticos quedan abajo, como se esperaba.** Haughton y FMARS (Devon Island) tienen P ≈ 32: 170 km hasta Resolute, casi 300 km hasta la ruta más cercana de gROADS y nadie a 50 km.
+- **Los cuatro sitios antárticos tienen cobertura de 45 %.** Sin ruta ni población en las fuentes, su P sale sólo de aeródromo y altitud, y por eso Marambio y Esperanza (con pista propia) dan 100. Ese número no se puede leer sin la cobertura al lado; una opción es no mostrar P cuando la cobertura es menor que un umbral.
+- **La población de GPWv4 infla sitios de la Puna y de Afar.** Llullaillaco (77.955), Socompa (50.133) y Dallol (211.533) figuran con decenas de miles de personas a 50 km porque sus unidades censales son enormes y GPWv4 reparte la población de manera uniforme. Es el dato oficial, pero conviene tenerlo presente al fijar el peso de este término.
+- **gROADS no tiene las rutas de Svalbard:** Bockfjorden figura a 986 km de una ruta (Noruega continental).

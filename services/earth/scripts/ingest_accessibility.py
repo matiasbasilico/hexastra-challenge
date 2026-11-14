@@ -82,7 +82,8 @@ def download(url: str, dest: Path, netrc: bool) -> None:
     """Fetch with curl so Earthdata credentials stay in ~/.netrc and are never printed."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
-    cmd = ["curl", "--fail", "--silent", "--show-error", "--location", "--output", str(tmp)]
+    cmd = ["curl", "--fail", "--silent", "--show-error", "--location", "--retry", "8", "--retry-all-errors",
+           "--continue-at", "-", "--output", str(tmp)]
     if netrc:
         jar = str(CACHE / ".cookies")
         cmd += ["--netrc", "--cookie-jar", jar, "--cookie", jar]
@@ -167,7 +168,9 @@ def population_row(site: Dict[str, Any], tif: Optional[Path], today: str) -> Dic
     res = acc.population_within(tif, site["lat"], site["lon"])
     if res["value"] is None:
         return missing(sid, "population_50km", "GPWv4 no tiene celdas con dato a 50 km (sin unidades censales).", src, today)
-    note = "Suma de las celdas de 30 arcsec con centro a <= 50 km (%s de %s celdas con dato; el resto es agua o sin dato). Estimación censal modelada." % (
+    note = ("Suma de las celdas de 30 arcsec con centro a <= 50 km (%s de %s celdas con dato; el resto es agua o sin dato). "
+            "GPWv4 reparte la población censal de forma uniforme dentro de cada unidad administrativa: en unidades grandes "
+            "y poco pobladas puede sobrestimar la población cercana.") % (
         res["valid_cells"], res["cells"])
     return row(sid, "population_50km", round(res["value"]), "modeled", src, note, today)
 
