@@ -79,9 +79,35 @@
     </div>
 
 
+
+    <div class="workspace">
+      <aside class="sitelist">
+        <div class="sitelist-head">
+          <h2>Sitios en la Tierra</h2>
+        </div>
+        <div id="site-buttons"></div>
+        <p class="placeholder-msg" style="padding:0.2rem 0.9rem 1rem">Hacé clic en un sitio o en el mapa. El mapa derecho muestra el destino elegido en el buscador.</p>
+      </aside>
+
+      <section class="map-frame" aria-label="Mapa de la Tierra">
+        <div class="map-label"><h2>Tierra</h2></div>
+        <div id="map-earth" class="map"></div>
+      </section>
+
+      <section class="map-frame" aria-label="Mapa de Marte">
+        <div class="map-label"><h2 id="map-right-label">Marte</h2></div>
+        <div id="map-mars" class="map"></div>
+      </section>
+
+      <aside class="panel" id="panel">
+        <div class="panel-head"><h2>Ficha</h2></div>
+        <p class="placeholder-msg">Elegí un sitio a la izquierda o en el mapa de la Tierra. Vas a ver por qué se parece al destino elegido, en qué no, qué datos faltan y su puntaje TASI.</p>
+      </aside>
+    </div>
+
     <section class="buscador" id="buscador" aria-label="Buscador de análogos">
       <div class="buscador-head">
-        <h2>Buscador de análogos</h2>
+        <h2>Búsqueda completa en los sitios del catálogo</h2>
         <span class="api-status" id="api-status">Buscando la API…</span>
       </div>
       <div class="buscador-grid">
@@ -119,31 +145,6 @@
         </div>
       </div>
     </section>
-
-    <div class="workspace">
-      <aside class="sitelist">
-        <div class="sitelist-head">
-          <h2>Sitios en la Tierra</h2>
-        </div>
-        <div id="site-buttons"></div>
-        <p class="placeholder-msg" style="padding:0.2rem 0.9rem 1rem">Hacé clic en un sitio o en el mapa. El mapa derecho muestra el destino elegido en el buscador.</p>
-      </aside>
-
-      <section class="map-frame" aria-label="Mapa de la Tierra">
-        <div class="map-label"><h2>Tierra</h2></div>
-        <div id="map-earth" class="map"></div>
-      </section>
-
-      <section class="map-frame" aria-label="Mapa de Marte">
-        <div class="map-label"><h2 id="map-right-label">Marte</h2></div>
-        <div id="map-mars" class="map"></div>
-      </section>
-
-      <aside class="panel" id="panel">
-        <div class="panel-head"><h2>Ficha</h2></div>
-        <p class="placeholder-msg">Elegí un sitio a la izquierda o en el mapa de la Tierra. Vas a ver por qué se parece al destino elegido, en qué no, qué datos faltan y su puntaje TASI.</p>
-      </aside>
-    </div>
   </div>
 
   <div class="modal-bg" id="modal-bg" role="dialog" aria-modal="true" aria-labelledby="modal-title">

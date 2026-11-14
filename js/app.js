@@ -32,6 +32,31 @@
     lastTasi: null,
     regions: null,
     method: null,
+    examples: [],         // pares documentados en la literatura (GET {earth}/examples)
+    details: {},          // ficha completa del sitio (GET {earth}/candidates/{id}), con features
+    vectors: {},          // vector del destino (GET {planetary}/sites/{id}/vector)
+    tasiByTarget: {},     // POST /tasi por destino con los pesos y γ por defecto del servicio
+  };
+
+  // Métricas que se comparan lado a lado: clave en el sitio terrestre (features) y en el destino
+  // (vector), con la etiqueta de interfaz. Los valores y unidades vienen de la API.
+  const METRIC_ROWS = [
+    { label: "Relieve relativo", earth: "relative_relief", comp: "T", target: "relative_relief_m" },
+    { label: "Pendiente", earth: "slope", comp: "T", target: "slope_deg" },
+    { label: "Rugosidad", earth: "roughness", comp: "T", target: "roughness_m" },
+    { label: "Temperatura media", earth: "temp_mean", comp: "E", target: "temp_mean" },
+    { label: "Amplitud térmica diaria", earth: "temp_diurnal_range", comp: "E", target: "temp_diurnal_range" },
+    { label: "Iluminación", earth: "illumination_pct", comp: "E", target: "illumination_pct" },
+    { label: "Precipitación anual", earth: "precip_mm", comp: "Vo", target: "precip_mm" },
+    { label: "Indicador de hielo", earth: "water_ice_indicator", comp: "Vo", target: "water_ice_indicator" },
+  ];
+  const UNIT_LABELS = { degC: "°C", deg: "°", percent: "%", "mm/year": "mm/año", mm: "mm", m: "m", index_0_1: "", unitless: "" };
+  const QUALITY_LABELS = {
+    measured: ["dato medido", "ok"],
+    derived: ["derivado", "ok"],
+    modeled: ["modelado", "model"],
+    convention: ["convención", "model"],
+    derived_from_published_range: ["de rango publicado", "model"],
   };
 
   const $ = (sel) => document.querySelector(sel);
@@ -296,6 +321,30 @@
     state.earthMarkers[site.id] = m;
   }
 
+  function siteButton(site, extra) {
+    const rank = state.rankIds.indexOf(site.id);
+    const match = currentMatch(site.id);
+    return (
+      '<button type="button" class="site-btn' + (state.selectedId === site.id ? " active" : "") + '" data-id="' + escapeHtml(site.id) + '">' +
+        '<span class="name">' + (rank !== -1 ? (rank + 1) + ". " : "") + escapeHtml(site.name) + "</span>" +
+        (extra || "") +
+        '<span class="meta">' + escapeHtml(placeLine(site)) +
+          (match && match.score != null ? ", TASI " + escapeHtml(explain().formatScore(match.score)) + " de 100" : "") +
+        "</span>" +
+        (isLessStudied(site) ? '<span class="badge menos">Menos estudiado</span>' : "") +
+      "</button>"
+    );
+  }
+
+  function exampleFor(siteId) {
+    return state.examples.find((e) => e.earth_id === siteId) || null;
+  }
+
+  function targetName(id) {
+    const t = state.targets.find((x) => x.id === id);
+    return t ? (t.short_name || t.name) : id;
+  }
+
   function renderSiteList() {
     const box = $("#site-buttons");
     const sites = Object.values(state.sites);
@@ -303,31 +352,39 @@
       box.innerHTML = "<p class='placeholder-msg'>No hay sitios terrestres en el catálogo de la API.</p>";
       return;
     }
-    // Primero el ranking vigente (en su orden); después el resto, por nombre.
+    const examples = state.examples
+      .filter((e) => state.sites[e.earth_id])
+      .map((e) => siteButton(state.sites[e.earth_id],
+        '<span class="pair-line">con ' + escapeHtml((e.target_ids || []).map(targetName).join(" y ")) + "</span>"))
+      .join("");
+    // Después el ranking vigente (en su orden) y el resto del catálogo, por nombre.
     const ranked = state.rankIds.map((id) => state.sites[id]).filter(Boolean);
     const rest = sites.filter((s) => state.rankIds.indexOf(s.id) === -1)
       .sort((a, b) => String(a.name).localeCompare(String(b.name), "es"));
-    box.innerHTML = ranked.concat(rest).map((site) => {
-      const rank = state.rankIds.indexOf(site.id);
-      const match = currentMatch(site.id);
-      return (
-        '<button type="button" class="site-btn' + (state.selectedId === site.id ? " active" : "") + '" data-id="' + escapeHtml(site.id) + '">' +
-          '<span class="name">' + (rank !== -1 ? (rank + 1) + ". " : "") + escapeHtml(site.name) + "</span>" +
-          '<span class="meta">' + escapeHtml(placeLine(site)) +
-            (match && match.score != null ? ", TASI " + escapeHtml(explain().formatScore(match.score)) + " de 100" : "") +
-          "</span>" +
-          (isLessStudied(site) ? '<span class="badge menos">Menos estudiado</span>' : "") +
-        "</button>"
-      );
-    }).join("");
+    box.innerHTML =
+      (examples ? "<h3 class='sitelist-group'>Pares documentados en la literatura</h3>" + examples : "") +
+      "<h3 class='sitelist-group'>" + (ranked.length ? "Ranking TASI y resto del catálogo" : "Todo el catálogo") +
+        " (" + sites.length + " sitios)</h3>" +
+      ranked.concat(rest).map((site) => siteButton(site)).join("");
     box.querySelectorAll(".site-btn").forEach((btn) => {
-      btn.addEventListener("click", () => selectSite(btn.getAttribute("data-id")));
+      btn.addEventListener("click", () => selectSite(btn.getAttribute("data-id"), true));
     });
   }
 
-  function selectSite(id) {
+  // Al elegir un sitio de los pares documentados, el destino pasa a ser el de su par.
+  function selectSite(id, fromList) {
     const site = state.sites[id];
     if (!site) return;
+    const ex = exampleFor(id);
+    if (fromList && ex && ex.target_ids && ex.target_ids.length && (!state.target || ex.target_ids.indexOf(state.target.id) === -1)) {
+      const t = state.targets.find((x) => x.id === ex.target_ids[0]);
+      if (t) {
+        $("#finder-target").value = t.id;
+        state.lastTasi = null;
+        state.rankIds = [];
+        focusTarget(t);
+      }
+    }
     state.selectedId = id;
     refreshEarthIcons();
     renderSiteList();
@@ -365,7 +422,7 @@
     return "<div class='fact'><dt>" + escapeHtml(label) + " " + tag + "</dt><dd>" + value + "</dd></div>";
   }
 
-  function pairBlock(match) {
+  function pairBlock(match, source) {
     const t = state.target;
     if (!t) {
       return "<h3>Destino</h3><p class='muted'>Elegí un destino en el buscador de arriba para ver el par en el mapa de la derecha.</p>";
@@ -373,12 +430,13 @@
     const body = t.body === "moon" ? "Luna" : "Marte";
     const html = "<h3>Comparado con " + escapeHtml(t.short_name || t.name) + " (" + body + ")</h3>";
     if (!match) {
-      return html + "<p class='muted'>Este sitio no está en el último ranking TASI frente a ese destino. Corré «Buscar análogos en la Tierra» para puntuarlo.</p>";
+      return html + "<p class='muted'>Todavía no hay puntaje TASI de este sitio frente a ese destino.</p>";
     }
     const ex = explain().explainMatch(match);
     return html +
       "<div class='score-hero' style='--s:" + scoreFraction(match.score) + "'><div class='num score-color'>" + escapeHtml(explain().formatScore(match.score)) +
-      "</div><p>de 100, índice TASI frente a " + escapeHtml(t.short_name || t.name) + ".</p>" +
+      "</div><p>de 100, índice TASI frente a " + escapeHtml(t.short_name || t.name) +
+      (source === "por defecto" ? ", con los pesos y γ por defecto del servicio" : ", con los pesos de tu búsqueda") + ".</p>" +
       "<span class='score-bar' aria-hidden='true'><span></span></span></div>" +
       "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why || "Sin componentes con dato.") + "</p>" +
       "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks) + "</p>" +
@@ -414,11 +472,103 @@
       : escapeHtml(p)).join("");
   }
 
-  function renderSitePanel(id) {
+  function unitText(unit) {
+    if (unit == null) return "";
+    return UNIT_LABELS[unit] != null ? UNIT_LABELS[unit] : unit;
+  }
+
+  function valueCell(item) {
+    if (!item || item.value == null) return "<td><span class='tag warn'>a completar</span></td>";
+    const unit = unitText(item.unit);
+    const q = QUALITY_LABELS[item.quality];
+    const n = Number(item.value);
+    const shown = Number.isNaN(n) ? escapeHtml(item.value) : escapeHtml(n.toLocaleString("es-AR", { maximumFractionDigits: 2 }));
+    return "<td><span class='cmp-value'>" + shown + (unit ? (unit === "%" || unit === "°" ? "" : " ") + escapeHtml(unit) : "") + "</span>" +
+      (q ? " <span class='tag " + q[1] + "'>" + escapeHtml(q[0]) + "</span>" : "") + "</td>";
+  }
+
+  // Tabla lado a lado: datos del sitio (features de /candidates/{id}) y del destino (vector de /sites/{id}/vector).
+  function dataTable(detail, vector) {
+    const feats = (detail && detail.features) || {};
+    const comps = (vector && vector.components) || {};
+    const rows = METRIC_ROWS.map((r) => {
+      const t = ((comps[r.comp] || (r.comp === "Vo" ? comps.V : null) || {}).metrics || {})[r.target];
+      return "<tr><th scope='row'>" + escapeHtml(r.label) + "</th>" + valueCell(feats[r.earth]) + valueCell(t) + "</tr>";
+    }).join("");
+    return "<h3>Datos lado a lado</h3>" +
+      "<table class='cmp-table'><thead><tr><th scope='col'>Métrica</th><th scope='col'>Sitio</th><th scope='col'>Destino</th></tr></thead>" +
+      "<tbody>" + rows + "</tbody></table>" +
+      "<p class='muted'>Valores de la API (earth /candidates y planetary /sites/…/vector). Lo que no tiene dato queda «a completar».</p>";
+  }
+
+  function literatureBlock(ex) {
+    if (!ex) return "";
+    const sources = (ex.sources || []).map((src) =>
+      "<li><a href='" + escapeHtml(src.url) + "' target='_blank' rel='noopener'>" + escapeHtml(src.label || src.url) + "</a></li>").join("");
+    return "<section class='literature' aria-label='Documentado en la literatura'>" +
+      "<h3>Documentado en la literatura</h3>" +
+      "<p class='muted'>Texto de la fuente del par, sin puntaje: no sale de TASI.</p>" +
+      (ex.why_es ? "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why_es) + "</p>" : "") +
+      (ex.breaks_es ? "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks_es) + "</p>" : "") +
+      (sources ? "<p class='muted'>Fuentes:</p><ul class='literature-sources'>" + sources + "</ul>" : "") +
+      (ex.wikipedia_only ? "<p><span class='tag warn'>Solo Wikipedia: fuente de último recurso</span></p>" : "") +
+      "</section>";
+  }
+
+  async function ensureDetails(siteId, target) {
+    const api = state.api;
+    const jobs = [];
+    if (!state.details[siteId]) jobs.push(api.getCandidate(siteId).then((d) => { state.details[siteId] = d; }));
+    if (target && !state.vectors[target.id]) jobs.push(api.getTargetVector(target.id).then((v) => { state.vectors[target.id] = v; }));
+    if (target && !state.tasiByTarget[target.id]) {
+      jobs.push((async () => {
+        const vector = state.vectors[target.id] || (await api.getTargetVector(target.id));
+        state.vectors[target.id] = vector;
+        state.tasiByTarget[target.id] = await api.rankAnalogs({
+          targetVector: vector,
+          weights: (state.method && state.method.default_weights) || undefined,
+          gamma: state.method ? state.method.default_gamma : undefined,
+          top: Object.keys(state.sites).length || 100,
+          applyMask: true,
+        });
+      })());
+    }
+    await Promise.all(jobs);
+  }
+
+  // El puntaje del par: el del último ranking si incluye el sitio; si no, el de /tasi con los
+  // pesos y γ por defecto del servicio para ese destino.
+  function matchFor(siteId) {
+    const fromSearch = currentMatch(siteId);
+    if (fromSearch) return { match: fromSearch, discarded: null, source: "búsqueda" };
+    const data = state.target && state.tasiByTarget[state.target.id];
+    if (!data) return { match: null, discarded: null, source: null };
+    const match = (data.matches || []).find((m) => m.site && m.site.id === siteId) || null;
+    const discarded = (data.discarded || []).find((d) => d.id === siteId) || null;
+    return { match: match, discarded: discarded, source: "por defecto" };
+  }
+
+  async function renderSitePanel(id) {
     const site = state.sites[id];
     if (!site) return;
-    const match = currentMatch(id);
-    const mask = (match && match.mask) || {};
+    const target = state.target;
+    paintSitePanel(id, true);
+    try {
+      await ensureDetails(id, target);
+    } catch (e) {
+      if (state.selectedId === id) paintSitePanel(id, false, e.message);
+      return;
+    }
+    if (state.selectedId === id && state.target === target) paintSitePanel(id, false);
+  }
+
+  function paintSitePanel(id, loading, error) {
+    const site = state.sites[id];
+    const target = state.target;
+    const ex = exampleFor(id);
+    const exOk = ex && target && (ex.target_ids || []).indexOf(target.id) !== -1;
+    const found = matchFor(id);
+    const mask = (found.match && found.match.mask) || {};
     $("#panel").innerHTML =
       '<div class="panel-head"><h2>Sitio</h2></div>' +
       '<div class="panel-body">' +
@@ -429,13 +579,17 @@
         '<dl class="facts">' +
           fact("Coordenadas", Number(site.lat).toFixed(5) + "°, " + Number(site.lon).toFixed(5) + "°", site.coord_source ? "measured" : "placeholder") +
           fact("País", escapeHtml(site.country_name || "a completar") + (site.country_iso ? " (" + escapeHtml(site.country_iso) + ")" : ""), "") +
-          fact("Tipos de análogo", escapeHtml((site.analog_types || []).join(", ") || "a completar"), "") +
         "</dl>" +
+        (loading ? "<p class='muted' role='status'>Cargando datos del sitio, del destino y el puntaje TASI…</p>" : "") +
+        (error ? "<p class='caution'>No pudimos cargar los datos del par: " + escapeHtml(error) + "</p>" : "") +
         (mask.unknown_flags && mask.unknown_flags.length
           ? "<p class='caution'>Máscara incompleta: " + escapeHtml(mask.unknown_flags.join(", ")) + ". El sitio no se descartó.</p>"
           : "") +
-        pairBlock(match) +
-        componentsBlock(match) +
+        (found.discarded ? "<p class='caution'>La máscara M(x) descarta este sitio frente a este destino, así que no tiene puntaje TASI.</p>" : "") +
+        pairBlock(found.match, found.source) +
+        (!loading && target ? dataTable(state.details[id], state.vectors[target.id]) : "") +
+        componentsBlock(found.match) +
+        (exOk ? literatureBlock(ex) : "") +
         "<h3>Fuente de las coordenadas</h3>" +
         "<p class='sources'>" + linkify(site.coord_source || "A completar: el catálogo no trae la fuente de este punto.") + "</p>" +
       "</div>";
@@ -653,17 +807,20 @@
     }
     const api = state.api;
     try {
-      const [moon, mars, regions, candidates, method] = await Promise.all([
+      const [moon, mars, regions, candidates, method, examples] = await Promise.all([
         api.getTargets("moon"),
         api.getTargets("mars"),
         api.getRegions(),
         api.getCandidates(),
         api.getMethod(),
+        api.getExamples().catch(() => ({ examples: [] })),
       ]);
       state.targets = [].concat(moon || [], mars || []);
       state.regions = regions;
       state.method = method;
+      state.examples = (examples && examples.examples) || [];
       (candidates.sites || []).forEach(addSite);
+      state.examples.forEach((e) => { if (e.site) addSite(e.site); });
       renderSiteList();
       addDestMarkers();
       populateFinder();
@@ -672,9 +829,14 @@
         const t = state.targets.find((x) => x.id === $("#finder-target").value);
         if (t) chooseTarget(t);
       });
-      // Destino por defecto: el primero que devuelve la API.
-      const first = state.targets.find((x) => x.id === $("#finder-target").value);
-      if (first) focusTarget(first);
+      // Arranque: el primer par documentado (sitio + su destino marcados); si no hay, el primer destino de la API.
+      const firstExample = state.examples.find((e) => state.sites[e.earth_id] && (e.target_ids || []).length);
+      if (firstExample) {
+        selectSite(firstExample.earth_id, true);
+      } else {
+        const first = state.targets.find((x) => x.id === $("#finder-target").value);
+        if (first) focusTarget(first);
+      }
     } catch (e) {
       const status = $("#api-status");
       status.textContent = "Los servicios respondieron /health pero falló una consulta del catálogo: " + e.message;

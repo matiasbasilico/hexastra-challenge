@@ -137,6 +137,16 @@ test("sin servicios, api-stub.js avisa que no están disponibles y no trae datos
   }
 });
 
+test("el avanzado arranca con los pares documentados de /examples, con su texto rotulado aparte", () => {
+  const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
+  assert.match(app, /api\.getExamples\(\)/);
+  assert.match(app, /Documentado en la literatura/);
+  assert.match(app, /getTargetVector\(target\.id\)/);
+  assert.match(app, /why_es/);
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  assert.ok(html.indexOf('class="workspace"') < html.indexOf('class="buscador"'), "la búsqueda completa va debajo de la comparativa");
+});
+
 test("los archivos del prototipo viejo ya no están en data/", () => {
   for (const f of ["sites.json", "catalog.json", "climate-era5-1991-2020.json", "earth-sites.geojson", "mars-sites.geojson"]) {
     assert.ok(!existsSync(join(ROOT, "data", f)), "sigue data/" + f);

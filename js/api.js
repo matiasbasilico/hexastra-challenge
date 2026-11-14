@@ -179,6 +179,12 @@
     return request(urls.planetary + "/bodies");
   }
 
+  // Pares Tierra–destino documentados en la literatura (why_es, breaks_es, fuentes), sin puntaje.
+  async function getExamples() {
+    const urls = getServiceUrls();
+    return request(urls.earth + "/examples");
+  }
+
   async function getCandidate(id) {
     if (!id) return Promise.reject(new Error("getCandidate(id) requiere un id"));
     const urls = getServiceUrls();
@@ -243,6 +249,7 @@
     getFeatured: getFeatured,
     getCandidates: getCandidates,
     getCandidate: getCandidate,
+    getExamples: getExamples,
     rankAnalogs: rankAnalogs,
     getMethod: getMethod,
     getBodies: getBodies,

@@ -20,7 +20,7 @@
 
   const METHODS = [
     "getTargets", "getTargetVector", "getRegions", "getFeatured", "getCandidates",
-    "getCandidate", "rankAnalogs", "getMethod", "getBodies"
+    "getCandidate", "getExamples", "rankAnalogs", "getMethod", "getBodies"
   ];
 
   const stub = { source: "unavailable", message: MESSAGE };
