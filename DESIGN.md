@@ -110,7 +110,9 @@ Montserrat 700 para titulares y la marca escrita; Montserrat 600 en mayúsculas 
 
 - Contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
 - **Comparativa lado a lado siempre:** Tierra | destino con los dos mapas a la vez y los puntos marcados; bajo 560 px los mapas se apilan, más anchos, y siguen visibles a la vez.
-- Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con alto fijo y scroll interno; la búsqueda completa va debajo.
+- Escritorio desde 960 × 640 px: cabecera compacta y espacio de trabajo ajustado al alto disponible, sin scroll de página; listas y fichas largas se desplazan dentro de sus paneles. En ventanas menores vuelve el flujo de documento.
+- Los límites físicos se abren desde «Límites de la Tierra» en un diálogo con foco contenido, cierre con Escape y retorno al botón. Los lugares destacados del modo fácil son desplegables.
+- Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con scroll interno; el resumen de búsqueda queda al pie.
 - Espacios generosos y textos largos fuera de la pantalla principal (el detalle del método vive en «Cómo se calcula»).
 
 ## Elevation & Depth
@@ -129,6 +131,8 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - **Fila seleccionable (sitio, resultado, destino):** `noche-2` con borde `linea`; seleccionada con fondo cian al 12 % y borde cian.
 - **Puntaje:** cifra Montserrat 700 coloreada en la escala violeta → óxido y barra de 4 px con el mismo degradado.
 - **Mapa:** marco `noche-2` con etiqueta del cuerpo y su punto de color; controles de Leaflet en `noche-2`.
+- **Globo terrestre:** textura ilustrativa de Earth3D con crédito visible, halo cian tenue y los mismos pines del mapa 2D. No rota automáticamente; la selección centra el sitio y mantiene su longitud sobre la textura. Flechas y controles de zoom accesibles, movimiento reducido respetado. Sin WebGL vuelve a Leaflet.
+- **Modal del punto:** cifra TASI grande a la izquierda, sitio y destino a la derecha, explicación de analogía y brecha, componentes sin datos en chips dorados. Se abre con clic o teclado; Escape y Cerrar devuelven el foco al punto. En celular se apila y permite desplazamiento interno.
 - **Texto de literatura:** bloque con borde punteado celeste, rotulado «Documentado en la literatura», separado del puntaje.
 
 ## Do's and Don'ts

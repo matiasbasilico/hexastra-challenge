@@ -194,6 +194,22 @@
     state.earthMap = earth;
     state.marsMap = mars;
     state.layers = { osm, esri, gibsTrueColor, gibsLst, opm, mola, marsShaded, opmMoon };
+    if (window.HexastraGlobe) {
+      state.globe = window.HexastraGlobe.attach(earth, {
+        getContext: async (marker) => {
+          const site = marker.hexastraSite;
+          if (!site) return null;
+          const target = state.target;
+          try { await ensureDetails(site.id, target); } catch (e) { /* La ficha informa los datos ausentes. */ }
+          if (target && state.target?.id !== target.id) return null;
+          return { site, target, match: matchFor(site.id).match };
+        },
+      });
+      document.querySelectorAll('.layers-panel input[id^="layer-"]').forEach(input => {
+        if (['layer-opm', 'layer-mola', 'layer-shaded'].includes(input.id)) return;
+        input.addEventListener('change', () => state.globe.setMode(false));
+      });
+    }
     const resizeMaps = () => { earth.invalidateSize(); mars.invalidateSize(); };
     window.addEventListener("resize", resizeMaps);
     setTimeout(resizeMaps, 200);
@@ -328,6 +344,7 @@
     state.sites[site.id] = Object.assign({}, state.sites[site.id] || {}, site);
     if (state.earthMarkers[site.id] || site.lat == null || site.lon == null || !state.earthMap) return;
     const m = L.marker([site.lat, site.lon], { icon: earthIconFor(site.id), title: site.name });
+    m.hexastraSite = site;
     m.on("click", () => selectSite(site.id));
     m.bindTooltip(site.short_name || site.name);
     m.addTo(state.earthMap);

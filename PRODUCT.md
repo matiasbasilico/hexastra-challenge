@@ -29,12 +29,13 @@ Identificar y caracterizar análogos terrestres nuevos, poco estudiados, de las 
 
 ## Capabilities and Constraints
 
-- Front estático vanilla (HTML, CSS, JS) con Leaflet; MVP de mapa de puntos. Sin framework, sin Cesium, sin grilla H3 (`CLAUDE.md` §2).
+- Front estático vanilla (HTML, CSS, JS): Tierra en globo Three.js inspirado en Earth3D, con alternativa Leaflet 2D; destinos en Leaflet. Puntos de la API, sin framework, sin Cesium, sin grilla H3 (`CLAUDE.md` §2). Cambio de vista terrestre autorizado por el usuario el 14/11/2026.
+- Al tocar un punto del globo se abre un modal con el sitio, su destino, el puntaje TASI, por qué se parece, en qué no y los componentes sin datos. Si el par no tiene puntaje, se indica; nunca hereda el de otro sitio. La ficha lateral y ambos puntos siguen sincronizados.
 - **Todo el contenido sale de la API** (planetary-service y earth-service sobre PostGIS): sitios, destinos, ranking TASI, why/breaks, método y presets (`/method`), valores físicos de referencia (`/bodies`), ejemplos (`/examples`). El front solo tiene textos de interfaz.
 - Sin servicios, la página avisa «servicio no disponible» y no muestra datos.
 - La comparativa lado a lado Tierra | destino, con los dos puntos marcados y sincronizados, es decisión de producto: ningún rediseño la saca ni la esconde.
 - Contratos que no se rompen: `js/api.js`, `js/config.js` y los ids que lee el JS.
-- Abierto: dosis de radiación en superficie de la Tierra y de la Luna (la API las devuelve null hasta tener fuente primaria).
+- Radiación de referencia en `/bodies`: Tierra, promedio exterior modelado por UNSCEAR 2024; Luna, medición Chang'e-4/LND publicada por Zhang et al. (2020); Marte, RAD/MSL. La fuente explicita la conversión diaria, el contexto y la diferencia entre dosis efectiva y equivalente; no son mediciones del sitio elegido ni entran en TASI.
 
 ## Brand Commitments
 

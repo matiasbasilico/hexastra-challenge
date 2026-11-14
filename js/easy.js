@@ -192,14 +192,14 @@
         '<nav class="easy-steps" aria-label="Pasos del modo fácil">' +
           '<ol class="easy-stepper" id="easy-stepper"></ol>' +
         '</nav>' +
-        '<section class="easy-featured" aria-label="Lugares destacados">' +
+        '<details class="easy-featured" aria-label="Lugares destacados">' +
+          '<summary>Lugares destacados</summary>' +
           '<div class="easy-featured-head">' +
-            '<h2>Lugares destacados</h2>' +
             '<p>Atajos a sitios de referencia. Tocá uno para ir al mapa. Los que dicen «análogo clásico» (Antártida, Atacama, Hawái, Haughton…) están muy estudiados: el desafío pide también buscar análogos menos conocidos.</p>' +
           '</div>' +
           '<div id="easy-featured-groups"></div>' +
           '<div id="easy-featured-panel" class="easy-feat-panel" hidden></div>' +
-        '</section>' +
+        '</details>' +
           '<section class="easy-main" id="easy-main" aria-live="polite"></section>' +
           '</div>' +
           '<section class="easy-compare" id="easy-compare" aria-labelledby="easy-compare-title">' +
@@ -255,6 +255,14 @@
     if (!maps.length) return;
     requestAnimationFrame(function () { maps.forEach(function (m) { m.invalidateSize(); }); });
     setTimeout(function () { maps.forEach(function (m) { m.invalidateSize(); }); }, 200);
+  }
+
+  function observeMapSize(map, element) {
+    if (typeof ResizeObserver === "undefined") return;
+    // La ficha puede crecer al elegir un resultado sin que cambie el tamaño de la ventana.
+    new ResizeObserver(function () {
+      if (element.clientWidth && element.clientHeight) map.invalidateSize({ pan: false });
+    }).observe(element);
   }
 
   function renderFeatured() {
@@ -374,6 +382,20 @@
     });
   }
 
+  function plotFeaturedSites() {
+    if (!state.map || !state.featured) return;
+    if (state.featuredPins) state.map.removeLayer(state.featuredPins);
+    state.featuredPins = L.layerGroup().addTo(state.map);
+    allFeaturedPlaces().forEach(function (site) {
+      if (site.lat == null || site.lon == null) return;
+      const marker = L.marker([site.lat, site.lon], { icon: featuredIcon(false), title: site.name });
+      marker.hexastraSite = site;
+      marker.on("click", function () { selectFeatured(site.id); });
+      marker.bindTooltip(site.short_name || site.name);
+      marker.addTo(state.featuredPins);
+    });
+  }
+
   function clearFeaturedMarker() {
     if (state.map && state.featuredMarker) {
       state.map.removeLayer(state.featuredMarker);
@@ -398,6 +420,7 @@
         keyboard: true,
         alt: pl.name
       }).addTo(state.map);
+      marker.hexastraSite = pl;
       marker.bindTooltip(pl.short_name || pl.name);
       state.featuredMarker = marker;
       const z = Math.abs(pl.lat) > 70 ? 5 : 7;
@@ -1107,6 +1130,19 @@
     );
     state.tileEsri.addTo(map);
     state.map = map;
+    if (window.HexastraGlobe) {
+      state.globe = window.HexastraGlobe.attach(map, {
+        tools: $(".easy-map-tools"),
+        getContext: (marker) => ({
+          site: marker.hexastraSite,
+          target: currentTarget(),
+          match: ((state.results && state.results.matches) || []).find(function (m) {
+            return m.site && m.site.id === marker.hexastraSite?.id;
+          }) || null,
+        }),
+      });
+    }
+    observeMapSize(map, el);
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
@@ -1150,6 +1186,7 @@
       )
     };
     state.destMap = map;
+    observeMapSize(map, el);
     setDestBody(state.body || "moon");
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
@@ -1330,6 +1367,10 @@
 
   function plotResults(data) {
     if (!state.map) return;
+    if (state.featuredPins) {
+      state.map.removeLayer(state.featuredPins);
+      state.featuredPins = null;
+    }
     Object.keys(state.markers).forEach(function (id) {
       state.map.removeLayer(state.markers[id]);
     });
@@ -1345,6 +1386,7 @@
         keyboard: true,
         alt: "Análogo " + (i + 1) + ": " + site.name
       }).addTo(state.map);
+      marker.hexastraSite = site;
       marker.bindTooltip(site.short_name || site.name);
       marker.on("click", function () { selectResult(site.id); });
       state.markers[site.id] = marker;
@@ -1529,6 +1571,7 @@
     renderFeatured();
 
     state.body = "moon";
+    plotFeaturedSites();
     state.loadingTargets = true;
     renderMain();
     await loadTargets("moon");

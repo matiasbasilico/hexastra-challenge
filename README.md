@@ -37,6 +37,21 @@ localStorage.setItem("HEXASTRA_EARTH_URL", "http://127.0.0.1:8767");
 
 Los defaults también están en `js/config.js`. La capa de llamadas, pensada para el front avanzado y para el *easy mode* en paralelo, está documentada en `js/api.js`.
 
+### Globo 3D e interfaz
+
+La Tierra se explora en un globo inspirado en [Earth3D](https://github.com/mitchcamza/Earth3D), con los puntos del catálogo y del ranking TASI. Tocar un punto abre el resumen del par; la ficha y el destino se mantienen sincronizados. Los botones permiten volver a satélite o mapa 2D. Si no hay WebGL, se conserva Leaflet. Los [créditos de la textura y las dependencias](assets/globe/CREDITS.md) explicitan que la imagen es ilustrativa y no interviene en el puntaje.
+
+En escritorio desde 960 × 640 px el espacio de trabajo ocupa una pantalla, con scroll interno en listas y fichas; en ventanas menores el documento mantiene el scroll. «Límites de la Tierra» abre las referencias físicas en un diálogo.
+
+El bundle listo para servir está versionado; `run_all.sh` y la publicación estática no necesitan Node. Para cambiar el renderer:
+
+```bash
+npm ci
+npm run build:globe
+```
+
+Fuente: `js/globe.mjs` y `js/globe-data.mjs`. Resultado: `js/vendor/globe.bundle.js`, con la licencia de Three.js al lado. Las pruebas del front no necesitan instalar dependencias del renderer.
+
 ### Docker
 
 ```bash
