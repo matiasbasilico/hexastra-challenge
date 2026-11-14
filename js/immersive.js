@@ -27,9 +27,10 @@
   function siteIcon(site){
     const match=H.pairFromRanking(state.ranking,site.id).match;
     const rank=match?.score!=null?(state.ranking.matches || []).indexOf(match)+1:0;
+    const leading=rank>0 && rank<=5 && Number.isFinite(match?.score) && match.score>0;
     const active=state.selected?.id===site.id;
     const kind=site.highlight_less_studied || site.known_level==='lesser-known'?'menos':'earth';
-    return L.divIcon({className:'',html:`<span class="pin ${rank && active?'rank':kind}${active?' active':''}">${active?rank || '':''}</span>`,iconSize:[28,28],iconAnchor:[14,14]});
+    return L.divIcon({className:'',html:`<span class="pin ${rank && active?'rank':kind}${active?' active':''}${leading?' is-leading':''}" style="--pulse-delay:${-180*Math.max(0,rank-1)}ms">${active?rank || '':''}</span>`,iconSize:[28,28],iconAnchor:[14,14]});
   }
   function updateIcons(){state.markers.forEach((marker,id)=>marker.setIcon(siteIcon(state.sites.find(s=>s.id===id))));}
   function renderSites(){
@@ -72,7 +73,8 @@
       if(revision!==state.revision)return;
       state.ranking=ranking;updateIcons();renderSites();
       const n=(ranking.matches || []).filter(m=>m.score!=null).length;
-      status(`${state.sites.length} sitios · ${n} comparables en esta misión`);
+      const leaders=(ranking.matches || []).slice(0,5).filter(m=>Number.isFinite(m.score) && m.score>0).length;
+      status(`${state.sites.length} sitios · ${n} comparables en esta misión${leaders?` · ${leaders} mejores TASI con pulso`:''}`);
     }catch(e){if(revision===state.revision)status(`No se pudo calcular TASI. ${e.message}`,true);}
   }
   function focusEarth(site){

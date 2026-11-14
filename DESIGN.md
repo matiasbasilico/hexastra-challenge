@@ -133,6 +133,7 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - **Puntaje:** cifra Montserrat 700 coloreada en la escala violeta → óxido y barra de 4 px con el mismo degradado.
 - **Mapa:** marco `noche-2` con etiqueta del cuerpo y su punto de color; controles de Leaflet en `noche-2`.
 - **Globo terrestre:** textura ilustrativa de Earth3D con crédito visible, halo cian tenue y los mismos pines del mapa 2D. No rota automáticamente; la selección centra el sitio y mantiene su longitud sobre la textura. Flechas y controles de zoom accesibles, movimiento reducido respetado. Sin WebGL vuelve a Leaflet.
+- **Mayor similitud:** hasta cinco sitios con los mayores TASI positivos de la misión emiten dos anillos cian suaves, con fases escalonadas. Se actualizan con destino, enfoque, región y máscara; al recalcular desaparece el pulso anterior. Es una posición relativa en el ranking, no un umbral de analogía fuerte. Con movimiento reducido se muestra un anillo fijo.
 - **Ficha flotante del punto:** sitio, mapa del destino marcado, TASI grande, cobertura, explicación de analogía y brecha, componentes sin datos en chips dorados y datos/fuentes plegables. Se abre con clic o teclado, permite seguir girando la Tierra y se cierra con Escape o Cerrar. El clásico conserva el modal del punto.
 - **Texto de literatura:** bloque con borde punteado celeste, rotulado «Documentado en la literatura», separado del puntaje.
 

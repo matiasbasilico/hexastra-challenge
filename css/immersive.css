@@ -14,6 +14,28 @@ body.immersive { --compare-width: 460px; --float-margin: 32px; background: var(-
 .immersive .pin.rank { width: 24px; height: 24px; border-radius: 50%; font-size: var(--text-xs); }
 .immersive .pin.active { width: 20px; height: 20px; outline-width: 2px; }
 .immersive .pin.rank.active { width: 28px; height: 28px; }
+.immersive .pin.is-leading { position: relative; }
+.immersive .pin.is-leading::before, .immersive .pin.is-leading::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--hx-cian);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: similarity-pulse 2.8s ease-out infinite;
+  animation-delay: var(--pulse-delay, 0ms);
+}
+.immersive .pin.is-leading::after { animation-delay: calc(var(--pulse-delay, 0ms) - 1.4s); }
+@keyframes similarity-pulse {
+  0% { transform: scale(.65); opacity: 0; }
+  15% { opacity: .65; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .immersive .pin.is-leading::before { animation: none; transform: scale(.85); opacity: .65; }
+  .immersive .pin.is-leading::after { display: none; animation: none; }
+}
 .orbit-header { position: absolute; z-index: 600; inset: var(--float-margin) var(--float-margin) auto; display: flex; justify-content: space-between; align-items: start; gap: var(--space-lg); pointer-events: none; }
 .orbit-header > * { pointer-events: auto; }
 .orbit-brand { display: flex; gap: var(--space-sm); align-items: center; color: var(--hx-texto); text-decoration: none; }
