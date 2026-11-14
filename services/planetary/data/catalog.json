@@ -1,0 +1,1117 @@
+{
+  "meta": {
+    "title": "Hexastra planetary catalog (Moon and Mars)",
+    "team": "Hexastra",
+    "created": "2026-11-14",
+    "timezone": "America/Buenos_Aires",
+    "disclaimer": "No se inventan mediciones. quality=measured: valor bajado o leído de una fuente primaria en esta corrida. quality=convention: cero de precipitación líquida en Marte/Luna, documentado. quality=derived_from_published_range: punto medio de un rango publicado (no un promedio temporal). quality=placeholder: sin valor (null).",
+    "artemis_iii_regions_nasa_2022": [
+      "Faustini Rim A",
+      "Peak Near Shackleton",
+      "Connecting Ridge",
+      "Connecting Ridge Extension",
+      "de Gerlache Rim 1",
+      "de Gerlache Rim 2",
+      "de Gerlache-Kocher Massif",
+      "Haworth",
+      "Malapert Massif",
+      "Leibnitz Beta Plateau",
+      "Nobile Rim 1",
+      "Nobile Rim 2",
+      "Amundsen Rim"
+    ],
+    "artemis_source": "https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/",
+    "lunar_landing_site_api": {
+      "tried": [
+        "https://lunarlandingsiteapi.up.railway.app/health",
+        "https://lunarlandingsiteapi.up.railway.app/"
+      ],
+      "status": "retired / HTTP 404 on 2026-11-14 (America/Buenos_Aires). The public GitHub describes a former Iris Data Labs project whose Railway backend is offline.",
+      "fallback": "Static catalog of IAU gazetteer anchors and published LOLA / NASA values already in this file. No invented elevations or slopes."
+    },
+    "trek": {
+      "wmts_capabilities_verified_2026-11-14": [
+        "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_Shade_Global_128ppd_v04/1.0.0/WMTSCapabilities.xml",
+        "https://trek.nasa.gov/tiles/Moon/EQ/LRO_LOLA_ClrRoughness_Global_16ppd/1.0.0/WMTSCapabilities.xml",
+        "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MOLA_blend200ppx_HRSC_ClrShade_clon0dd_200mpp_lzw/1.0.0/WMTSCapabilities.xml"
+      ],
+      "note": "Trek WMTS served Capabilities XML (HTTP 200) in this run. Those layers are image tiles (shaded relief / color). This prototype does not sample numeric elevation from PNG/JPEG tiles, because that would invent a value. No public GetFeatureInfo point API was found."
+    }
+  },
+  "features": {
+    "elevation": {
+      "id": "elevation",
+      "name_es": "Elevación",
+      "description": "Altura respecto del datum del cuerpo (geoide terrestre, areoide MOLA, datum lunar de la fuente).",
+      "unit": "m",
+      "numeric": true,
+      "use_log": false,
+      "default_weight": 1.0,
+      "why_normalize": "Las cotas van de cráteres a varios km bajo el areoide (−4501 m en Gale) hasta cumbres andinas (>4000 m) y bordes lunares (~1300 m). Sin normalizar, la distancia euclidiana la dominaría la elevación."
+    },
+    "slope": {
+      "id": "slope",
+      "name_es": "Pendiente",
+      "description": "Pendiente local en grados. La definición y la línea de base se documentan en cada registro (en la Tierra: SRTM a 120 m).",
+      "unit": "deg",
+      "numeric": true,
+      "use_log": false,
+      "default_weight": 1.0,
+      "why_normalize": "Las pendientes útiles para aterrizar suelen ser de pocos grados; un edificio volcánico puede superar 10–15°. Hay que normalizar para compararla con temperatura o lluvia."
+    },
+    "roughness": {
+      "id": "roughness",
+      "name_es": "Rugosidad",
+      "description": "Rugosidad en metros. OJO: la escala no es la misma en todos los cuerpos (SRTM ~120 m vs RMS LOLA en un spot de 5 m). Por defecto no entra en la similitud.",
+      "unit": "m",
+      "numeric": true,
+      "use_log": true,
+      "default_weight": 0.0,
+      "comparable_default": false,
+      "why_normalize": "Si se incluye, puede abarcar de <1 m (RMS LOLA) a decenas de metros (desvío SRTM). Se ofrece log por el rango de órdenes de magnitud, pero la comparación de escalas distintas es limitada."
+    },
+    "temp_mean": {
+      "id": "temp_mean",
+      "name_es": "Temperatura media",
+      "description": "Temperatura media del aire cerca de la superficie, o el estadístico publicado que se indica en la fuente (en °C).",
+      "unit": "degC",
+      "numeric": true,
+      "use_log": false,
+      "default_weight": 1.0,
+      "why_normalize": "La Tierra anda cerca de 0 a 16 °C en estos sitios; Marte, decenas de grados bajo cero; la Luna polar, aún más fría cuando hay dato. Sin normalizar, el valor absoluto en °C aplasta a las demás dimensiones."
+    },
+    "temp_diurnal_range": {
+      "id": "temp_diurnal_range",
+      "name_es": "Amplitud térmica diaria",
+      "description": "Diferencia típica o media entre máximo y mínimo diario, en °C o K (misma magnitud).",
+      "unit": "degC",
+      "numeric": true,
+      "use_log": false,
+      "default_weight": 1.0,
+      "why_normalize": "En la Puna es ~10–15 °C; en Gale el aire ronda 45–75 K. Son escalas distintas a la lluvia o la cota."
+    },
+    "precip_mm": {
+      "id": "precip_mm",
+      "name_es": "Precipitación / aridez",
+      "description": "Precipitación anual líquida en mm. En Marte y la Luna se usa 0 por convención documentada (no hay lluvia líquida estable), no porque un pluviómetro haya medido cero.",
+      "unit": "mm/year",
+      "numeric": true,
+      "use_log": true,
+      "default_weight": 1.0,
+      "why_normalize": "Va de 0 (Marte/Luna) a ~500 mm en algunos puntos terrestres. Se aplica log1p antes de z-score o min-max porque el rango cubre órdenes de magnitud y muchos ceros."
+    },
+    "illumination_pct": {
+      "id": "illumination_pct",
+      "name_es": "Iluminación (polos lunares)",
+      "description": "Porcentaje de tiempo iluminado, relevante en el polo sur lunar. En la Tierra y Marte de este catálogo suele faltar (no es el mismo producto).",
+      "unit": "percent",
+      "numeric": true,
+      "use_log": false,
+      "default_weight": 1.0,
+      "why_normalize": "Es un porcentaje 0–100; igual hay que alinearlo con las demás variables en el vector."
+    },
+    "water_ice_indicator": {
+      "id": "water_ice_indicator",
+      "name_es": "Indicador de hielo / volatiles",
+      "description": "Indicador 0–1 si hay una fuente que clasifique presencia o vecindad de hielo o de una PSR. Sin fuente, queda vacío (no se inventa).",
+      "unit": "index_0_1",
+      "numeric": true,
+      "use_log": false,
+      "default_weight": 1.0,
+      "why_normalize": "Está en 0–1; se normaliza junto al resto cuando hay valores en más de un sitio."
+    }
+  },
+  "sites": [
+    {
+      "id": "jezero",
+      "name": "Cráter Jezero (Perseverance)",
+      "short_name": "Jezero",
+      "body": "mars",
+      "lat": 18.44,
+      "lon": 77.45,
+      "lon_east_0_360": 77.45,
+      "coord_source": "NASA GISS Mars24: Perseverance, 18 feb 2021, 77.45°E 18.44°N (Octavia E. Butler Landing). https://www.giss.nasa.gov/tools/mars24/help/landers.html",
+      "summary": "Cráter con delta y depósitos lacustres; sitio de Perseverance.",
+      "tags": [
+        "marte"
+      ],
+      "geology_class": "impact_crater_lacustrine",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se bajó una cota MOLA/areoide con fuente primaria en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA/HiRISE cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": -56.15,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "derived_from_published_range",
+          "source": "Munguira et al. (2024), JGR Planets, doi:10.1029/2024JE008385: las medias diarias de aire a 1,45 m en Jezero a lo largo del año marciano 36 van de 209 a 225 K. El valor −56,15 °C es el punto medio de ese rango (217 K), no un promedio temporal ponderado.",
+          "note": "Usar con cautela en la similitud: es un derivado del rango publicado.",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte (el ciclo de volátiles es sobre todo CO2/H2O en forma de hielo y vapor). NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": "Útil para comparar aridez con la Tierra; no implica que el sitio tenga 0 mm de equivalente de hielo.",
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No aplica el producto de iluminación polar lunar.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "gale",
+      "name": "Cráter Gale (Curiosity)",
+      "short_name": "Gale",
+      "body": "mars",
+      "lat": -4.59,
+      "lon": 137.44,
+      "lon_east_0_360": 137.44,
+      "coord_source": "NASA GISS Mars24: Curiosity, 6 ago 2012, 137.44°E 4.59°S (Bradbury Landing).",
+      "summary": "Cráter con historia de ríos y lago; explora Curiosity al pie de Aeolis Mons.",
+      "tags": [
+        "marte"
+      ],
+      "geology_class": "impact_crater_lacustrine",
+      "features": {
+        "elevation": {
+          "value": -4501,
+          "unit": "m",
+          "is_real": true,
+          "quality": "measured",
+          "source": "NASA Facts, Mars Science Laboratory/Curiosity: aterrizaje a minus 4,501 meters of elevation. https://mars.nasa.gov/internal_resources/824/",
+          "note": null,
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA/HiRISE cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica de sitio (REMS/MEDA u otra) verificada en esta corrida. No se asigna el promedio global −59 °C a este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": 60.0,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "derived_from_published_range",
+          "source": "Martínez et al., análisis de REMS en Gale: la amplitud diurna del aire va de ~45 K (cerca del sol 550, Ls~93°) a ~75 K (cerca del sol 710, Ls~173°). El valor 60 °C es el punto medio de ese rango publicado, no un promedio de todos los soles. https://revistas.ucm.es/index.php/FITE/en/article/download/53902/49342",
+          "note": "Derivado de un rango; no es un único estadístico oficial de la misión.",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte (el ciclo de volátiles es sobre todo CO2/H2O en forma de hielo y vapor). NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": "Útil para comparar aridez con la Tierra; no implica que el sitio tenga 0 mm de equivalente de hielo.",
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No aplica el producto de iluminación polar lunar.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "medusae-fossae",
+      "name": "Medusae Fossae",
+      "short_name": "Medusae Fossae",
+      "body": "mars",
+      "lat": -2.17,
+      "lon": -164.2,
+      "lon_east_0_360": 195.8,
+      "coord_source": "USGS IAU Gazetteer, Medusae Fossae (ID 3795), red detallada: −2.17°, 195.80°E. https://planetarynames.wr.usgs.gov/Feature/3795",
+      "summary": "Material blando ecuatorial, erosionado por el viento; par de Piedra Pómez.",
+      "tags": [
+        "marte"
+      ],
+      "geology_class": "volcaniclastic_aeolian",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se bajó una cota MOLA/areoide con fuente primaria en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA/HiRISE cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica de sitio (REMS/MEDA u otra) verificada en esta corrida. No se asigna el promedio global −59 °C a este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte (el ciclo de volátiles es sobre todo CO2/H2O en forma de hielo y vapor). NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": "Útil para comparar aridez con la Tierra; no implica que el sitio tenga 0 mm de equivalente de hielo.",
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No aplica el producto de iluminación polar lunar.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "pavonis-mons",
+      "name": "Pavonis Mons (Tharsis)",
+      "short_name": "Pavonis Mons",
+      "body": "mars",
+      "lat": 1.48,
+      "lon": -112.96000000000001,
+      "lon_east_0_360": 247.04,
+      "coord_source": "USGS IAU Gazetteer, Pavonis Mons (ID 4620), red detallada: 1.48°N, 247.04°E. https://planetarynames.wr.usgs.gov/Feature/4620",
+      "summary": "Volcán en escudo de Tharsis, ancla de las coladas largas (par de Payún Matrú). La cota de cumbre no se cargó: hay cifras publicadas en conflicto (aprox. 14 vs 18 km) y no se eligió una sin fuente primaria unívoca.",
+      "tags": [
+        "marte"
+      ],
+      "geology_class": "volcanic_shield",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se bajó una cota MOLA/areoide con fuente primaria en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA/HiRISE cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica de sitio (REMS/MEDA u otra) verificada en esta corrida. No se asigna el promedio global −59 °C a este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte (el ciclo de volátiles es sobre todo CO2/H2O en forma de hielo y vapor). NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": "Útil para comparar aridez con la Tierra; no implica que el sitio tenga 0 mm de equivalente de hielo.",
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No aplica el producto de iluminación polar lunar.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "meridiani",
+      "name": "Meridiani Planum (Opportunity)",
+      "short_name": "Meridiani",
+      "body": "mars",
+      "lat": -1.95,
+      "lon": -5.529999999999973,
+      "lon_east_0_360": 354.47,
+      "coord_source": "NASA GISS Mars24: Opportunity, 25 ene 2004, 354.47°E, 1,95°S.",
+      "summary": "Llanura con sulfatos y hematita explorada por Opportunity.",
+      "tags": [
+        "marte"
+      ],
+      "geology_class": "sedimentary_sulfate",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se bajó una cota MOLA/areoide con fuente primaria en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA/HiRISE cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica de sitio (REMS/MEDA u otra) verificada en esta corrida. No se asigna el promedio global −59 °C a este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte (el ciclo de volátiles es sobre todo CO2/H2O en forma de hielo y vapor). NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": "Útil para comparar aridez con la Tierra; no implica que el sitio tenga 0 mm de equivalente de hielo.",
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No aplica el producto de iluminación polar lunar.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "shackleton-rim",
+      "name": "Borde de Shackleton (valores medios LOLA)",
+      "short_name": "Shackleton (borde)",
+      "body": "moon",
+      "lat": -89.655,
+      "lon": 129.174,
+      "lon_east_0_360": 129.174,
+      "coord_source": "Zuber et al., Nature 2012 (preprint NTRS 20120013758), Tabla 1 (LOLA): latitud areocéntrica del centro del borde −89.655°, longitud 129.174°E. Atención: esas coordenadas son el centro del círculo del borde, no un mojón sobre el crestón. https://ntrs.nasa.gov/api/citations/20120013758/downloads/20120013758.pdf",
+      "summary": "Cráter simple junto al polo sur lunar, trampa de frío en el interior, borde elevado. Región candidata de interés para Artemis (Peak Near Shackleton / Connecting Ridge están cerca). Elevación = altura media del borde sobre el datum (1,3 km), no la cota de un píxel.",
+      "tags": [
+        "luna",
+        "artemis-cercano"
+      ],
+      "geology_class": "impact_crater_rim",
+      "features": {
+        "elevation": {
+          "value": 1300,
+          "unit": "m",
+          "is_real": true,
+          "quality": "measured",
+          "source": "Zuber et al. 2012, Tabla 1 LOLA: Mean rim height above datum = 1.3 km. Es un promedio del borde, no un punto único del crestón.",
+          "note": null,
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se cargó una pendiente LOLA del punto (la pendiente de pared de un cráter no se usa como pendiente de aterrizaje).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": 1.0,
+          "unit": "m",
+          "is_real": true,
+          "quality": "measured",
+          "source": "Zuber et al. 2012, Tabla 1: RMS roughness of crater rim ≈ 1 m, dentro de spots LOLA de 5 m. NO es comparable en escala con el desvío SRTM a 120 m; por eso comparable=false.",
+          "note": null,
+          "comparable": false
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Williams et al. (Diviner, workshop Artemis III 2023) describen temperaturas complejas y umbrales (p. ej. PSR < 110 K; crestas en verano por lo general > ~120 K) pero no publican una media única del sitio que podamos cargar sin inventar. https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2040.pdf",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Hay perfiles estacionales en Williams et al. 2023, pero no un único valor de amplitud media para el sitio.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. El agua, si está, es hielo o volátil en PSRs, no precipitación anual en mm. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "NASA (2022) indica que las 13 regiones Artemis III contienen sitios con acceso continuo a luz solar durante 6,5 días, pero no publica un % de tiempo iluminado por región en ese comunicado.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Proximidad a PSR es un criterio cualitativo de Artemis III; no se asigna un índice numérico sin una clasificación publicada del punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      },
+      "artemis_note": "NASA (19 ago 2022) listó 13 regiones candidatas de Artemis III, entre ellas Peak Near Shackleton y Connecting Ridge, próximas a este cráter. https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/"
+    },
+    {
+      "id": "haworth",
+      "name": "Haworth (ancla IAU de la región Artemis III)",
+      "short_name": "Haworth",
+      "body": "moon",
+      "lat": -86.9,
+      "lon": -4.0,
+      "lon_east_0_360": 356.0,
+      "coord_source": "USGS IAU Gazetteer, Haworth (Feature 14502), primera red listada en la ficha consultada el 14 nov 2026: Center Latitude −86.90°, Center Longitude −4.00° (planetographic +E, −180 a 180). Otras redes de la misma ficha dan −87.20/−7.49 y −87.45/−5.17; se usa la primera. https://planetarynames.wr.usgs.gov/Feature/14502",
+      "summary": "Cráter del polo sur. El nombre coincide con una de las 13 regiones candidatas de Artemis III (NASA, 19 ago 2022). Las coordenadas son el centro IAU del cráter, no el centro oficial del recuadro de 15×15 km (NASA no lo publicó en ese comunicado).",
+      "tags": [
+        "luna",
+        "artemis-iii"
+      ],
+      "geology_class": "impact_crater",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se cargó una pendiente LOLA del punto (la pendiente de pared de un cráter no se usa como pendiente de aterrizaje).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad LOLA del punto, o no comparable en escala.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Williams et al. (Diviner, workshop Artemis III 2023) describen temperaturas complejas y umbrales (p. ej. PSR < 110 K; crestas en verano por lo general > ~120 K) pero no publican una media única del sitio que podamos cargar sin inventar. https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2040.pdf",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Hay perfiles estacionales en Williams et al. 2023, pero no un único valor de amplitud media para el sitio.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. El agua, si está, es hielo o volátil en PSRs, no precipitación anual en mm. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "NASA (2022) indica que las 13 regiones Artemis III contienen sitios con acceso continuo a luz solar durante 6,5 días, pero no publica un % de tiempo iluminado por región en ese comunicado.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Proximidad a PSR es un criterio cualitativo de Artemis III; no se asigna un índice numérico sin una clasificación publicada del punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      },
+      "artemis_note": "Región candidata Artemis III: Haworth (NASA 2022)."
+    },
+    {
+      "id": "malapert",
+      "name": "Malapert (ancla IAU; región Artemis: Malapert Massif)",
+      "short_name": "Malapert",
+      "body": "moon",
+      "lat": -85.0,
+      "lon": 11.4,
+      "lon_east_0_360": 11.4,
+      "coord_source": "USGS IAU Gazetteer, Malapert (Feature 3603): Center Latitude −85.00°, Center Longitude 11.40° (planetographic +E, −180 a 180). https://planetarynames.wr.usgs.gov/Feature/3603 Consultado el 14 nov 2026.",
+      "summary": "Cráter que da nombre al macizo. La región Artemis III se llama Malapert Massif y se apoya en el macizo (típicamente hacia el polo), no necesariamente en el centro del cráter. Se usa el centro IAU como ancla geográfica verificada, no como centro oficial del recuadro NASA.",
+      "tags": [
+        "luna",
+        "artemis-iii"
+      ],
+      "geology_class": "impact_crater_massif",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se cargó una pendiente LOLA del punto (la pendiente de pared de un cráter no se usa como pendiente de aterrizaje).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad LOLA del punto, o no comparable en escala.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Williams et al. (Diviner, workshop Artemis III 2023) describen temperaturas complejas y umbrales (p. ej. PSR < 110 K; crestas en verano por lo general > ~120 K) pero no publican una media única del sitio que podamos cargar sin inventar. https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2040.pdf",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Hay perfiles estacionales en Williams et al. 2023, pero no un único valor de amplitud media para el sitio.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. El agua, si está, es hielo o volátil en PSRs, no precipitación anual en mm. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "NASA (2022) indica que las 13 regiones Artemis III contienen sitios con acceso continuo a luz solar durante 6,5 días, pero no publica un % de tiempo iluminado por región en ese comunicado.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Proximidad a PSR es un criterio cualitativo de Artemis III; no se asigna un índice numérico sin una clasificación publicada del punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      },
+      "artemis_note": "Región candidata Artemis III: Malapert Massif (NASA 2022). El punto es el centro IAU del cráter Malapert."
+    },
+    {
+      "id": "de-gerlache",
+      "name": "de Gerlache (ancla IAU; regiones Rim / Connecting Ridge)",
+      "short_name": "de Gerlache",
+      "body": "moon",
+      "lat": -88.48,
+      "lon": -88.34,
+      "lon_east_0_360": 271.65999999999997,
+      "coord_source": "USGS IAU Gazetteer, de Gerlache (Feature 1439), primera red listada: Center Latitude −88.48°, Center Longitude −88.34° (planetographic +E, −180 a 180). https://planetarynames.wr.usgs.gov/Feature/1439 Consultado el 14 nov 2026.",
+      "summary": "Cráter muy cercano al polo. NASA listó de Gerlache Rim 1, de Gerlache Rim 2, de Gerlache-Kocher Massif y las Connecting Ridge, en el entorno de este rasgo. El punto es el centro IAU del cráter.",
+      "tags": [
+        "luna",
+        "artemis-iii"
+      ],
+      "geology_class": "impact_crater",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se cargó una pendiente LOLA del punto (la pendiente de pared de un cráter no se usa como pendiente de aterrizaje).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad LOLA del punto, o no comparable en escala.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Williams et al. (Diviner, workshop Artemis III 2023) describen temperaturas complejas y umbrales (p. ej. PSR < 110 K; crestas en verano por lo general > ~120 K) pero no publican una media única del sitio que podamos cargar sin inventar. https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2040.pdf",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Hay perfiles estacionales en Williams et al. 2023, pero no un único valor de amplitud media para el sitio.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. El agua, si está, es hielo o volátil en PSRs, no precipitación anual en mm. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "NASA (2022) indica que las 13 regiones Artemis III contienen sitios con acceso continuo a luz solar durante 6,5 días, pero no publica un % de tiempo iluminado por región en ese comunicado.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Proximidad a PSR es un criterio cualitativo de Artemis III; no se asigna un índice numérico sin una clasificación publicada del punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      },
+      "artemis_note": "Regiones candidatas Artemis III vecinas: de Gerlache Rim 1 y 2, de Gerlache-Kocher Massif, Connecting Ridge y Connecting Ridge Extension (NASA 2022)."
+    },
+    {
+      "id": "amundsen",
+      "name": "Amundsen (ancla IAU de Amundsen Rim)",
+      "short_name": "Amundsen",
+      "body": "moon",
+      "lat": -84.44,
+      "lon": 83.07,
+      "lon_east_0_360": 83.07,
+      "coord_source": "USGS IAU Gazetteer, Amundsen (Feature 247), primera red listada: Center Latitude −84.44°, Center Longitude 83.07°E. https://planetarynames.wr.usgs.gov/Feature/247 Consultado el 14 nov 2026.",
+      "summary": "Cráter del polo sur. La región Artemis III Amundsen Rim se refiere al borde, no al centro del cráter. Se usa el centro IAU como ancla verificada.",
+      "tags": [
+        "luna",
+        "artemis-iii"
+      ],
+      "geology_class": "impact_crater",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se cargó una pendiente LOLA del punto (la pendiente de pared de un cráter no se usa como pendiente de aterrizaje).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad LOLA del punto, o no comparable en escala.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Williams et al. (Diviner, workshop Artemis III 2023) describen temperaturas complejas y umbrales (p. ej. PSR < 110 K; crestas en verano por lo general > ~120 K) pero no publican una media única del sitio que podamos cargar sin inventar. https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2040.pdf",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Hay perfiles estacionales en Williams et al. 2023, pero no un único valor de amplitud media para el sitio.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. El agua, si está, es hielo o volátil en PSRs, no precipitación anual en mm. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "NASA (2022) indica que las 13 regiones Artemis III contienen sitios con acceso continuo a luz solar durante 6,5 días, pero no publica un % de tiempo iluminado por región en ese comunicado.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Proximidad a PSR es un criterio cualitativo de Artemis III; no se asigna un índice numérico sin una clasificación publicada del punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      },
+      "artemis_note": "Región candidata Artemis III: Amundsen Rim (NASA 2022)."
+    },
+    {
+      "id": "nobile",
+      "name": "Nobile (ancla IAU de Nobile Rim 1 y 2)",
+      "short_name": "Nobile",
+      "body": "moon",
+      "lat": -85.28,
+      "lon": 53.27,
+      "lon_east_0_360": 53.27,
+      "coord_source": "USGS IAU Gazetteer, Nobile (Feature 4321), primera red listada: Center Latitude −85.28°, Center Longitude 53.27°E. https://planetarynames.wr.usgs.gov/Feature/4321 Consultado el 14 nov 2026.",
+      "summary": "Cráter del polo sur. NASA listó Nobile Rim 1 y Nobile Rim 2. El punto es el centro IAU, no un sitio de aterrizaje en el borde.",
+      "tags": [
+        "luna",
+        "artemis-iii"
+      ],
+      "geology_class": "impact_crater",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se cargó una pendiente LOLA del punto (la pendiente de pared de un cráter no se usa como pendiente de aterrizaje).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad LOLA del punto, o no comparable en escala.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Williams et al. (Diviner, workshop Artemis III 2023) describen temperaturas complejas y umbrales (p. ej. PSR < 110 K; crestas en verano por lo general > ~120 K) pero no publican una media única del sitio que podamos cargar sin inventar. https://www.hou.usra.edu/meetings/Artemis_III_2023/pdf/2040.pdf",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Hay perfiles estacionales en Williams et al. 2023, pero no un único valor de amplitud media para el sitio.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. El agua, si está, es hielo o volátil en PSRs, no precipitación anual en mm. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "NASA (2022) indica que las 13 regiones Artemis III contienen sitios con acceso continuo a luz solar durante 6,5 días, pero no publica un % de tiempo iluminado por región en ese comunicado.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Proximidad a PSR es un criterio cualitativo de Artemis III; no se asigna un índice numérico sin una clasificación publicada del punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida",
+          "comparable": true
+        }
+      },
+      "artemis_note": "Regiones candidatas Artemis III: Nobile Rim 1 y Nobile Rim 2 (NASA 2022)."
+    }
+  ]
+}

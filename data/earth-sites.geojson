@@ -1,0 +1,111 @@
+{
+  "type": "FeatureCollection",
+  "name": "analogos-argentinos",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "campo-piedra-pomez",
+      "properties": {
+        "id": "campo-piedra-pomez",
+        "name": "Campo de Piedra Pómez",
+        "province": "Catamarca",
+        "category": "candidato",
+        "elevation_m": 3463,
+        "paired_mars_ids": [
+          "medusae-fossae"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -67.514167,
+          -26.659722
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "laguna-negra",
+      "properties": {
+        "id": "laguna-negra",
+        "name": "Laguna Negra",
+        "province": "Catamarca",
+        "category": "candidato",
+        "elevation_m": 4092,
+        "paired_mars_ids": [
+          "jezero"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -68.54528,
+          -27.64694
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "payun-matru",
+      "properties": {
+        "id": "payun-matru",
+        "name": "Campo volcánico Payún Matrú",
+        "province": "Mendoza",
+        "category": "candidato",
+        "elevation_m": 3658,
+        "paired_mars_ids": [
+          "pavonis-mons"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -69.241,
+          -36.422
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ischigualasto",
+      "properties": {
+        "id": "ischigualasto",
+        "name": "Parque Provincial Ischigualasto",
+        "province": "San Juan",
+        "category": "candidato",
+        "elevation_m": 1397,
+        "paired_mars_ids": [
+          "gale"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -67.842792,
+          -30.163044
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "laguna-antofagasta",
+      "properties": {
+        "id": "laguna-antofagasta",
+        "name": "Laguna de Antofagasta",
+        "province": "Catamarca",
+        "category": "menos-estudiado",
+        "elevation_m": 3325,
+        "paired_mars_ids": [
+          "jezero"
+        ]
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -67.407338,
+          -26.111148
+        ]
+      }
+    }
+  ]
+}

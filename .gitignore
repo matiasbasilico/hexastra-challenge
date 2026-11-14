@@ -1,0 +1,11 @@
+.venv/
+**/__pycache__/
+**/.pytest_cache/
+*.pyc
+services/.venv/
+api/.venv/
+__pycache__/
+.DS_Store
+.env
+*.zip
+.pytest_cache/

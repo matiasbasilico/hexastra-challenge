@@ -1,0 +1,888 @@
+{
+  "meta": {
+    "title": "Worldwide Earth analog-type candidate seed (identities only)",
+    "note": "Coordinates are sourced; continent/ISO and measurements are added by ingest_earth.py from Natural Earth and live APIs. No invented numbers. Featured identities were added 2026-11-14 with sourced coordinates.",
+    "n": 52,
+    "featured": "Sites with featured=true are reference baselines / shortcuts, including well-known analogs the challenge asks to look beyond. highlight_less_studied remains for lesser-known candidates."
+  },
+  "sites": [
+    {
+      "id": "campo-piedra-pomez",
+      "name": "Campo de Piedra Pómez",
+      "short_name": "Piedra Pómez",
+      "lat": -26.659722,
+      "lon": -67.514167,
+      "coord_source": "Centro del área protegida 26°39′35″S 67°30′51″O. Wikipedia/Wikidata Q23833026.",
+      "analog_types": [
+        "volcanic_field",
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": false,
+      "summary": "Campo de ignimbritas y formas eólicas en la Puna catamarqueña.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Campo de Piedra Pómez (Catamarca)",
+      "featured_rank": 9
+    },
+    {
+      "id": "laguna-negra",
+      "name": "Laguna Negra",
+      "short_name": "Laguna Negra",
+      "lat": -27.64694,
+      "lon": -68.54528,
+      "coord_source": "27°38′49″S 68°32′43″W, Wikipedia EN (complejo Laguna Verde).",
+      "analog_types": [
+        "salt_flat",
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": false,
+      "summary": "Laguna de altura en el complejo Laguna Verde, Catamarca.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "payun-matru",
+      "name": "Campo volcánico Payún Matrú",
+      "short_name": "Payún Matrú",
+      "lat": -36.422,
+      "lon": -69.241,
+      "coord_source": "Smithsonian GVP volcán 357066: 36.422°S, 69.241°W.",
+      "analog_types": [
+        "volcanic_field",
+        "lava_tube"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": false,
+      "summary": "Campo volcánico basáltico de Payún Matrú, Mendoza.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Payunia — Payún Matrú (Mendoza)",
+      "featured_rank": 10
+    },
+    {
+      "id": "ischigualasto",
+      "name": "Parque Provincial Ischigualasto",
+      "short_name": "Ischigualasto",
+      "lat": -30.163044,
+      "lon": -67.842792,
+      "coord_source": "Sitio oficial: 30°09′46.96″S 67°50′34.05″O.",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": false,
+      "summary": "Valle lunar de Ischigualasto, San Juan: badlands triásicos.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "laguna-antofagasta",
+      "name": "Laguna de Antofagasta",
+      "short_name": "Laguna de Antofagasta",
+      "lat": -26.111148,
+      "lon": -67.407338,
+      "coord_source": "Stoppiello et al., EPSC 2022-1152: −26.111148, −67.407338.",
+      "analog_types": [
+        "salt_flat",
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Candidato menos estudiado en Antofagasta de la Sierra.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "salar-de-uyuni",
+      "name": "Salar de Uyuni",
+      "short_name": "Uyuni",
+      "lat": -20.133775,
+      "lon": -67.48913333,
+      "coord_source": "Wikipedia EN Salar de Uyuni: 20°08′01.59″S 67°29′20.88″W (20.1337750°S, 67.4891333°W). https://en.wikipedia.org/wiki/Salar_de_Uyuni",
+      "analog_types": [
+        "salt_flat"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "El salar más extenso del mundo, Altiplano boliviano.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "yungay-atacama",
+      "name": "Yungay (núcleo hiperárido del Atacama)",
+      "short_name": "Yungay",
+      "lat": -24.069867,
+      "lon": -69.866033,
+      "coord_source": "Kuhlman & McKay, LPSC 2007, abstract 2251, GPS −24.069867, −69.866033. https://www.lpi.usra.edu/meetings/lpsc2007/pdf/2251.pdf",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Sitio clásico de astrobiología en el núcleo hiperárido del Atacama. No confundir con la ciudad de Yungay en el Biobío.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Yungay (núcleo hiperárido del Atacama)",
+      "featured_rank": 8
+    },
+    {
+      "id": "valle-de-la-luna-chile",
+      "name": "Valle de la Luna (Atacama, Chile)",
+      "short_name": "Valle de la Luna",
+      "lat": -22.9112,
+      "lon": -68.32303,
+      "coord_source": "Wikipedia EN Valle de la Luna (Chile): −22.9112, −68.32303. https://en.wikipedia.org/wiki/Valle_de_la_Luna_(Chile)",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Formas eólicas y evaporitas cerca de San Pedro de Atacama.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "dallol",
+      "name": "Dallol (Depresión de Danakil)",
+      "short_name": "Dallol",
+      "lat": 14.242,
+      "lon": 40.3,
+      "coord_source": "Smithsonian GVP volcano 221041: 14.242°N, 40.3°E. https://volcano.si.edu/volcano.cfm?vn=221041",
+      "analog_types": [
+        "volcanic_field",
+        "salt_flat"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Sistema hidrotermal y salar en la depresión de Danakil, Etiopía.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "erta-ale",
+      "name": "Erta Ale",
+      "short_name": "Erta Ale",
+      "lat": 13.60638889,
+      "lon": 40.66138889,
+      "coord_source": "Wikipedia EN Erta Ale: 13.60638889°N, 40.66138889°E. https://en.wikipedia.org/wiki/Erta_Ale",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Volcán en escudo con lago de lava en Afar, Etiopía.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "sossusvlei",
+      "name": "Sossusvlei (Mar de arena de Namibia)",
+      "short_name": "Sossusvlei",
+      "lat": -24.73983,
+      "lon": 15.28765,
+      "coord_source": "Wikipedia EN Sossusvlei: −24.73983, 15.28765. https://en.wikipedia.org/wiki/Sossusvlei",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Pan y dunas del Namib Sand Sea.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "richat",
+      "name": "Estructura de Richat",
+      "short_name": "Richat",
+      "lat": 21.1147,
+      "lon": -11.3943,
+      "coord_source": "Wikipedia EN Richat Structure: 21.1147°N, 11.3943°W. NASA ASTER gallery cites 20.9°N, 11.6°W for the image footprint; the Wikipedia/Wikidata point is used. https://en.wikipedia.org/wiki/Richat_Structure",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Domo erosivo circular en Mauritania (no es un cráter de impacto confirmado).",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "vredefort",
+      "name": "Estructura de impacto de Vredefort",
+      "short_name": "Vredefort",
+      "lat": -27.0,
+      "lon": 27.5,
+      "coord_source": "Wikipedia EN Vredefort impact structure: 27°S, 27.5°E (centroid of a very large structure). https://en.wikipedia.org/wiki/Vredefort_crater",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "La estructura de impacto más grande confirmada en la Tierra; el punto es el centroide publicado, no un afloramiento puntual.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "tswaing",
+      "name": "Cráter Tswaing",
+      "short_name": "Tswaing",
+      "lat": -25.40888889,
+      "lon": 28.08277778,
+      "coord_source": "Wikipedia EN Tswaing crater: 25.40888889°S, 28.08277778°E. https://en.wikipedia.org/wiki/Tswaing_crater",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cráter de impacto relativamente joven al norte de Pretoria.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "chott-el-djerid",
+      "name": "Chott el Djerid",
+      "short_name": "Chott el Djerid",
+      "lat": 33.7,
+      "lon": 8.43,
+      "coord_source": "Wikipedia EN Chott el Djerid: 33.7°N, 8.43°E. https://en.wikipedia.org/wiki/Chott_el_Djerid",
+      "analog_types": [
+        "salt_flat"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Gran sebkha / salar del sur de Túnez; puede tener agua estacional.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "lake-natron",
+      "name": "Lago Natron",
+      "short_name": "Lago Natron",
+      "lat": -2.41666667,
+      "lon": 36.0,
+      "coord_source": "Wikipedia EN Lake Natron: 2.41666667°S, 36°E. https://en.wikipedia.org/wiki/Lake_Natron",
+      "analog_types": [
+        "salt_flat"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Lago alcalino del rift de Tanzania. El punto cae sobre un cuerpo de agua: la máscara TASI debería descartarlo si Overpass lo confirma.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "pico-do-fogo",
+      "name": "Pico do Fogo (Cabo Verde)",
+      "short_name": "Pico do Fogo",
+      "lat": 14.95,
+      "lon": -24.34166667,
+      "coord_source": "Wikipedia EN Pico do Fogo: 14.95°N, 24.34166667°W. https://en.wikipedia.org/wiki/Pico_do_Fogo",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Estratovolcán activo en la isla de Fogo.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "da-qaidam",
+      "name": "Da Qaidam (cuenca de Qaidam)",
+      "short_name": "Da Qaidam",
+      "lat": 37.8491,
+      "lon": 95.3613,
+      "coord_source": "Wikipedia EN Da Qaidam: 37.8491°N, 95.3613°E. Punto de la localidad/área en la cuenca de Qaidam, no un centroide de toda la cuenca. https://en.wikipedia.org/wiki/Da_Qaidam",
+      "analog_types": [
+        "desert",
+        "salt_flat"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Área de Da Qaidam en la cuenca hiperáride de Qaidam, Qinghai.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "lut-desert",
+      "name": "Desierto de Lut",
+      "short_name": "Lut",
+      "lat": 30.60500001,
+      "lon": 59.06777779,
+      "coord_source": "Wikipedia EN Lut Desert: 30.60500001°N, 59.06777779°E. https://en.wikipedia.org/wiki/Lut_Desert",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Desierto hiperárido de Irán (yardangs / kaluts). El punto es el publicado para el desierto, no un campamento puntual.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "lonar",
+      "name": "Cráter / lago Lonar",
+      "short_name": "Lonar",
+      "lat": 19.975,
+      "lon": 76.5075,
+      "coord_source": "Wikipedia EN Lonar Lake: 19.975°N, 76.5075°E. PASSC lists N 19°58′, E 76°31′. https://en.wikipedia.org/wiki/Lonar_Lake",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cráter de impacto en basaltos del Deccán; aloja un lago, así que la máscara de agua puede descartarlo.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "wadi-rum",
+      "name": "Wadi Rum",
+      "short_name": "Wadi Rum",
+      "lat": 29.59305556,
+      "lon": 35.42,
+      "coord_source": "Wikipedia EN Wadi Rum: 29.59305556°N, 35.42°E. https://en.wikipedia.org/wiki/Wadi_Rum",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Desierto de arenisca en Jordania, análogo frecuente de paisajes de Marte.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "tso-kar",
+      "name": "Tso Kar (Ladakh)",
+      "short_name": "Tso Kar",
+      "lat": 33.3,
+      "lon": 77.98333333,
+      "coord_source": "Wikipedia EN Tso Kar: 33.3°N, 77.98333333°E. https://en.wikipedia.org/wiki/Tso_Kar",
+      "analog_types": [
+        "salt_flat",
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cuenca salina de alta montaña en Ladakh; puede tener agua.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "tolbachik",
+      "name": "Tolbachik (Kamchatka)",
+      "short_name": "Tolbachik",
+      "lat": 55.83083333,
+      "lon": 160.32583333,
+      "coord_source": "Wikipedia EN Tolbachik: 55.83083333°N, 160.32583333°E. https://en.wikipedia.org/wiki/Tolbachik",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Complejo volcánico de Kamchatka, campos de lava recientes. Natural Earth asigna Rusia al continente Europa.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "popigai",
+      "name": "Estructura de impacto Popigai",
+      "short_name": "Popigai",
+      "lat": 71.65,
+      "lon": 111.18333333,
+      "coord_source": "Wikipedia EN Popigai impact structure: 71.65°N, 111.18333333°E. https://en.wikipedia.org/wiki/Popigai_impact_structure",
+      "analog_types": [
+        "impact_crater",
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Gran estructura de impacto en Siberia septentrional. Natural Earth asigna Rusia a Europa.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "rio-tinto",
+      "name": "Río Tinto",
+      "short_name": "Río Tinto",
+      "lat": 37.21,
+      "lon": -6.938,
+      "coord_source": "Wikipedia EN Río Tinto: 37.21°N, 6.938°W. https://en.wikipedia.org/wiki/Rio_Tinto_(river)",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Cuenca ácida y mineralizada de Huelva, análogo geoquímico frecuente.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "nordlinger-ries",
+      "name": "Nördlinger Ries",
+      "short_name": "Ries",
+      "lat": 48.88333333,
+      "lon": 10.56666667,
+      "coord_source": "Wikipedia EN Nördlinger Ries: 48.88333333°N, 10.56666667°E. https://en.wikipedia.org/wiki/Nördlinger_Ries",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cráter de impacto del Mioceno en Baviera.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "askja",
+      "name": "Askja (Islandia)",
+      "short_name": "Askja",
+      "lat": 65.033,
+      "lon": -16.783,
+      "coord_source": "Wikipedia EN Askja: 65.033°N, 16.783°W. https://en.wikipedia.org/wiki/Askja",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Caldera basáltica en el centro de Islandia, análogo volcánico frecuente.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "bockfjorden",
+      "name": "Bockfjorden (Svalbard)",
+      "short_name": "Bockfjorden",
+      "lat": 79.469,
+      "lon": 13.3287,
+      "coord_source": "Wikipedia EN Bockfjorden: 79.469°N, 13.3287°E. https://en.wikipedia.org/wiki/Bockfjorden",
+      "analog_types": [
+        "polar_periglacial",
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Fiordo del noroeste de Svalbard, con vulcanismo y permafrost. Natural Earth 50m asigna el polígono a Noruega (ISO NO vía ISO_A2_EH).",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "badwater",
+      "name": "Badwater Basin (Death Valley)",
+      "short_name": "Badwater",
+      "lat": 36.25027778,
+      "lon": -116.82583333,
+      "coord_source": "Wikipedia EN Badwater Basin: 36.25027778°N, 116.82583333°W. https://en.wikipedia.org/wiki/Badwater_Basin",
+      "analog_types": [
+        "desert",
+        "salt_flat"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Salina en el punto más bajo de Norteamérica, Valle de la Muerte.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "meteor-crater",
+      "name": "Meteor Crater (Barringer, Arizona)",
+      "short_name": "Meteor Crater",
+      "lat": 35.02805556,
+      "lon": -111.02333333,
+      "coord_source": "Wikipedia EN Meteor Crater: 35.02805556°N, 111.02333333°W. https://en.wikipedia.org/wiki/Meteor_Crater",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Cráter de impacto simple, bien conservado, en el Colorado Plateau.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "haughton",
+      "name": "Cráter Haughton (isla Devon)",
+      "short_name": "Haughton",
+      "lat": 75.38333333,
+      "lon": -89.66666667,
+      "coord_source": "Wikipedia EN Haughton impact crater: 75.38333333°N, 89.66666667°W. PASSC: N 75°22′, W 89°41′. https://en.wikipedia.org/wiki/Haughton_impact_crater",
+      "analog_types": [
+        "impact_crater",
+        "polar_periglacial"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Cráter polar en isla Devon, sede del Haughton–Mars Project.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Cráter Haughton (isla Devon)",
+      "featured_rank": 2
+    },
+    {
+      "id": "craters-of-the-moon",
+      "name": "Craters of the Moon (Idaho)",
+      "short_name": "Craters of the Moon",
+      "lat": 43.46167,
+      "lon": -113.56271,
+      "coord_source": "Wikipedia EN Craters of the Moon National Monument and Preserve: 43.46167°N, 113.56271°W. https://en.wikipedia.org/wiki/Craters_of_the_Moon_National_Monument_and_Preserve",
+      "analog_types": [
+        "volcanic_field",
+        "lava_tube"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Campo de lava basáltica y tubos de lava en Idaho.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "lava-beds",
+      "name": "Lava Beds National Monument",
+      "short_name": "Lava Beds",
+      "lat": 41.71388889,
+      "lon": -121.50833333,
+      "coord_source": "Wikipedia EN Lava Beds National Monument: 41.71388889°N, 121.50833333°W. https://en.wikipedia.org/wiki/Lava_Beds_National_Monument",
+      "analog_types": [
+        "lava_tube",
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Uno de los mayores conjuntos de tubos de lava en Norteamérica, California.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "pinacate",
+      "name": "Sierra Pinacate",
+      "short_name": "Pinacate",
+      "lat": 31.77,
+      "lon": -113.49,
+      "coord_source": "Wikipedia EN Pinacate Peaks: 31.77°N, 113.49°W. https://en.wikipedia.org/wiki/Pinacate_Peaks",
+      "analog_types": [
+        "volcanic_field",
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Campo volcánico y desierto de Sonora, México.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "white-sands",
+      "name": "White Sands",
+      "short_name": "White Sands",
+      "lat": 32.77916667,
+      "lon": -106.17194444,
+      "coord_source": "Wikipedia EN White Sands National Park: 32.77916667°N, 106.17194444°W. https://en.wikipedia.org/wiki/White_Sands_National_Park",
+      "analog_types": [
+        "desert",
+        "salt_flat"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Dunas de yeso en el valle de Tularosa, Nuevo México.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "ubehebe",
+      "name": "Ubehebe Crater",
+      "short_name": "Ubehebe",
+      "lat": 37.00972222,
+      "lon": -117.45027778,
+      "coord_source": "Wikipedia EN Ubehebe Crater: 37.00972222°N, 117.45027778°W. https://en.wikipedia.org/wiki/Ubehebe_Crater",
+      "analog_types": [
+        "volcanic_field",
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cráter freatomagmático en el norte del Valle de la Muerte.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "kilauea",
+      "name": "Kīlauea",
+      "short_name": "Kīlauea",
+      "lat": 19.42109747,
+      "lon": -155.28676243,
+      "coord_source": "Wikipedia EN Kīlauea: 19.42109747°N, 155.28676243°W. https://en.wikipedia.org/wiki/Kīlauea",
+      "analog_types": [
+        "volcanic_field",
+        "lava_tube"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Volcán en escudo de Hawái, análogo volcánico clásico (y muy estudiado).",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Kīlauea (Hawái)",
+      "featured_rank": 6
+    },
+    {
+      "id": "sp-crater",
+      "name": "SP Crater (San Francisco Volcanic Field)",
+      "short_name": "SP Crater",
+      "lat": 35.5822254,
+      "lon": -111.6318207,
+      "coord_source": "Wikipedia EN S P Crater: 35.5822254°N, 111.6318207°W. https://en.wikipedia.org/wiki/SP_Crater",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cono de escoria y colada en el campo volcánico de San Francisco, Arizona.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "mcgill-arctic",
+      "name": "Estación ártica McGill (Expedition Fiord)",
+      "short_name": "McGill Arctic",
+      "lat": 79.43333333,
+      "lon": -90.76666667,
+      "coord_source": "Wikipedia EN McGill Arctic Research Station: 79.43333333°N, 90.76666667°W, isla Axel Heiberg. https://en.wikipedia.org/wiki/McGill_Arctic_Research_Station",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Estación de investigación en Expedition Fiord, analogía polar y periglacial.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "valley-10000-smokes",
+      "name": "Valley of Ten Thousand Smokes",
+      "short_name": "Ten Thousand Smokes",
+      "lat": 58.39388889,
+      "lon": -155.38527778,
+      "coord_source": "Wikipedia EN Valley of Ten Thousand Smokes: 58.39388889°N, 155.38527778°W. https://en.wikipedia.org/wiki/Valley_of_Ten_Thousand_Smokes",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Depósito de ignimbrita de la erupción de Novarupta (1912), Alaska.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "undara",
+      "name": "Undara (tubos de lava)",
+      "short_name": "Undara",
+      "lat": -18.20111111,
+      "lon": 144.59611111,
+      "coord_source": "Wikipedia EN Undara Volcanic National Park: 18.20111111°S, 144.59611111°E. https://en.wikipedia.org/wiki/Undara_Volcanic_National_Park",
+      "analog_types": [
+        "lava_tube",
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Uno de los sistemas de tubos de lava más largos, Queensland.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "wolfe-creek",
+      "name": "Cráter Wolfe Creek",
+      "short_name": "Wolfe Creek",
+      "lat": -19.17166667,
+      "lon": 127.79555556,
+      "coord_source": "Wikipedia EN Wolfe Creek Crater: 19.17166667°S, 127.79555556°E. https://en.wikipedia.org/wiki/Wolfe_Creek_Crater",
+      "analog_types": [
+        "impact_crater",
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Cráter de impacto en el desierto de Australia Occidental.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "karijini",
+      "name": "Karijini (Pilbara)",
+      "short_name": "Karijini",
+      "lat": -22.49611111,
+      "lon": 118.39722222,
+      "coord_source": "Wikipedia EN Karijini National Park: 22.49611111°S, 118.39722222°E. Punto del parque, no un centroide de toda la Pilbara. https://en.wikipedia.org/wiki/Karijini_National_Park",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Terreno arqueano de la Pilbara, usado como análogo de Marte temprano. Se usa un punto del parque (no un centroide regional).",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "acraman",
+      "name": "Estructura de impacto Acraman",
+      "short_name": "Acraman",
+      "lat": -32.01666667,
+      "lon": 135.45,
+      "coord_source": "Wikipedia EN Acraman impact structure: 32.01666667°S, 135.45°E. https://en.wikipedia.org/wiki/Acraman_crater",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Estructura de impacto en Australia Meridional, parcialmente ocupada por un lago salino.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "university-valley",
+      "name": "University Valley (McMurdo Dry Valleys)",
+      "short_name": "University Valley",
+      "lat": -77.861565,
+      "lon": 160.717946,
+      "coord_source": "Composite Gazetteer / Antarctic Place Names: −77.861565, 160.717946. https://placenames.aq/place-names/139559  (no se usa el centroide de las Quartermain Mountains).",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Valle seco con permafrost cementado por hielo; análogo polar frecuente de Marte frío y seco.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Valles secos de McMurdo (University Valley)",
+      "featured_rank": 1,
+      "featured_note": "Punto citado de University Valley, no un centroide de todos los Dry Valleys. Composite Gazetteer / placenames.aq."
+    },
+    {
+      "id": "taylor-valley",
+      "name": "Taylor Valley (McMurdo Dry Valleys)",
+      "short_name": "Taylor Valley",
+      "lat": -77.61666667,
+      "lon": 163.0,
+      "coord_source": "Wikipedia EN Taylor Valley: 77.61666667°S, 163°E. https://en.wikipedia.org/wiki/Taylor_Valley",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Uno de los valles secos de McMurdo, Victoria Land.",
+      "body": "earth",
+      "featured": false
+    },
+    {
+      "id": "devon-island-fmars",
+      "name": "Isla Devon — Flashline Mars Arctic Research Station (FMARS)",
+      "short_name": "FMARS, isla Devon",
+      "lat": 75.43131944,
+      "lon": -89.82338611,
+      "coord_source": "Wikipedia EN Flashline Mars Arctic Research Station: 75.4313194°N, 89.8233861°W (75°25′52.75″N 089°49′24.19″W), Haynes Ridge, overlooking Haughton crater. Coincide con INTERACT GIS. https://en.wikipedia.org/wiki/Flashline_Mars_Arctic_Research_Station",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Estación análoga de la Mars Society en Haynes Ridge, isla Devon. Es un punto distinto del centroide del cráter Haughton (a unos kilómetros). Se incluye como línea de base polar, no como candidato «menos estudiado».",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Isla Devon — estación FMARS",
+      "featured_rank": 3
+    },
+    {
+      "id": "timanfaya",
+      "name": "Parque Nacional de Timanfaya (Lanzarote)",
+      "short_name": "Timanfaya",
+      "lat": 28.99416667,
+      "lon": -13.79333333,
+      "coord_source": "Wikipedia EN Timanfaya National Park: 28.99417°N, 13.79333°W (28°59′39″N 13°47′36″W). https://en.wikipedia.org/wiki/Timanfaya_National_Park",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Campo de lava de las erupciones de 1730-1736 en Lanzarote. Punto publicado del parque, no un centroide de todas las islas Canarias. Natural Earth asigna Canarias a España / Europa.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Timanfaya (Lanzarote)",
+      "featured_rank": 4
+    },
+    {
+      "id": "teide",
+      "name": "Teide (Tenerife)",
+      "short_name": "Teide",
+      "lat": 28.27305556,
+      "lon": -16.63944444,
+      "coord_source": "Wikipedia EN Teide: 28.27306°N, 16.63944°W (28°16′23″N 16°38′22″W). https://en.wikipedia.org/wiki/Teide",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Estratovolcán y punto más alto de España, Tenerife. Línea de base volcánica de Canarias, distinta de Timanfaya.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Teide (Tenerife)",
+      "featured_rank": 5
+    },
+    {
+      "id": "mauna-kea",
+      "name": "Mauna Kea",
+      "short_name": "Mauna Kea",
+      "lat": 19.82,
+      "lon": -155.47,
+      "coord_source": "Smithsonian GVP volcano 332030 y USGS Hawaiian Volcano Observatory: 19.82°N, 155.47°W. https://volcano.si.edu/volcano.cfm?vn=332030 https://www.usgs.gov/volcanoes/mauna-kea",
+      "analog_types": [
+        "volcanic_field",
+        "polar_periglacial"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Volcán en escudo más alto de Hawái, con depósitos glaciales en la cumbre. Línea de base conocida, no un candidato «menos estudiado».",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Mauna Kea (Hawái)",
+      "featured_rank": 7
+    },
+    {
+      "id": "laguna-diamante",
+      "name": "Laguna Diamante (caldera de Galán, Catamarca)",
+      "short_name": "Laguna Diamante",
+      "lat": -26.04,
+      "lon": -67.05,
+      "coord_source": "Wikipedia DE Laguna del Diamante (Provinz Catamarca): 26°2′24″S, 67°3′0″W (−26.04, −67.05). No confundir con la Laguna del Diamante de Mendoza. El Cerro Galán (GVP/Wikipedia, 25.93°S, 66.92°W) es el domo/caldera, no la laguna. https://de.wikipedia.org/wiki/Laguna_del_Diamante_(Provinz_Catamarca)",
+      "analog_types": [
+        "salt_flat",
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Laguna interior de la caldera de Galán, Puna de Catamarca. Candidato argentino menos estudiado que los análogos famosos, usado acá también como atajo / sitio base de la Puna.",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Laguna Diamante (caldera de Galán, Catamarca)",
+      "featured_rank": 11
+    },
+    {
+      "id": "socompa",
+      "name": "Socompa (Salta)",
+      "short_name": "Socompa",
+      "lat": -24.396,
+      "lon": -68.246,
+      "coord_source": "Smithsonian GVP volcano 355109: 24.396°S, 68.246°W. El estratovolcán está en la frontera Chile-Argentina; Wikipedia EN cita 24.39583°S, 68.24583°W. Natural Earth 50m asigna este punto GVP a Argentina. https://volcano.si.edu/volcano.cfm?vn=355109",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Estratovolcán de la Puna, en el límite Salta–Chile, conocido por el depósito de avalancha de escombros y por suelos de alta cota a veces comparados con Marte. El punto es la cumbre GVP, no una laguna innominada (no se inventó un punto de laguna).",
+      "body": "earth",
+      "featured": true,
+      "featured_label": "Socompa (Salta / frontera Chile)",
+      "featured_rank": 12
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+services:
+  planetary:
+    build: ./services/planetary
+    ports:
+      - "8766:8766"
+  earth:
+    build: ./services/earth
+    ports:
+      - "8767:8767"
+    environment:
+      PLANETARY_URL: http://planetary:8766
+      EARTHDATA_USERNAME: ${EARTHDATA_USERNAME:-}
+      EARTHDATA_PASSWORD: ${EARTHDATA_PASSWORD:-}
+      CDSE_USERNAME: ${CDSE_USERNAME:-}
+      CDSE_PASSWORD: ${CDSE_PASSWORD:-}
+  front:
+    image: python:3.9-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: python -m http.server 8765 --bind 0.0.0.0
+    ports:
+      - "8765:8765"
+    depends_on:
+      - planetary
+      - earth

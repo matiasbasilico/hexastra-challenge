@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hexastra.local/contracts/feature_vector.schema.json",
+  "title": "Hexastra planetary/earth feature vector",
+  "description": "Contrato compartido entre planetary-service y earth-service. No hay imports Python compartidos: solo este JSON Schema. Cada componente trae valor, unidad, fuente y bandera real/placeholder. G (espectro) y O (operacional comparable) quedan unavailable si no hay dato real.",
+  "type": "object",
+  "required": [
+    "id",
+    "body",
+    "name",
+    "lat",
+    "lon",
+    "components"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string",
+      "enum": [
+        "earth",
+        "moon",
+        "mars"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lon": {
+      "type": "number"
+    },
+    "coord_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "components": {
+      "type": "object",
+      "required": [
+        "G",
+        "T",
+        "E",
+        "Vo",
+        "O"
+      ],
+      "properties": {
+        "G": {
+          "$ref": "#/$defs/component"
+        },
+        "T": {
+          "$ref": "#/$defs/component"
+        },
+        "E": {
+          "$ref": "#/$defs/component"
+        },
+        "Vo": {
+          "$ref": "#/$defs/component"
+        },
+        "O": {
+          "$ref": "#/$defs/component"
+        }
+      },
+      "additionalProperties": false
+    },
+    "quality_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "measurement": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "is_real": {
+          "type": "boolean"
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "derived",
+            "convention",
+            "placeholder",
+            "unavailable"
+          ]
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "required": [
+        "available",
+        "score_ready"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "score_ready": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vector": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "vector_labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/measurement"
+          }
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quality_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

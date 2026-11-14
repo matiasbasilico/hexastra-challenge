@@ -1,0 +1,401 @@
+{
+  "meta": {
+    "title": "Análogos argentinos",
+    "team": "Hexastra",
+    "event": "NASA Space Apps Challenge 2026",
+    "challenge": "Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars",
+    "challenge_url": "https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/",
+    "location": "Buenos Aires, Argentina",
+    "language": "es-AR",
+    "created": "2026-11-14",
+    "disclaimer": "Este prototipo no inventa mediciones. Los números con status 'measured' se obtuvieron de una fuente citada en esta misma corrida. Los que tienen status 'example' se muestran en la interfaz como 'valor de ejemplo / a completar'. El índice de similitud es una fórmula transparente del equipo, no un métrica científica validada.",
+    "scoring": {
+      "id": "hexastra-v0.1",
+      "description": "Índice ambiental cuantitativo (0 a 1) a partir de cuatro dimensiones con datos. Las dimensiones geología, relieve, sales y vulcanismo NO entran en este índice: son juicios cualitativos preliminares, etiquetados como ejemplo.",
+      "weights": {
+        "temperatura": 0.20,
+        "amplitud_termica": 0.20,
+        "aridez": 0.35,
+        "altitud_uv_proxy": 0.25
+      },
+      "formulas": {
+        "temperatura": "max(0, 1 - |T_media_sitio_C - T_marte_C| / 80). T_marte_C = -59 (promedio global NASA NSSDC, ~214 K). La escala de 80 °C es un convenio del prototipo para que una diferencia de 80 °C o más dé puntaje 0.",
+        "amplitud_termica": "max(0, 1 - |amplitud_diaria_sitio_C - 58| / 58). El valor 58 °C es el rango diurno publicado por NASA NSSDC para el sitio de Viking 1 (184 K a 242 K), no un dato de Jezero ni de Gale.",
+        "aridez": "max(0, 1 - P_anual_mm / 500). Se toma la precipitación líquida de Marte como 0 mm/año. La escala de 500 mm es un convenio del prototipo: con 500 mm o más el puntaje de aridez es 0.",
+        "altitud_uv_proxy": "min(1, elevacion_m / 4000). Es un proxy de atmósfera más delgada y mayor UV en la Tierra, no un dato de UV medido ni una comparación con la elevación marciana."
+      }
+    },
+    "mars_global_references": {
+      "average_temperature_C": {
+        "value": -59,
+        "status": "measured",
+        "source": "NASA NSSDC Mars Fact Sheet: average temperature ~214 K (-59 C). https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html Consultado el 14 de noviembre de 2026 (hora de America/Buenos_Aires)."
+      },
+      "viking1_diurnal_range_C": {
+        "value": 58,
+        "min_C": -89,
+        "max_C": -31,
+        "status": "measured",
+        "source": "NASA NSSDC Mars Fact Sheet: diurnal temperature range 184 K to 242 K (-89 to -31 C) at the Viking 1 Lander site. https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html"
+      },
+      "surface_gravity_m_s2": {
+        "mars": 3.73,
+        "earth": 9.82,
+        "ratio_mars_earth": 0.380,
+        "status": "measured",
+        "source": "NASA NSSDC Mars Fact Sheet, surface gravity (mean). https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html"
+      },
+      "surface_pressure": {
+        "mars_mbar": 6.36,
+        "mars_note": "6.36 mb at mean radius (variable from 4.0 to 8.7 mb depending on season).",
+        "earth_mbar_sea_level_typical": 1013,
+        "earth_note": "El valor 1013 mbar es la presión típica a nivel del mar, no una medición en los sitios andinos (allí la presión es menor).",
+        "status_mars": "measured",
+        "status_earth_sea_level": "measured",
+        "source": "NASA NSSDC Mars Fact Sheet (presión de Marte)."
+      }
+    }
+  },
+  "earth_sites": [
+    {
+      "id": "campo-piedra-pomez",
+      "name": "Campo de Piedra Pómez",
+      "short_name": "Piedra Pómez",
+      "province": "Catamarca",
+      "department": "Antofagasta de la Sierra",
+      "country": "Argentina",
+      "category": "candidato",
+      "highlight_less_studied": false,
+      "lat": -26.659722,
+      "lon": -67.514167,
+      "coord_source": "Centro aproximado del área protegida: 26°39′35″S 67°30′51″O. Wikipedia en español / Wikidata Q23833026. https://es.wikipedia.org/wiki/Área_natural_protegida_Campo_de_Piedra_Pómez",
+      "elevation_m": {
+        "value": 3463,
+        "status": "measured",
+        "dataset": "OpenTopoData SRTM30m",
+        "source": "API OpenTopoData SRTM 30 m consultada el 14 de noviembre de 2026 (America/Buenos_Aires) en el punto -26.659722, -67.514167. Respuesta: 3463.0 m. https://api.opentopodata.org/v1/srtm30m?locations=-26.659722,-67.514167 Wikidata cita 3446 m para el área; se usa el valor SRTM del punto."
+      },
+      "climate": {
+        "t2m_mean_C": 9.49,
+        "t2m_mean_daily_max_C": 16.49,
+        "t2m_mean_daily_min_C": 3.52,
+        "t2m_abs_max_C": 28.2,
+        "t2m_abs_min_C": -16.3,
+        "mean_diurnal_range_C": 12.97,
+        "mean_annual_precipitation_mm": 127.9,
+        "annual_precip_min_mm": null,
+        "period": "1991-2020",
+        "status": "measured",
+        "source_temperature": "Open-Meteo Historical Weather API, modelo era5_land, diarios 1991-01-01 a 2020-12-31, 10958 días. Celda devuelta: -26.7, -67.5. Muñoz Sabater (2019), ERA5-Land, https://doi.org/10.24381/CDS.E2161BAC",
+        "source_precipitation": "Open-Meteo Historical Weather API, modelo era5 (0,25°), normales 1991-2020, 30 años completos. Celda devuelta: -26.75, -67.5. Media anual 127.9 mm. Hersbach et al. (2023), ERA5, https://doi.org/10.24381/cds.adbb2d47. ERA5-Land no devolvió precipitación diaria (nulos) en esta consulta, por eso se usó ERA5."
+      },
+      "summary": "Campo de ignimbritas y yardangs en la Puna de Catamarca, dentro de un área natural protegida provincial. Es uno de los análogos terrestres mejor documentados en Argentina para paisajes eólicos de origen volcánico en Marte.",
+      "description": "El Campo de Piedra Pómez se extiende en el departamento Antofagasta de la Sierra, en la Puna catamarqueña. El paisaje está formado por depósitos de ignimbrita (piedra pómez) tallados por el viento en yardangs, crestas y callejones. El área protegida cubre decenas de miles de hectáreas; el punto usado acá es el centro aproximado publicado para el polígono (no un mojón de campo).",
+      "why_analogous": "Varios trabajos comparan los yardangs labrados en ignimbritas de este campo con la Medusae Fossae Formation (MFF) de Marte, una unidad ecuatorial de material volcánico blando y muy erosionado por el viento. La analogía se sostiene sobre todo en la geomorfología eólica y en el sustrato volcánico poroso, no en temperatura ni en gravedad.",
+      "analogy_breaks": "La Tierra tiene casi tres veces la gravedad de Marte (9,82 frente a 3,73 m/s², NASA NSSDC), una atmósfera mucho más densa, agua líquida ocasional, vegetación escasa pero presente en la región, y un régimen de radiación distinto. El viento terrestre no equivale al de Marte. La temperatura media del sitio (~9,5 °C) está muy por encima del promedio global marciano (−59 °C).",
+      "paired_mars_ids": ["medusae-fossae"],
+      "qualitative_scores": {
+        "geologia": {"value": 0.80, "status": "example", "note": "Juicio preliminar: ignimbrita / tefra frente a la hipótesis volcánica de la MFF."},
+        "relieve": {"value": 0.90, "status": "example", "note": "Juicio preliminar: yardangs y paisaje eólico, el punto más fuerte de la analogía publicada."},
+        "sales": {"value": 0.30, "status": "example", "note": "No es un salar; la analogía no se apoya en evaporitas."},
+        "vulcanismo": {"value": 0.85, "status": "example", "note": "Depósitos de erupciones explosivas; la MFF también se interpreta a menudo como volcánica."}
+      },
+      "sources": [
+        {"label": "Wikipedia / Wikidata (coordenadas del área)", "url": "https://es.wikipedia.org/wiki/Área_natural_protegida_Campo_de_Piedra_Pómez"},
+        {"label": "Landscapes of the Argentine Puna… (EPSC 2022)", "url": "https://doi.org/10.5194/epsc2022-715"},
+        {"label": "Yardang morphometry… Campo Piedra Pomez compared with Medusae Fossae (BYU)", "url": "https://scholarsarchive.byu.edu/etd/10119"},
+        {"label": "OpenTopoData SRTM30m", "url": "https://www.opentopodata.org/"}
+      ]
+    },
+    {
+      "id": "laguna-negra",
+      "name": "Laguna Negra",
+      "short_name": "Laguna Negra",
+      "province": "Catamarca",
+      "department": "Tinogasta",
+      "country": "Argentina",
+      "category": "candidato",
+      "highlight_less_studied": false,
+      "lat": -27.64694,
+      "lon": -68.54528,
+      "coord_source": "27°38′49″S 68°32′43″W (decimal −27.64694, −68.54528), Wikipedia en inglés, a partir de literatura (complejo Laguna Verde). https://en.wikipedia.org/wiki/Laguna_Negra,_Catamarca",
+      "elevation_m": {
+        "value": 4092,
+        "status": "measured",
+        "dataset": "OpenTopoData SRTM30m",
+        "source": "API OpenTopoData SRTM 30 m consultada el 14 de noviembre de 2026 en −27.64694, −68.54528. Respuesta: 4092.0 m. Wikipedia cita 4131 m para el lago; la diferencia puede deberse al punto exacto o a la fuente. Acá se usa el SRTM del punto."
+      },
+      "climate": {
+        "t2m_mean_C": 0.49,
+        "t2m_mean_daily_max_C": 6.27,
+        "t2m_mean_daily_min_C": -4.94,
+        "t2m_abs_max_C": 21.9,
+        "t2m_abs_min_C": -28.8,
+        "mean_diurnal_range_C": 11.21,
+        "mean_annual_precipitation_mm": 322.3,
+        "period": "1991-2020",
+        "status": "measured",
+        "source_temperature": "Open-Meteo era5_land, 1991-2020. Celda: −27.599998, −68.6. Media 0,49 °C.",
+        "source_precipitation": "Open-Meteo era5 0,25°, 1991-2020. Celda: −27.75, −68.5. Media anual 322,3 mm. Atención: esa celda es amplia y puede incluir laderas más húmedas de los volcanes vecinos; conviene contrastar con estaciones o CHIRPS/IMERG.",
+        "precip_caution": "El valor ERA5 (322 mm/año) puede no representar bien la cubeta hipersalina, que se describe como de evaporación dominante. Queda como dato de reanálisis, no como medición in situ."
+      },
+      "summary": "Laguna hipersalina de alta montaña en el complejo Laguna Verde, con carbonatos, yeso y microbialitas. Se estudia como laboratorio natural de procesos que podrían haber ocurrido en lagos del Marte temprano, incluso en relación con los carbonatos de Jezero.",
+      "description": "Laguna Negra es un lago somero (menos de 2 m) e hipersalino en la Puna austral, cerca del paso de San Francisco. Se recarga sobre todo por agua subterránea y deshielo, no tiene efluente superficial y pierde agua por evaporación, con precipitación de sales (yeso, halita y otras). En la costa sudeste crecen microbialitas y depósitos carbonáticos.",
+      "why_analogous": "Trabajos presentados en el EPSC 2022 la tratan como análogo de ambientes lacustres del Noéico / Marte temprano, y discuten su utilidad para interpretar carbonatos como los de Jezero. La analogía apunta a procesos (mezcla de aguas, carbonatos, evaporitas, posible biosignatura) más que a un calco del cráter.",
+      "analogy_breaks": "Hay vida microbiana abundante, una atmósfera densa, gravedad terrestre y agua líquida estable. La temperatura media (~0,5 °C) sigue siendo mucho más cálida que el promedio marciano. Jezero es un cráter con delta relicto; Laguna Negra es una cubeta andina activa. La precipitación ERA5 del punto no debe leerse como clima idéntico al de Jezero.",
+      "paired_mars_ids": ["jezero"],
+      "qualitative_scores": {
+        "geologia": {"value": 0.80, "status": "example", "note": "Carbonatos y evaporitas en un sistema lacustre, relevantes para Jezero."},
+        "relieve": {"value": 0.70, "status": "example", "note": "Abanico aluvial y costa de lago; no hay un cráter de impacto análogo."},
+        "sales": {"value": 0.95, "status": "example", "note": "Sistema hipersalino con yeso y otras sales, uno de los puntos más fuertes."},
+        "vulcanismo": {"value": 0.55, "status": "example", "note": "El valle está cerrado en parte por lavas de volcanes vecinos, pero el sitio en sí es lacustre."}
+      },
+      "sources": [
+        {"label": "Wikipedia: Laguna Negra, Catamarca (coords, contexto)", "url": "https://en.wikipedia.org/wiki/Laguna_Negra,_Catamarca"},
+        {"label": "Gomez et al., JSR 2018 (carbonatos / microbial mats)", "url": "https://doi.org/10.2110/jsr.2018.37"},
+        {"label": "EPSC 2022: The Laguna Negra case", "url": "https://doi.org/10.5194/epsc2022-822"}
+      ]
+    },
+    {
+      "id": "payun-matru",
+      "name": "Campo volcánico Payún Matrú",
+      "short_name": "Payún Matrú",
+      "province": "Mendoza",
+      "department": "Malargüe",
+      "country": "Argentina",
+      "category": "candidato",
+      "highlight_less_studied": false,
+      "lat": -36.422,
+      "lon": -69.241,
+      "coord_source": "Smithsonian Global Volcanism Program, volcán n.° 357066: 36.422°S, 69.241°W. https://volcano.si.edu/volcano.cfm?vn=357066 El IGN argentino lista el campo en 36°25′24″S 69°14′16″O (≈ −36.4233, −69.2378), coherente a la centésima de grado.",
+      "elevation_m": {
+        "value": 3658,
+        "status": "measured",
+        "dataset": "OpenTopoData SRTM30m",
+        "source": "SRTM 30 m en el punto GVP (−36.422, −69.241): 3658.0 m, consultado el 14 de noviembre de 2026. El GVP publica una cumbre de 3715 m; el IGN lista 3665 m para el campo. El valor del prototipo es la cota SRTM del punto, no necesariamente la cumbre.",
+        "published_summit_m": 3715,
+        "published_summit_source": "Smithsonian GVP, Payún Matrú, elevación 3715 m."
+      },
+      "climate": {
+        "t2m_mean_C": -1.7,
+        "t2m_mean_daily_max_C": 3.79,
+        "t2m_mean_daily_min_C": -6.43,
+        "t2m_abs_max_C": 21.6,
+        "t2m_abs_min_C": -26.4,
+        "mean_diurnal_range_C": 10.22,
+        "mean_annual_precipitation_mm": 503.2,
+        "period": "1991-2020",
+        "status": "measured",
+        "source_temperature": "Open-Meteo era5_land, 1991-2020. Celda: −36.399998, −69.2. Media −1,7 °C (punto alto del edificio volcánico).",
+        "source_precipitation": "Open-Meteo era5 0,25°, 1991-2020. Celda: −36.5, −69.25. Media anual 503,2 mm. Atención: el punto es la coordenada del volcán (zona alta). Los campos de lava más bajos pueden ser más secos. El valor no debe extenderse a toda la Payunia sin validar.",
+        "precip_caution": "503 mm/año en la celda ERA5 del edificio es más húmedo de lo que suele sugerir la imagen de un desierto de lava. Hay que contrastarlo con estaciones de Malargüe / La Payunia."
+      },
+      "summary": "Campo volcánico basáltico de retroarco en la Payunia, Mendoza, con una de las coladas cuaternarias más largas de la Tierra. Se propuso como análogo de las grandes coladas de Tharsis en Marte.",
+      "description": "Payún Matrú, en la Reserva Provincial La Payunia, incluye un gran volcán en escudo con caldera, el estratovolcán Payún Liso y cientos de conos y coladas. El flujo Pampas Onduladas se estima en 167–181 km y se cita como la colada de lava cuaternaria más larga conocida en la Tierra (GVP / literatura volcanológica).",
+      "why_analogous": "Un trabajo del EPSC 2007 presenta el campo de lavas de Payún Matrú como fuente de análogos para las coladas largas de Marte. La comparación más defendible es con los campos de lava de Tharsis (acá usamos Pavonis Mons como referencia geográfica de ese conjunto): pendientes bajas, coladas muy extensas y morfología de flujos inflados.",
+      "analogy_breaks": "Tharsis se formó en gravedad menor, atmósfera muy tenue y durante intervalos de tiempo distintos. Payún está en un arco de subducción / retroarco terrestre, no en un punto caliente marciano. El clima del punto (media −1,7 °C y ~503 mm/año según ERA5) no imita el de Marte. No hay analogía de gravedad ni de presión.",
+      "paired_mars_ids": ["pavonis-mons"],
+      "qualitative_scores": {
+        "geologia": {"value": 0.90, "status": "example", "note": "Basaltos y coladas largas; la litología es el corazón de la analogía."},
+        "relieve": {"value": 0.90, "status": "example", "note": "Escudo, caldera, conos y flujos muy extensos, comparables en forma (no en escala absoluta) con Tharsis."},
+        "sales": {"value": 0.20, "status": "example", "note": "No es un análogo evaporítico."},
+        "vulcanismo": {"value": 0.95, "status": "example", "note": "Uno de los campos volcánicos más claros para esta comparación."}
+      },
+      "sources": [
+        {"label": "Smithsonian Global Volcanism Program: Payún Matrú", "url": "https://volcano.si.edu/volcano.cfm?vn=357066"},
+        {"label": "IGN Argentina, listado de volcanes (coords / cota del campo)", "url": "https://www.ign.gob.ar/NuestrasActividades/Geografia/DatosArgentina/VolcanesActivos"},
+        {"label": "EPSC 2007: The Payun-Matru lava field… analogues for Martian long lava flows", "url": "https://ui.adsabs.harvard.edu/abs/2007epsc.conf..340G/abstract"}
+      ]
+    },
+    {
+      "id": "ischigualasto",
+      "name": "Parque Provincial Ischigualasto",
+      "short_name": "Ischigualasto",
+      "province": "San Juan",
+      "department": "Valle Fértil / Jáchal",
+      "country": "Argentina",
+      "category": "candidato",
+      "highlight_less_studied": false,
+      "lat": -30.163044,
+      "lon": -67.842792,
+      "coord_source": "Sitio oficial del parque: 30° 09′ 46.96″ S y 67° 50′ 34.05″ O = −30.163044, −67.842792. https://www.ischigualasto.gob.ar/?page_id=507 Consultado el 14 de noviembre de 2026.",
+      "elevation_m": {
+        "value": 1397,
+        "status": "measured",
+        "dataset": "OpenTopoData SRTM30m",
+        "source": "SRTM 30 m en el punto oficial (−30.163044, −67.842792): 1397.0 m, consultado el 14 de noviembre de 2026. Wikidata cita 1291 m para el parque (otro punto o un valor medio). Se usa el SRTM del punto oficial."
+      },
+      "climate": {
+        "t2m_mean_C": 15.59,
+        "t2m_mean_daily_max_C": 22.54,
+        "t2m_mean_daily_min_C": 9.56,
+        "t2m_abs_max_C": 40.4,
+        "t2m_abs_min_C": -11.5,
+        "mean_diurnal_range_C": 12.97,
+        "mean_annual_precipitation_mm": 489.2,
+        "period": "1991-2020",
+        "status": "measured",
+        "source_temperature": "Open-Meteo era5_land, 1991-2020. Celda: −30.2, −67.799995. Media 15,59 °C.",
+        "source_precipitation": "Open-Meteo era5 0,25°, 1991-2020. Celda: −30.25, −67.75. Media anual 489,2 mm. Este valor es más húmedo que algunas descripciones del parque como desierto muy seco; hay que validarlo con estaciones locales. Se informa el reanálisis, no un número 'corregido'.",
+        "precip_caution": "ERA5 en la celda más cercana da ~489 mm/año, no un clima hiperárido. Hasta no contrastar con estaciones, el puntaje de aridez de este sitio queda condicionado por ese reanálisis."
+      },
+      "summary": "Valle sedimentario triásico, conocido como Valle de la Luna, con una secuencia fluvial y lacustre hoy erosionada por el viento. La analogía con Gale es una hipótesis de trabajo estratigráfica y morfológica: no encontramos en esta corrida un paper que lo presente como análogo formal de Marte.",
+      "description": "El Parque Provincial Ischigualasto, Patrimonio Mundial junto con Talampaya, conserva un registro sedimentario del Triásico (ríos, lagos y llanuras) y un paisaje actual de badlands, geoformas eólicas y una paleta ocres que le valió el apodo de Valle de la Luna. El punto usado es el que publica el sitio oficial del parque.",
+      "why_analogous": "Gale (Curiosity) documenta depósitos de río, abanico y lago en un cráter que después se volvió un desierto erosivo. Ischigualasto ofrece, en la Tierra, una sucesión sedimentaria continental expuesta y tallada por el viento. La comparación es de procesos y de aspecto del afloramiento, no de un cráter de impacto ni de mineralogía marciana medida acá.",
+      "analogy_breaks": "No es un cráter. Está a ~1400 m, con media de ~15,6 °C, muy por encima de Gale. La gravedad, la atmósfera y la biota son terrestres. Además, a diferencia de Piedra Pómez o Payún Matrú, la analogía formal con Marte está menos sostenida por literatura específica: hay que tratarla con cautela y fortalecerla con datos (arcillas, sulfatos, rugosidad, etc.).",
+      "paired_mars_ids": ["gale"],
+      "qualitative_scores": {
+        "geologia": {"value": 0.70, "status": "example", "note": "Secuencia fluvial-lacustre bien expuesta; analogía estratigráfica, no mineralógica cuantificada."},
+        "relieve": {"value": 0.60, "status": "example", "note": "Badlands y erosión eólica; no hay morfología de cráter."},
+        "sales": {"value": 0.35, "status": "example", "note": "No se cargó un inventario de evaporitas del punto; valor tentativo."},
+        "vulcanismo": {"value": 0.15, "status": "example", "note": "No es un análogo volcánico."}
+      },
+      "sources": [
+        {"label": "Sitio oficial del parque (coordenadas)", "url": "https://www.ischigualasto.gob.ar/?page_id=507"},
+        {"label": "UNESCO: Ischigualasto / Talampaya Natural Parks", "url": "https://whc.unesco.org/en/list/966/"},
+        {"label": "NASA MSL/Curiosity fact sheet (Gale, elevación y contexto lacustre)", "url": "https://mars.nasa.gov/internal_resources/824/"}
+      ]
+    },
+    {
+      "id": "laguna-antofagasta",
+      "name": "Laguna de Antofagasta",
+      "short_name": "Lag. Antofagasta",
+      "province": "Catamarca",
+      "department": "Antofagasta de la Sierra",
+      "country": "Argentina",
+      "category": "menos-estudiado",
+      "highlight_less_studied": true,
+      "lat": -26.111148,
+      "lon": -67.407338,
+      "coord_source": "Stoppiello et al., EPSC 2022 (abstract EPSC2022-1152): Laguna de Antofagasta (LDA), −26.111148, −67.407338, al pie del campo de lavas del volcán La Alumbrera. Los autores la describen como un sitio análogo de Marte previamente no descripto. https://doi.org/10.5194/epsc2022-1152",
+      "elevation_m": {
+        "value": 3325,
+        "status": "measured",
+        "dataset": "OpenTopoData SRTM30m",
+        "source": "SRTM 30 m en −26.111148, −67.407338: 3325.0 m, consultado el 14 de noviembre de 2026."
+      },
+      "climate": {
+        "t2m_mean_C": 10.47,
+        "t2m_mean_daily_max_C": 17.81,
+        "t2m_mean_daily_min_C": 3.03,
+        "t2m_abs_max_C": 28.7,
+        "t2m_abs_min_C": -17.0,
+        "mean_diurnal_range_C": 14.77,
+        "mean_annual_precipitation_mm": 126.1,
+        "period": "1991-2020",
+        "status": "measured",
+        "source_temperature": "Open-Meteo era5_land, 1991-2020. Celda: −26.099998, −67.4. Media 10,47 °C.",
+        "source_precipitation": "Open-Meteo era5 0,25°, 1991-2020. Celda: −26.0, −67.5. Media anual 126,1 mm."
+      },
+      "summary": "Laguna de altura en la Puna catamarqueña, al pie del volcán La Alumbrera. En 2022 se presentó como un análogo de Marte poco estudiado (paleolagos del Noéico-Hespérico y biosignaturas en sedimentos lacustres).",
+      "description": "La laguna se apoya en el campo volcánico de Antofagasta, al pie de las lavas de La Alumbrera. El trabajo de EPSC 2022 subraya que, pese a su relevancia, los lagos de la Puna argentina siguen poco muestreados frente a análogos más famosos. Por eso este prototipo la destaca como sitio 'menos estudiado', en línea con lo que pide el desafío.",
+      "why_analogous": "Los High-Altitude Andean Lakes combinan aridez, gran altura (más UV, menos atmósfera), volcanismo y química extrema, un paquete que se usa como laboratorio del Marte temprano. LDA se propone en particular para pensar sedimentos de paleolagos y la estratificación microbiana, con lectura posible hacia ambientes tipo Jezero u otros lagos hespéricos.",
+      "analogy_breaks": "Es un lago activo con agua líquida y vida microbiana. La temperatura media (~10,5 °C) no imita a Marte. Faltan, en este prototipo, análisis mineralógicos propios (CRISM vs. muestreo de campo). La analogía es de proceso y de contexto, todavía con poca literatura.",
+      "paired_mars_ids": ["jezero"],
+      "qualitative_scores": {
+        "geologia": {"value": 0.65, "status": "example", "note": "Contexto lacustre-volcánico prometedor, todavía poco caracterizado en público."},
+        "relieve": {"value": 0.60, "status": "example", "note": "Lago al pie de un campo de lavas; no es un cráter."},
+        "sales": {"value": 0.55, "status": "example", "note": "Es razonable esperar evaporitas en un HAAL, pero no se cargó una medición de sales de este punto."},
+        "vulcanismo": {"value": 0.80, "status": "example", "note": "Está al pie de La Alumbrera, en el campo volcánico de Antofagasta."}
+      },
+      "sources": [
+        {"label": "EPSC 2022-1152: Scratching beneath the surface… Laguna de Antofagasta", "url": "https://doi.org/10.5194/epsc2022-1152"}
+      ]
+    }
+  ],
+  "mars_sites": [
+    {
+      "id": "jezero",
+      "name": "Cráter Jezero (aterrizaje de Perseverance)",
+      "short_name": "Jezero",
+      "lat": 18.44,
+      "lon": 77.45,
+      "lon_east_0_360": 77.45,
+      "coord_source": "NASA GISS Mars24, listado de landers: Perseverance (Mars 2020) aterrizó el 18 de febrero de 2021 en Jezero, 77.45°E 18.44°N (Octavia E. Butler Landing). https://www.giss.nasa.gov/tools/mars24/help/landers.html El centro del cráter en el Gazetteer de la USGS/IAU es distinto (aprox. 18,41°N, 77,69°E); acá se usa el punto de aterrizaje.",
+      "elevation_m": {
+        "value": null,
+        "status": "example",
+        "note": "No se cargó un valor de elevación MOLA con fuente primaria NASA/USGS en esta corrida. Valor de ejemplo / a completar."
+      },
+      "summary": "Cráter con un antiguo delta y depósitos lacustres; sitio de Perseverance. Referencia para análogos de carbonatos y paleolagos (Laguna Negra, Laguna de Antofagasta).",
+      "sources": [
+        {"label": "NASA GISS Mars24 — Mars Landers", "url": "https://www.giss.nasa.gov/tools/mars24/help/landers.html"},
+        {"label": "USGS Gazetteer: Jezero crater", "url": "https://planetarynames.wr.usgs.gov/Feature/14300"}
+      ]
+    },
+    {
+      "id": "gale",
+      "name": "Cráter Gale (aterrizaje de Curiosity)",
+      "short_name": "Gale",
+      "lat": -4.59,
+      "lon": 137.44,
+      "lon_east_0_360": 137.44,
+      "coord_source": "NASA GISS Mars24: Curiosity aterrizó el 6 de agosto de 2012 en 137.44°E 4.59°S (Bradbury Landing). https://www.giss.nasa.gov/tools/mars24/help/landers.html",
+      "elevation_m": {
+        "value": -4501,
+        "status": "measured",
+        "source": "NASA Facts, Mars Science Laboratory/Curiosity: aterrizaje en 4.6 degrees south, 137.4 degrees east and minus 4,501 meters elevation. https://mars.nasa.gov/internal_resources/824/"
+      },
+      "summary": "Cráter con historia de ríos y un lago, hoy un desierto erosivo que explora Curiosity al pie de Aeolis Mons (Mount Sharp). Referencia para la hipótesis de trabajo de Ischigualasto.",
+      "sources": [
+        {"label": "NASA GISS Mars24 — Mars Landers", "url": "https://www.giss.nasa.gov/tools/mars24/help/landers.html"},
+        {"label": "NASA Facts: MSL/Curiosity (elevación −4501 m)", "url": "https://mars.nasa.gov/internal_resources/824/"}
+      ]
+    },
+    {
+      "id": "medusae-fossae",
+      "name": "Medusae Fossae",
+      "short_name": "Medusae Fossae",
+      "lat": -2.17,
+      "lon": -164.2,
+      "lon_east_0_360": 195.8,
+      "coord_source": "USGS IAU Gazetteer of Planetary Nomenclature, rasgo Medusae Fossae (ID 3795). En la red de control más detallada de la ficha: center latitude −2.17°, center longitude 195.80° E (planetocéntrico, este positivo, 0–360). Equivale a 2,17°S, 164,20°O. https://planetarynames.wr.usgs.gov/Feature/3795 Este punto es el rasgo nombrado; la Medusae Fossae Formation es una unidad mucho más extensa a lo largo del ecuador.",
+      "elevation_m": {
+        "value": null,
+        "status": "example",
+        "note": "Valor de ejemplo / a completar (no se bajó un MOLA del punto en esta corrida)."
+      },
+      "summary": "Rasgo ecuatorial de material blando, muy erosionado por el viento, parte de la Medusae Fossae Formation. Es la pareja publicada para los yardangs de ignimbrita del Campo de Piedra Pómez.",
+      "sources": [
+        {"label": "USGS Gazetteer: Medusae Fossae", "url": "https://planetarynames.wr.usgs.gov/Feature/3795"}
+      ]
+    },
+    {
+      "id": "pavonis-mons",
+      "name": "Pavonis Mons (campos de lava de Tharsis)",
+      "short_name": "Pavonis Mons",
+      "lat": 1.48,
+      "lon": -112.96,
+      "lon_east_0_360": 247.04,
+      "coord_source": "USGS IAU Gazetteer, Pavonis Mons (ID 4620). Red de control detallada: center latitude 1.48°, center longitude 247.04° E (planetocéntrico, este positivo 0–360), equivalente a 1,48°N, 112,96°O. https://planetarynames.wr.usgs.gov/Feature/4620 Se usa como ancla geográfica de los campos de lava de Tharsis, no como un flujo individual medido.",
+      "elevation_m": {
+        "value": null,
+        "status": "example",
+        "note": "Valor de ejemplo / a completar (cota MOLA de la cumbre no verificada en esta corrida)."
+      },
+      "summary": "Volcán en escudo de Tharsis, rodeado de coladas muy largas. Referencia geográfica para la analogía de Payún Matrú con las lavas marcianas de bajo pendiente.",
+      "sources": [
+        {"label": "USGS Gazetteer: Pavonis Mons", "url": "https://planetarynames.wr.usgs.gov/Feature/4620"},
+        {"label": "EPSC 2007 sobre coladas largas y Payún Matrú", "url": "https://ui.adsabs.harvard.edu/abs/2007epsc.conf..340G/abstract"}
+      ]
+    },
+    {
+      "id": "meridiani",
+      "name": "Meridiani Planum (aterrizaje de Opportunity)",
+      "short_name": "Meridiani",
+      "lat": -1.95,
+      "lon": -5.53,
+      "lon_east_0_360": 354.47,
+      "coord_source": "NASA GISS Mars24: Opportunity aterrizó el 25 de enero de 2004 en 354.47°E, escrito como −1.95°N (es decir 1,95°S), Challenger Memorial Station. 354.47°E = 5,53°O. https://www.giss.nasa.gov/tools/mars24/help/landers.html",
+      "elevation_m": {
+        "value": null,
+        "status": "example",
+        "note": "Valor de ejemplo / a completar."
+      },
+      "summary": "Llanura con sulfatos y hematita explorada por Opportunity. En este prototipo queda como referencia de evaporitas / alteración acuosa, sin estar apareada de forma rígida a un solo sitio argentino (Laguna Negra es la analogía de sales más cercana, pero su par principal es Jezero por los carbonatos).",
+      "sources": [
+        {"label": "NASA GISS Mars24 — Mars Landers", "url": "https://www.giss.nasa.gov/tools/mars24/help/landers.html"}
+      ]
+    }
+  ]
+}
