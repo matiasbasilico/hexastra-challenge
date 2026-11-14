@@ -105,7 +105,8 @@ def _read_roads(path: Path, layer: Optional[str], bbox: Tuple[float, float, floa
     import pyogrio
     import shapely
 
-    _, _, wkb, fields = pyogrio.raw.read(str(path), layer=layer, bbox=bbox, columns=list(columns))
+    meta, _, wkb, values = pyogrio.raw.read(str(path), layer=layer, bbox=bbox, columns=list(columns))
+    fields = dict(zip(meta["fields"], values))  # pyogrio returns columns in file order
     geoms = shapely.from_wkb(wkb)
     lines, owner = shapely.get_parts(geoms, return_index=True)
     coords, line_idx = shapely.get_coordinates(lines, return_index=True)
@@ -132,7 +133,7 @@ def nearest_road(
             if dist is None or (best and best["distance_km"] <= dist):
                 continue
             feature = int(owner[line])
-            attrs = {name: _plain(values[feature]) for name, values in zip(columns, fields)}
+            attrs = {name: _plain(fields[name][feature]) for name in columns}
             best = {"distance_km": dist, "attributes": attrs, "search_radius_km": radius}
         if best and best["distance_km"] <= radius:
             return best
