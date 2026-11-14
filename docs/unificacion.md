@@ -295,7 +295,7 @@ En la Mac: `/Users/mattib/hexastra-analogos`, repo git local en `main` (sin remo
 - Contratos en `contracts/feature_vector.schema.json`.
 - Índice **TASI** (propuesta del equipo, no un estándar publicado): máscara M(x) por NDVI > 0,15 o agua líquida; `S_T = exp(−γ · D_M)` con Mahalanobis y covarianza Ledoit-Wolf; `S_G` coseno espectral solo con espectros reales; TASI = suma ponderada de los componentes disponibles (G, T, E, Vo, O), pesos renormalizados. Hoy NDVI/agua/espectro/operacional siguen en gran parte vacíos.
 - Catálogo terrestre semilla: **52 sitios** en el mundo (no una grilla H3). Destacados en el seed: Piedra Pómez, Payún Matrú, Yungay/Atacama, Haughton, Kīlauea, University Valley, Devon/FMARS, Timanfaya, Teide, Mauna Kea, Laguna Diamante, Socompa.
-- Catálogo planetario: Jezero, Gale, Medusae Fossae, Pavonis Mons, Meridiani; en Luna, borde de Shackleton (medias LOLA) más Haworth, Malapert, de Gerlache, Amundsen y Nobile (anclas IAU / Artemis III). No están Marius Hills, Utopía, Arsia Mons, Faustini, el pozo de Mare Tranquillitatis ni Oxia Planum.
+- Catálogo planetario: Jezero, Gale, Medusae Fossae, Pavonis Mons, Meridiani; en Luna, borde de Shackleton (medias LOLA) más Haworth, Malapert, de Gerlache, Amundsen y Nobile (anclas IAU / Artemis III). Al momento de la inspección no estaban Marius Hills, Utopía, Arsia Mons, Faustini, el pozo de Mare Tranquillitatis ni Oxia Planum. **Actualización 14 nov 2026:** Marius Hills, Utopía y Arsia Mons ya están en el catálogo (ver §8).
 - Python 3.9 en la Mac (con `eval_type_backport`).
 
 ---
@@ -327,7 +327,7 @@ En la Mac: `/Users/mattib/hexastra-analogos`, repo git local en `main` (sin remo
 1. **Fórmula oficial.** TASI y S no son la misma cuenta. TASI es una suma (un componente flojo se nota menos). S es un promedio geométrico (un componente flojo arrastra el total, que es justo el argumento del pitch). Conviene no mezclarlos en un solo número sin decirlo.
 2. **Punto vs hexágono.** El prototipo actual no puede pintar 77.000 hexágonos ni mover sliders en milisegundos como describe el documento; Leaflet + puntos sí sirve para la demo de esta semana.
 3. **Catálogos de destinos.** El MVP del documento (Shackleton, Marius Hills, Jezero, Utopía, Arsia Mons) no coincide del todo con el nuestro (Shackleton/Artemis III + Jezero/Gale/Medusae/Pavonis/Meridiani). Las coordenadas de Jezero y Gale del documento son aproximadas (18,4° N, 77,7° E y 5,4° S, 137,8° E); las nuestras están citadas de NASA GISS Mars24 (18,44° N, 77,45° E y 4,59° S, 137,44° E). No hay que “promediarlas”: hay que citar la fuente y quedarse con la citada.
-4. **Sitios argentinos del documento que no están en nuestro seed:** Llullaillaco / permafrost andino, Somuncurá, Pali Aike, Campo del Cielo, Río Cuarto, Fiambalá-Tatón, Antártida Argentina (Marambio, Esperanza). Ischigualasto sí está, pero no como destacado. Teide está destacado en nuestro seed y no figura en la lista de 11 del documento.
+4. **Sitios argentinos del documento que no estaban en nuestro seed** (resuelto el 14 nov 2026, ver §8): Llullaillaco / permafrost andino, Somuncurá, Pali Aike, Campo del Cielo, Río Cuarto, Fiambalá-Tatón, Antártida Argentina (Marambio, Esperanza). Ischigualasto sí está, pero no como destacado. Teide está destacado en nuestro seed y no figura en la lista de 11 del documento.
 5. **Política de datos.** El monorepo prohíbe mocks y fallbacks silenciosos. Nuestro prototipo, por acuerdo del equipo, marca faltantes como null / «a completar» y sigue mostrando un ranking parcial (cobertura). Hay que explicitar las dos capas: infra fail-fast para I/O; puntaje parcial y honestidad cuando falta una variable.
 6. **Versión de Python:** 3.11 en el monorepo vs 3.9 en la Mac para nuestros servicios.
 7. **Front.** Elegir una línea (el documento deja abierta React o Svelte; el monorepo ya eligió Next+Cesium; nosotros ya tenemos Leaflet). Forzar un rewrite a MapLibre+deck.gl ahora tiraría la demo que ya corre.
@@ -405,3 +405,73 @@ Usar **`/Users/mattib/Desarrollo/nasa/nasa`** (`kevirui/nasa`) como repo oficial
 - Este plan: `docs/unificacion.md`
 
 Nada de esto se copió de vuelta a la Mac ni se commiteó.
+
+---
+
+## 8. Estado de implementación: sitios del documento (14 nov 2026)
+
+Rama `feat/sitios-documento`. Puntaje: **solo TASI** (no se implementó S). MVP: mapa de puntos actual (sin H3, sin Cesium). Regla: ninguna coordenada sin fuente; lo que no se pudo verificar quedó en `null` con la nota «a completar».
+
+### 8.1 Destinos de Luna y Marte agregados (`services/planetary/data/catalog.json`)
+
+| id | Destino | lat | lon (−180..180) | lon 0–360 E | Fuente |
+|---|---|---|---|---|---|
+| `marius-hills` | Marius Hills, pozo de colapso | 14.0917 | −56.7701 | 303.2299 | LROC Lunar Pits Atlas, pozo #1 (https://lroc.im-ldi.com/atlases/pits/1). Descubrimiento: Haruyama et al. 2009, GRL 36, L21206, doi:10.1029/2009GL040635 |
+| `utopia-planitia` | Utopia Planitia, sitio Viking 2 | 48.27 | 134.28 | 134.28 | NASA GISS Mars24 (https://www.giss.nasa.gov/tools/mars24/help/landers.html) |
+| `arsia-mons` | Arsia Mons | −8.26 | −120.09 | 239.91 | USGS Gazetteer 394, red MDIM 2.1, planetocéntrica +E (https://planetarynames.wr.usgs.gov/Feature/394) |
+
+Decisiones:
+
+- **Marius Hills no es un nombre IAU.** El Gazetteer no tiene «Marius Hills/Colles/Montes»; el rasgo homónimo es el cráter Marius (USGS 3715, 11.90°N, −50.84°E), que no representa la cueva. Para el destino «Cuevas» se usa el pozo del LROC Pits Atlas. Las dimensiones del pozo no coinciden entre LROC (49–55 m, 40 m de profundidad) y Haruyama (65 m, 80–88 m) y no se cargan.
+- **Utopía:** el documento da una franja (40–50°N). Se usa un punto real dentro de esa franja con la misma fuente que Jezero y Gale (Mars24, Viking 2). El centro IAU de la planicie (USGS 6260: 46.74°N 117.52°E en MDIM 2.1; 49.67°N 118.0°E en MDIM 2.0) queda citado. Que haya hielo somero justo en el punto Viking 2 no se verificó con fuente primaria (a completar).
+- **Arsia Mons:** cota de cumbre en `null`; las cifras NASA/ASU no coinciden («>9 km», «~20 km», «más de 20 km sobre las llanuras») y ninguna está referida al datum MOLA.
+- **Redes del Gazetteer en Marte:** la ficha muestra MDIM 2.0 y MDIM 2.1; se usa MDIM 2.1 (la seleccionada por defecto), que no siempre es la primera del desplegable.
+- **Sin mediciones verificadas:** elevación, pendiente, rugosidad, temperaturas, iluminación e hielo quedan en `null`. Solo `precip_mm = 0` (convención). El vector resultante tiene únicamente `Vo` listo, así que TASI puntúa con cobertura 1/5 y **los tres destinos devuelven hoy el mismo ranking** (solo aridez). Completar T (MOLA/LOLA) y E (Diviner/MCD) es el siguiente paso para que se diferencien.
+
+### 8.2 Verificación de Jezero y Gale
+
+| Cráter | Centro IAU (USGS, MDIM 2.1) | Documento | Repo (Mars24, aterrizaje) | Diferencia repo vs. centro |
+|---|---|---|---|---|
+| Jezero (USGS 14300) | 18.41°N, 77.69°E | 18,4°N, 77,7°E | 18.44°N, 77.45°E (Perseverance) | Δlat +0.03°, Δlon −0.24° (≈14 km) |
+| Gale (USGS 2071) | 5.37°S, 137.81°E | 5,4°S, 137,8°E | 4.59°S, 137.44°E (Curiosity) | Δlat +0.78°, Δlon −0.37° (≈51 km) |
+
+Conclusión: el documento usa el centro IAU del cráter; nuestras coordenadas son los puntos de aterrizaje y Mars24 no cambió (página actualizada el 2023-12-09). Las dos son correctas para lo que representan. No se promedian: se mantiene el punto de aterrizaje (donde hay datos in situ de los rovers) y ahora se cita también el centro IAU en `coord_source`.
+
+### 8.3 Candidatos argentinos agregados (`services/earth/data/sites_seed.json` → `catalog.json`)
+
+| id | Sitio | lat, lon | Fuente | Menos estudiado |
+|---|---|---|---|---|
+| `meseta-de-somuncura` | Meseta de Somuncurá (Río Negro) | −41.5833, −67.15 | Wikipedia ES, **último recurso** | sí |
+| `pali-aike` | Pali Aike, sector argentino (Santa Cruz) | −51.995, −70.155 | Ross et al. 2011, JVGR 201:253–271 | sí |
+| `campo-del-cielo` | Campo del Cielo (Chaco / Santiago del Estero) | −27.6333, −61.70 | Earth Impact Database (PASSC, Wayback 2023) | no (impacto confirmado y muy citado) |
+| `crateres-rio-cuarto` | Cráteres de Río Cuarto (Córdoba) | −32.75, −64.25 | Grant y Schultz 1993, LPSC XXIV, NTRS 19940011723 | sí |
+| `dunas-de-taton` | Dunas de Tatón, Bolsón de Fiambalá (Catamarca) | −27.3436, −67.5386 | Isla et al. 2021, QEG 12(2):19–29 | sí |
+| `llullaillaco` | Volcán Llullaillaco (Salta) | −24.72, −68.53 | Smithsonian GVP 355110 | sí |
+| `base-marambio` | Base Antártica Marambio | −64.2418, −56.6232 | COMNAP Antarctic Facilities | sí |
+| `base-esperanza` | Base Antártica Esperanza | −63.3970, −56.9981 | COMNAP Antarctic Facilities | sí |
+
+Mediciones: `scripts/ingest_earth.py` midió DEM ASTER GDEM v3 (OpenTopoData, 7×7 a 120 m) y clima ERA5 1991–2020 (Open-Meteo) para los 8. NDVI y agua líquida siguen en `null`, porque la ingesta ya tenía desactivados ORNL y Overpass después de fallas previas (no se adivinan). La covarianza Ledoit-Wolf se recalculó con las ventanas nuevas (n = 1300 → 1500).
+
+Notas por sitio:
+
+- **Llullaillaco:** el ID GVP correcto es 355110 (355030 es Isluga, Chile). ASTER da 6.418 m en el punto contra 6.739 m de cumbre en GVP: el DEM de 30 m subestima las cumbres. El feature guarda el valor medido y la cota GVP queda en `coord_source`.
+- **Pali Aike:** el «Parque Nacional Pali Aike» es chileno (CONAF), no de APN. El punto GVP 358080 (52.082°S, 69.698°W) cae sobre el límite; se eligió el de Ross et al., que el paper ubica del lado argentino.
+- **Río Cuarto:** origen discutido (impacto oblicuo, Schultz y Lianza 1992; erosión eólica, Cione et al. 2002). La coordenada sale del OCR del abstract en NTRS («32°45'S, 64°15'W») y hay que confirmarla en el PDF. Wikipedia lo ubica ≈14 km más al sur.
+- **Tatón:** es un punto de muestreo del paper, no el centro del campo de dunas.
+- **Somuncurá:** única coordenada de Wikipedia (último recurso, marcada en `coord_source`). Wikipedia EN da otro punto (41.35°S, 66.9°W); los dos caen sobre la meseta. Queda a completar con una fuente oficial o un paper.
+- **Antártida:** con el mismo método de siempre (Natural Earth 50m point-in-polygon y fallback Nominatim), las dos bases **quedan sin país ni continente**. No se las fuerza a `AR` ni a `AQ`: aparecen en la búsqueda «Mundo entero», pero no en `/candidates?country=AR` ni en el filtro «Antarctica». Decisión abierta: usar un polígono antártico de mayor resolución o una regla documentada.
+
+### 8.4 Descartados
+
+| Sitio | Motivo |
+|---|---|
+| «Parque Nacional Pali Aike» (APN) | No existe como parque nacional argentino; es chileno (CONAF). Se usa el sector argentino del campo volcánico. |
+| Reserva Geológica Provincial Laguna Azul (maar, Santa Cruz) | Solo hay coordenadas en sitios turísticos o de geocaching, sin fuente oficial ni paper. A completar. |
+| Médano de Saujil / dunas de Fiambalá como punto aparte | Ya cubierto por Tatón (coordenada de paper). |
+| Faustini, pozo de Mare Tranquillitatis, Oxia Planum | Fuera del alcance de este cambio: el documento no los marca como MVP. |
+
+### 8.5 Arreglos del front encontrados al verificar
+
+- `js/api.js`: el modo fácil enviaba `continent=south-america` (slug) y earth-service filtra por el nombre de Natural Earth (`South America`), así que el ranking filtrado por continente/país quedaba vacío para **todos** los destinos. Ahora se traduce el slug.
+- `services/earth/tasi.py`: `/tasi` no devolvía `highlight_less_studied` en cada match y el chip «Menos estudiado» nunca se veía en los rankings.
+

@@ -130,7 +130,7 @@
       "lat": 18.44,
       "lon": 77.45,
       "lon_east_0_360": 77.45,
-      "coord_source": "NASA GISS Mars24: Perseverance, 18 feb 2021, 77.45°E 18.44°N (Octavia E. Butler Landing). https://www.giss.nasa.gov/tools/mars24/help/landers.html",
+      "coord_source": "NASA GISS Mars24: Perseverance, 18 feb 2021, 77.45°E 18.44°N (Octavia E. Butler Landing). https://www.giss.nasa.gov/tools/mars24/help/landers.html Verificación 14 nov 2026: centro IAU del cráter = USGS Gazetteer 14300 (MDIM 2.1, planetocéntrica +E) 18.41°N, 77.69°E; el documento HexAstra (18,4°N 77,7°E) usa ese centro. Se mantiene el punto de aterrizaje Mars24 (≈14 km del centro). https://planetarynames.wr.usgs.gov/Feature/14300",
       "summary": "Cráter con delta y depósitos lacustres; sitio de Perseverance.",
       "tags": [
         "marte"
@@ -219,7 +219,7 @@
       "lat": -4.59,
       "lon": 137.44,
       "lon_east_0_360": 137.44,
-      "coord_source": "NASA GISS Mars24: Curiosity, 6 ago 2012, 137.44°E 4.59°S (Bradbury Landing).",
+      "coord_source": "NASA GISS Mars24: Curiosity, 6 ago 2012, 137.44°E 4.59°S (Bradbury Landing). Verificación 14 nov 2026: centro IAU del cráter = USGS Gazetteer 2071 (MDIM 2.1, planetocéntrica +E) 5.37°S, 137.81°E; el documento HexAstra (5,4°S 137,8°E) usa ese centro. Se mantiene el punto de aterrizaje Mars24 (≈51 km del centro). https://www.giss.nasa.gov/tools/mars24/help/landers.html https://planetarynames.wr.usgs.gov/Feature/2071",
       "summary": "Cráter con historia de ríos y lago; explora Curiosity al pie de Aeolis Mons.",
       "tags": [
         "marte"
@@ -1112,6 +1112,279 @@
         }
       },
       "artemis_note": "Regiones candidatas Artemis III: Nobile Rim 1 y Nobile Rim 2 (NASA 2022)."
+    },
+    {
+      "id": "marius-hills",
+      "name": "Marius Hills (pozo de colapso)",
+      "short_name": "Marius Hills",
+      "body": "moon",
+      "lat": 14.0917,
+      "lon": -56.7701,
+      "lon_east_0_360": 303.2299,
+      "coord_source": "LROC Lunar Pits Atlas (NASA LRO / ASU), pozo #1 Marius Hills: 14.0917°N, 303.2299°E (+E 0–360), consultado el 14 nov 2026 (America/Buenos_Aires). https://lroc.im-ldi.com/atlases/pits/1 . Descubrimiento: Haruyama et al. (2009), GRL 36, L21206, doi:10.1029/2009GL040635 (≈14.2°N, 303.3°E según The Planetary Society, https://www.planetary.org/articles/2173). «Marius Hills» no es un nombre IAU: el rasgo IAU más cercano es el cráter Marius (USGS Gazetteer 3715, 11.90°N, −50.84°E), que no representa el pozo.",
+      "summary": "Domos volcánicos de Oceanus Procellarum con un pozo de colapso que se interpreta como claraboya de un tubo de lava. Destino «Cuevas» del documento. Las dimensiones del pozo difieren entre LROC (49–55 m, 40 m de profundidad) y Haruyama 2009 (65 m, 80–88 m); no se cargan.",
+      "tags": [
+        "luna",
+        "cuevas",
+        "documento-hexastra"
+      ],
+      "geology_class": "volcanic_lava_tube_pit",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó una pendiente LOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad LOLA cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica Diviner publicada para el punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: la Luna no tiene atmósfera que sostenga lluvia líquida. No es una medición in situ de lluvia.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin producto de iluminación verificado para este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto (no es una región polar).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "utopia-planitia",
+      "name": "Utopia Planitia (sitio Viking 2)",
+      "short_name": "Utopia Planitia",
+      "body": "mars",
+      "lat": 48.27,
+      "lon": 134.28,
+      "lon_east_0_360": 134.28,
+      "coord_source": "NASA GISS Mars24: Viking Lander 2, 3 sep 1976, 134.28°E 48.27°N (Gerald Soffen Memorial Station), consultado el 14 nov 2026 (America/Buenos_Aires). https://www.giss.nasa.gov/tools/mars24/help/landers.html . Se usa un punto real dentro de la franja 40–50°N del documento, con la misma fuente que Jezero y Gale. Centro IAU de la planicie: USGS Gazetteer 6260, red MDIM 2.1 planetocéntrica +E, 46.74°N 117.52°E (MDIM 2.0: 49.67°N 118.0°E). https://planetarynames.wr.usgs.gov/Feature/6260",
+      "summary": "Gran planicie del hemisferio norte; destino «Hielo e ISRU» del documento (hielo subterráneo poco profundo, terreno llano, frío extremo). Que haya hielo somero justo en el punto Viking 2 no se verificó con fuente primaria en esta corrida (a completar).",
+      "tags": [
+        "marte",
+        "hielo",
+        "documento-hexastra"
+      ],
+      "geology_class": "lowland_plain_ground_ice",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó una pendiente MOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica de sitio verificada en esta corrida. No se asigna el promedio global de Marte a este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte. NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin producto de iluminación verificado para este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado y verificado para este punto en esta corrida (a completar).",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        }
+      }
+    },
+    {
+      "id": "arsia-mons",
+      "name": "Arsia Mons (Tharsis)",
+      "short_name": "Arsia Mons",
+      "body": "mars",
+      "lat": -8.26,
+      "lon": -120.09,
+      "lon_east_0_360": 239.91,
+      "coord_source": "USGS IAU Gazetteer, Arsia Mons (Feature 394), red MDIM 2.1 (seleccionada por defecto), planetocéntrica +E: 8.26°S, 239.91°E, consultado el 14 nov 2026 (America/Buenos_Aires). La red MDIM 2.0 de la misma ficha da 8.3°S, 238.9°E. https://planetarynames.wr.usgs.gov/Feature/394",
+      "summary": "Volcán en escudo de Tharsis con pozos tipo claraboya sobre tubos de lava; destino «Cuevas» del documento. La cota de cumbre no se cargó: las cifras NASA/ASU consultadas no coinciden y ninguna está referida al datum MOLA.",
+      "tags": [
+        "marte",
+        "cuevas",
+        "documento-hexastra"
+      ],
+      "geology_class": "volcanic_shield",
+      "features": {
+        "elevation": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó un DEM MOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "slope": {
+          "value": null,
+          "unit": "deg",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "No se muestreó una pendiente MOLA del punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "roughness": {
+          "value": null,
+          "unit": "m",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin rugosidad MOLA cuantificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "temp_mean": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin media térmica de sitio verificada en esta corrida. No se asigna el promedio global de Marte a este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "temp_diurnal_range": {
+          "value": null,
+          "unit": "degC",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin amplitud diurna de sitio verificada en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "precip_mm": {
+          "value": 0.0,
+          "unit": "mm/year",
+          "is_real": true,
+          "quality": "convention",
+          "source": "Convención documentada: no hay lluvia líquida estable en la superficie actual de Marte. NASA NSSDC Mars Fact Sheet describe una atmósfera tenue (6,36 mbar) y H2O como traza. No es una medición de pluviómetro en el punto.",
+          "note": null,
+          "comparable": true
+        },
+        "illumination_pct": {
+          "value": null,
+          "unit": "percent",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin producto de iluminación verificado para este punto.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        },
+        "water_ice_indicator": {
+          "value": null,
+          "unit": "index_0_1",
+          "is_real": false,
+          "quality": "placeholder",
+          "source": "Sin indicador de hielo publicado para este punto en esta corrida.",
+          "note": "valor no cargado: falta una fuente verificada en esta corrida (a completar)",
+          "comparable": true
+        }
+      }
     }
   ]
 }

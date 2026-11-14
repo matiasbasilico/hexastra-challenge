@@ -133,17 +133,39 @@ Vector V = [G, T, E, Vo, O]:
 - **NASA Earthdata / Copernicus CDSE**: clientes preparados para `EARTHDATA_USERNAME`/`PASSWORD` y `CDSE_*`. Sin credenciales no se inventa un ráster.
 
 ## Sitios del catálogo
-## Sitios del catálogo
 
 **Tierra (fichas narrativas del mapa estático):** Campo de Piedra Pómez, Laguna Negra, Payún Matrú, Ischigualasto, Laguna de Antofagasta (menos estudiada).
 
-**Tierra (catálogo TASI, mundial):** 46 candidatos con coordenadas citadas en desiertos, salares, campos volcánicos, cráteres de impacto, terrenos polares/periglaciales y tubos de lava, en todos los continentes (incluye sitios conocidos como Yungay/Atacama, Dry Valleys, Haughton, y otros menos usados como Laguna de Antofagasta, Da Qaidam, Tswaing, Bockfjorden, Undara, Pinacate). Identidades en `services/earth/data/sites_seed.json`; mediciones y país/ISO en `services/earth/data/catalog.json`.
+**Tierra (catálogo TASI, mundial):** 60 candidatos con coordenadas citadas en desiertos, salares, campos volcánicos, cráteres de impacto, terrenos polares/periglaciales y tubos de lava, en todos los continentes (incluye sitios conocidos como Yungay/Atacama, Dry Valleys, Haughton, y otros menos usados como Laguna de Antofagasta, Da Qaidam, Tswaing, Bockfjorden, Undara, Pinacate). Identidades en `services/earth/data/sites_seed.json`; mediciones y país/ISO en `services/earth/data/catalog.json`.
 
 **Sitios featured** (atajos / líneas de base, `GET /featured` y `getFeatured()`): University Valley (Valles secos de McMurdo), cráter Haughton e isla Devon–FMARS (dos puntos distintos), Timanfaya (Lanzarote) y Teide (Tenerife), Kīlauea y Mauna Kea, Yungay (Atacama), Campo de Piedra Pómez, Payún Matrú, Laguna Diamante (caldera de Galán, Catamarca; no la de Mendoza) y Socompa (punto GVP en Argentina según Natural Earth). Varios son análogos ya famosos: quedan como referencia, no como «menos estudiados».
 
-**Marte:** Jezero (Perseverance), Gale (Curiosity), Medusae Fossae, Pavonis Mons, Meridiani (Opportunity).
+**Marte:** Jezero (Perseverance), Gale (Curiosity), Medusae Fossae, Pavonis Mons, Meridiani (Opportunity), Utopia Planitia (sitio Viking 2) y Arsia Mons.
 
-**Luna:** borde de Shackleton (valores medios LOLA de Zuber et al. 2012) y anclas IAU de regiones Artemis III (Haworth, Malapert, de Gerlache, Amundsen, Nobile). El comunicado de NASA del 19 de agosto de 2022 [nombra las 13 regiones](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/) (Faustini Rim A, Peak Near Shackleton, Connecting Ridge, etc.) pero **no publica las coordenadas de los recuadros de 15×15 km**. Por eso las anclas IAU son el centro del cráter u homónimo, no el centro oficial del recuadro. En Shackleton, lat/lon son el *centro del círculo del borde* (Tabla 1 de Zuber), y la cota es la *altura media del borde* (1,3 km).
+**Luna:** Marius Hills (pozo de colapso, LROC), borde de Shackleton (valores medios LOLA de Zuber et al. 2012) y anclas IAU de regiones Artemis III (Haworth, Malapert, de Gerlache, Amundsen, Nobile). El comunicado de NASA del 19 de agosto de 2022 [nombra las 13 regiones](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/) (Faustini Rim A, Peak Near Shackleton, Connecting Ridge, etc.) pero **no publica las coordenadas de los recuadros de 15×15 km**. Por eso las anclas IAU son el centro del cráter u homónimo, no el centro oficial del recuadro. En Shackleton, lat/lon son el *centro del círculo del borde* (Tabla 1 de Zuber), y la cota es la *altura media del borde* (1,3 km).
+
+### Sitios del documento HexAstra (agregados el 14 de noviembre de 2026)
+
+Destinos y candidatos argentinos del documento impreso (§3 y §8) que faltaban. Las coordenadas llevan fuente en `coord_source`; las mediciones sin fuente quedan en `null` con la nota «a completar». Detalle y decisiones en `docs/unificacion.md` §8.
+
+| Sitio | Cuerpo | lat, lon | Fuente de la coordenada |
+| --- | --- | --- | --- |
+| Marius Hills (pozo de colapso) | Luna | 14.0917°N, −56.7701° (303.2299°E) | [LROC Lunar Pits Atlas #1](https://lroc.im-ldi.com/atlases/pits/1); descubrimiento Haruyama et al. 2009, GRL, doi:10.1029/2009GL040635 |
+| Utopia Planitia (sitio Viking 2) | Marte | 48.27°N, 134.28°E | [NASA GISS Mars24](https://www.giss.nasa.gov/tools/mars24/help/landers.html); centro IAU 46.74°N 117.52°E en [USGS 6260](https://planetarynames.wr.usgs.gov/Feature/6260) |
+| Arsia Mons | Marte | 8.26°S, −120.09° (239.91°E) | [USGS Gazetteer 394](https://planetarynames.wr.usgs.gov/Feature/394), red MDIM 2.1 |
+| Meseta de Somuncurá | Tierra (AR) | 41.5833°S, 67.15°O | [Wikipedia ES](https://es.wikipedia.org/wiki/Meseta_de_Somuncur%C3%A1), **último recurso** (no está en GVP; el plan de manejo no trae coordenadas) |
+| Pali Aike (sector argentino) | Tierra (AR) | 51.995°S, 70.155°O | Ross et al. 2011, J. Volcanol. Geotherm. Res. 201:253–271 |
+| Campo del Cielo | Tierra (AR) | 27°38′S, 61°42′O | Earth Impact Database (PASSC, copia Wayback 2023) |
+| Cráteres de Río Cuarto | Tierra (AR) | 32°45′S, 64°15′O | Grant y Schultz 1993, LPSC XXIV, [NTRS 19940011723](https://ntrs.nasa.gov/citations/19940011723). Origen discutido; a confirmar en el PDF |
+| Dunas de Tatón (Fiambalá) | Tierra (AR) | 27.3436°S, 67.5386°O | Isla et al. 2021, Quaternary and Environmental Geosciences 12(2) (punto de muestreo) |
+| Volcán Llullaillaco | Tierra (AR) | 24.72°S, 68.53°O | [Smithsonian GVP 355110](https://volcano.si.edu/volcano.cfm?vn=355110) (cumbre 6.739 m) |
+| Base Marambio | Tierra (sin país en NE 50m) | 64.2418°S, 56.6232°O | [COMNAP Antarctic Facilities](https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities) |
+| Base Esperanza | Tierra (sin país en NE 50m) | 63.3970°S, 56.9981°O | COMNAP Antarctic Facilities |
+
+- Jezero y Gale **mantienen** el punto de aterrizaje de Mars24. El documento usa el centro IAU del cráter (Jezero 18.41°N 77.69°E, USGS 14300; Gale 5.37°S 137.81°E, USGS 2071), que queda a ≈14 km y ≈51 km respectivamente; ahora se cita en `coord_source`.
+- Los tres destinos nuevos no tienen DEM ni térmica verificados: su vector solo trae `Vo` (convención de precipitación 0). TASI los puntúa con cobertura 1/5, así que hoy su ranking solo mide aridez y es el mismo para los tres.
+- Las bases antárticas no caen dentro de ningún polígono de Natural Earth 50m y Nominatim no devuelve ISO: quedan sin país/continente (no se adivina) y aparecen solo en la búsqueda «Mundo entero».
+- La ingesta midió DEM ASTER y clima ERA5 para los 8 sitios terrestres nuevos; la covarianza Ledoit-Wolf pasó de n=1300 a n=1500, así que los puntajes T de todos los sitios se mueven levemente.
 
 ## Qué es dato real y qué es placeholder
 

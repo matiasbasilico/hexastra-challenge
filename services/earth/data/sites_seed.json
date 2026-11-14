@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Worldwide Earth analog-type candidate seed (identities only)",
-    "note": "Coordinates are sourced; continent/ISO and measurements are added by ingest_earth.py from Natural Earth and live APIs. No invented numbers. Featured identities were added 2026-11-14 with sourced coordinates.",
-    "n": 52,
+    "note": "Coordinates are sourced; continent/ISO and measurements are added by ingest_earth.py from Natural Earth and live APIs. No invented numbers. Featured identities were added 2026-11-14 with sourced coordinates. Sitios argentinos del §8 del documento HexAstra agregados el 2026-11-14 con coordenadas citadas (ver coord_source).",
+    "n": 60,
     "featured": "Sites with featured=true are reference baselines / shortcuts, including well-known analogs the challenge asks to look beyond. highlight_less_studied remains for lesser-known candidates."
   },
   "sites": [
@@ -883,6 +883,143 @@
       "featured": true,
       "featured_label": "Socompa (Salta / frontera Chile)",
       "featured_rank": 12
+    },
+    {
+      "id": "meseta-de-somuncura",
+      "name": "Meseta de Somuncurá (Río Negro)",
+      "short_name": "Somuncurá",
+      "lat": -41.58333333,
+      "lon": -67.15,
+      "coord_source": "Wikipedia en español, artículo 'Meseta de Somuncurá' (API de coordenadas): 41.5833°S, 67.15°W. Último recurso: la meseta no figura en el Smithsonian GVP (es oligo-miocena, ni Holocena ni en la capa Pleistocena) y el Plan de Manejo oficial del ANP no trae coordenadas. https://es.wikipedia.org/wiki/Meseta_de_Somuncur%C3%A1 [Fuente de último recurso: Wikipedia. A completar con una fuente oficial o un paper.]",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Meseta basáltica de plateau oligo-miocena, la mayor de Patagonia, que sirve como análogo de los mares basálticos lunares y de las superficies de aterrizaje. Análogo de: Luna: mares basálticos y llanuras de lava para estudiar aterrizajes.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "pali-aike",
+      "name": "Campo volcánico Pali Aike (sector argentino, Santa Cruz)",
+      "short_name": "Pali Aike",
+      "lat": -51.995,
+      "lon": -70.155,
+      "coord_source": "Ross, Delpit, Haller, Németh y Corbella (2011), J. Volcanol. Geotherm. Res. 201:253-271: el complejo de maares del lado argentino del PAVF está 'at around 70.155°W, 51.995°S'. https://espace.inrs.ca/id/eprint/1907/1/Ross-et-al-Pali-Aike-2011-web%5B1%5D.pdf Se eligió el punto del lado argentino. Smithsonian GVP 358080 da 52.082°S, 69.698°W, sobre el límite con Chile.",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Campo volcánico máfico y monogenético con maares, conos de escoria y coladas, que es un análogo del volcanismo marciano en interacción con agua. Análogo de: Marte: volcanismo freatomagmático (interacción magma-agua), maares y cráteres volcánicos que se confunden con cráteres de impacto.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "campo-del-cielo",
+      "name": "Campo del Cielo (Chaco / Santiago del Estero)",
+      "short_name": "Campo del Cielo",
+      "lat": -27.633333,
+      "lon": -61.7,
+      "coord_source": "Earth Impact Database (PASSC), Campo Del Cielo: S 27°38', W 61°42'; diámetro 0,05 km; edad < 0,004 Ma; bolido: octaedrita gruesa a hexaedrita granular. Copia en Wayback de http://www.passc.net/EarthImpactDatabase/New%20website_05-2018/Campodelcielo.html",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "summary": "Campo de cráteres pequeños formado por la caída de un meteorito de hierro fragmentado hace menos de 4.000 años, sobre loess chaqueño. Análogo de: Luna/Marte: cráteres simples pequeños y campos de cráteres secundarios en blanco sedimentario blando.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "crateres-rio-cuarto",
+      "name": "Cráteres de Río Cuarto (Córdoba)",
+      "short_name": "Río Cuarto",
+      "lat": -32.75,
+      "lon": -64.25,
+      "coord_source": "Grant y Schultz (1993), 'Martian crater degradation by eolian processes: Analogy with the Rio Cuarto Crater Field, Argentina', LPSC XXIV (NASA NTRS 19940011723): 'Rio Cuarto Crater Field is located at 32°45'S, 64°15'W'. https://ntrs.nasa.gov/citations/19940011723 Origen discutido (impacto oblicuo vs. erosión eólica). Coordenada leída del OCR del abstract en NTRS: a confirmar en el PDF.",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Grupo de unas diez depresiones alargadas en loess pampeano, que podrían ser un impacto rasante o formas eólicas, y que sirven como análogo de la degradación eólica de cráteres en Marte. Análogo de: Marte: degradación eólica de cráteres en terrenos con mantos de sedimento fino; cráteres alargados por impacto oblicuo.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "dunas-de-taton",
+      "name": "Campo de dunas de Tatón (Bolsón de Fiambalá, Catamarca)",
+      "short_name": "Dunas de Tatón",
+      "lat": -27.343611,
+      "lon": -67.538611,
+      "coord_source": "Isla et al. (2021), 'Taton dune field: wind selection across the Southamerican arid diagonal, Puna Argentina', Quaternary and Environmental Geosciences 12(2):19-29. Sitio de muestreo 'Taton': 27°20'37\"S, 67°32'19\"W. https://revistas.ufpr.br/abequa/article/download/65221/44546 Es el punto de muestreo del paper, no el centro del campo de dunas.",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Campo de dunas transversales de arena fina con ceniza volcánica en un valle tectónico árido de la Puna catamarqueña, análogo de los campos de dunas marcianos. Análogo de: Marte: campos de dunas eólicas con material volcánico, dunas que trepan relieve (climbing dunes) y transporte por vientos dominantes.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "llullaillaco",
+      "name": "Volcán Llullaillaco (Salta)",
+      "short_name": "Llullaillaco",
+      "lat": -24.72,
+      "lon": -68.53,
+      "coord_source": "Smithsonian GVP volcán 355110 'Llullaillaco': 24.72°S, 68.53°W, cumbre 6.739 m, país Chile-Argentina, última erupción 1877. https://volcano.si.edu/volcano.cfm?vn=355110",
+      "analog_types": [
+        "volcanic_field",
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Estratovolcán de 6.739 m sobre el límite con Chile, con permafrost y condiciones periglaciales hiperáridas de altura. Análogo de: Marte: permafrost y suelos periglaciales en ambiente hiperárido, frío, de baja presión y alta radiación UV.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "base-marambio",
+      "name": "Base Antártica Marambio (Antártida Argentina)",
+      "short_name": "Marambio",
+      "lat": -64.241769,
+      "lon": -56.623225,
+      "coord_source": "Catálogo COMNAP Antarctic Facilities (registro 10, 'Base Antártica Marambio', Argentina, permanente, 1969): 64.241769°S, 56.623225°W (64° 14.5061' S, 56° 37.3935' W), elevación 209,5 m MSL. https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Base argentina permanente sobre la meseta libre de hielo de isla Marambio, con permafrost y procesos periglaciales análogos a Marte. Análogo de: Marte: permafrost, suelo estructurado (patterned ground) y procesos periglaciales; también análogo operacional de hábitat aislado.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
+    },
+    {
+      "id": "base-esperanza",
+      "name": "Base Antártica Esperanza (Antártida Argentina)",
+      "short_name": "Esperanza",
+      "lat": -63.396959,
+      "lon": -56.998054,
+      "coord_source": "Catálogo COMNAP Antarctic Facilities (registro 8, 'Base Antártica Esperanza', Argentina, permanente, 1952): 63.396959°S, 56.998054°W (63° 23.8175' S, 56° 59.8832' W), elevación 25 m MSL. https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "summary": "Base argentina permanente en Bahía Esperanza, con terreno periglacial costero y experiencia de habitabilidad prolongada en aislamiento. Análogo de: Marte/Luna: análogo operacional de hábitat aislado de larga duración; terreno periglacial con permafrost.",
+      "body": "earth",
+      "featured": false,
+      "document_source": "Documento HexAstra, §8 Sitios candidatos en Argentina"
     }
   ]
 }

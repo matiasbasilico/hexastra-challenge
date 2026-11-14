@@ -365,6 +365,7 @@ def rank(
                 "country_name": cand.get("country_name"),
                 "analog_types": cand.get("analog_types") or [],
                 "known_level": cand.get("known_level"),
+                "highlight_less_studied": bool(cand.get("highlight_less_studied")),
                 "summary": cand.get("summary"),
             },
             "score": None if tasi is None else round(tasi * 100.0, 2),
