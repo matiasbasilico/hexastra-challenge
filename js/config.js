@@ -9,10 +9,24 @@
 (function (root) {
   "use strict";
 
-  root.HEXASTRA_CONFIG = root.HEXASTRA_CONFIG || {
-    planetaryUrl: "http://127.0.0.1:8766",
-    earthUrl: "http://127.0.0.1:8767"
-  };
+  const LOCAL_HOST = /^(?:127\.0\.0\.1|localhost)$/;
+  const servedLocally = LOCAL_HOST.test(root.location.hostname) || root.location.protocol === "file:";
+
+  // On the published site (Cloudflare Pages) the services are reached through the
+  // same-origin proxy /api/<service> (pages/functions), so a shared link works for anyone.
+  root.HEXASTRA_CONFIG = root.HEXASTRA_CONFIG || (servedLocally
+    ? { planetaryUrl: "http://127.0.0.1:8766", earthUrl: "http://127.0.0.1:8767" }
+    : { planetaryUrl: root.location.origin + "/api/planetary", earthUrl: root.location.origin + "/api/earth" });
+
+  // A URL saved by an earlier local visit (127.0.0.1) only works on the owner's machine.
+  if (!servedLocally) {
+    ["HEXASTRA_PLANETARY_URL", "HEXASTRA_EARTH_URL"].forEach(function (key) {
+      try {
+        const saved = root.localStorage.getItem(key);
+        if (saved && LOCAL_HOST.test(new URL(saved).hostname)) root.localStorage.removeItem(key);
+      } catch (e) { /* private mode or invalid URL */ }
+    });
+  }
 
   const ALLOWED_HOST = /^(?:[a-z0-9-]+\.trycloudflare\.com|127\.0\.0\.1|localhost)$/;
 
@@ -21,6 +35,7 @@
       const url = new URL(raw);
       const local = url.hostname === "127.0.0.1" || url.hostname === "localhost";
       if (!ALLOWED_HOST.test(url.hostname)) return null;
+      if (local && !servedLocally) return null;
       if (url.protocol !== "https:" && !(local && url.protocol === "http:")) return null;
       return url.origin;
     } catch (e) {

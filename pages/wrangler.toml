@@ -1,0 +1,9 @@
+# Cloudflare Pages config used by scripts/deploy_pages.sh (staged next to ./dist).
+name = "hexastra-analogos"
+pages_build_output_dir = "./dist"
+compatibility_date = "2024-09-23"
+
+# URLs of the current cloudflared quick tunnels, written by scripts/share.sh.
+[[kv_namespaces]]
+binding = "HEXASTRA_TUNNELS"
+id = "d85ceb8126a04cb29b764fdb2e938384"
