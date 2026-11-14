@@ -42,6 +42,7 @@ FEATURE_DEFS = {
     "g_lito_hielo": "Fracción de hielo (glaciares, casquete polar)",
     "g_lito_volc_indiviso": "Fracción volcánica sin composición informada por el mapa («volcanic», «volcaniclastic»)",
     "g_lito_sed_indiviso": "Fracción sedimentaria sin tipo informado por el mapa («sedimentary» a secas)",
+    "g_lito_feldespatico": "Fracción de corteza feldespática / anortosítica (tierras altas lunares por FeO y Th de Lunar Prospector; anortosita en la Tierra)",
     "g_impacto": "1 si el punto está en material de impacto mapeado o en una estructura de impacto confirmada",
 }
 
@@ -79,6 +80,7 @@ EARTH_KEYWORDS: Tuple[Tuple[str, str], ...] = (
     ("evaporite", "g_lito_quimico"),
     ("gypsum", "g_lito_quimico"),
     ("halite", "g_lito_quimico"),
+    ("anorthosite", "g_lito_feldespatico"),
     ("granite", "g_lito_cristalino"),
     ("gneiss", "g_lito_cristalino"),
     ("schist", "g_lito_cristalino"),
@@ -137,13 +139,36 @@ MOON_IMPACT_PREFIXES = ("Cc", "Ccc", "Csc", "Ec", "Ecc", "Esc", "Ic", "Icc", "Is
 MOON_EJECTA_TERRA = {"It", "INt", "Nt", "pNt", "Ntp", "Ip", "INp", "Np"}
 
 
-def moon_vector(unit: str) -> Tuple[Optional[Dict[str, float]], Optional[float], str]:
-    """(composición o None, impacto o None, regla aplicada)."""
+# Tierras altas feldespáticas por química orbital (Lunar Prospector GRS, Prettyman
+# et al. 2006): Jolliff et al. 2000 definen el terreno FHT por FeO y Th bajos;
+# FHT anortosítico ≈ 4,2 % FeO y 0,8 ppm Th, FHT externo ≈ 5,5 % y 1,5 ppm.
+FHT_MAX_FEO_WT = 6.0
+FHT_MAX_TH_PPM = 1.5
+
+
+def is_feldspathic(feo_wt: Optional[float], th_ppm: Optional[float]) -> bool:
+    return (feo_wt is not None and th_ppm is not None
+            and feo_wt <= FHT_MAX_FEO_WT and th_ppm <= FHT_MAX_TH_PPM)
+
+
+def moon_vector(unit: str, feo_wt: Optional[float] = None, th_ppm: Optional[float] = None
+                ) -> Tuple[Optional[Dict[str, float]], Optional[float], str]:
+    """(composición o None, impacto o None, regla aplicada).
+
+    La unidad del mapa decide mare vs. impacto. Para unidades de impacto/terra,
+    la composición sale de FeO y Th orbitales sólo si caen en el rango publicado
+    del terreno feldespático; si no, queda None (no se adivina).
+    """
     if unit in MOON_BASALTIC:
         comp = {cls: (1.0 if cls == "g_lito_basaltico" else 0.0) for cls in COMPOSITION}
         return comp, 0.0, "unidad de mare / material volcánico basáltico según la DOMU"
     if unit in MOON_EJECTA_TERRA or unit.startswith(MOON_IMPACT_PREFIXES):
-        return None, 1.0, "unidad de cráter, cuenca o eyecta según la DOMU; el mapa no da composición"
+        if is_feldspathic(feo_wt, th_ppm):
+            comp = {cls: (1.0 if cls == "g_lito_feldespatico" else 0.0) for cls in COMPOSITION}
+            return comp, 1.0, ("unidad de cráter, cuenca o eyecta según la DOMU; composición feldespática por "
+                               "FeO %.2f %% ≤ %.1f y Th %.2f ppm ≤ %.1f (terreno FHT, Jolliff et al. 2000)"
+                               % (feo_wt, FHT_MAX_FEO_WT, th_ppm, FHT_MAX_TH_PPM))
+        return None, 1.0, "unidad de cráter, cuenca o eyecta según la DOMU; el mapa no da composición y FeO/Th no caen en el rango feldespático"
     return None, None, "unidad sin regla de equivalencia (a completar)"
 
 

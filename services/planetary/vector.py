@@ -20,6 +20,7 @@ G_LABELS = [
     "g_lito_hielo",
     "g_lito_volc_indiviso",
     "g_lito_sed_indiviso",
+    "g_lito_feldespatico",
     "g_impacto",
 ]
 

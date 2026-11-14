@@ -28,6 +28,7 @@ COMPOSITION = (
     "g_lito_hielo",
     "g_lito_volc_indiviso",
     "g_lito_sed_indiviso",
+    "g_lito_feldespatico",
 )
 IMPACT = "g_impacto"
 LABELS = COMPOSITION + (IMPACT,)
@@ -42,6 +43,10 @@ FAMILY = {
     "g_lito_sed_indiviso": "sedimentaria",
     "g_lito_cristalino": "cristalina",
     "g_lito_hielo": "hielo",
+    # Corteza anortosítica (tierras altas lunares). Familia propia: ningún sitio
+    # terrestre del catálogo es anortosita y no se le da crédito parcial por ser
+    # «cristalino» (granito y gneis tienen otra composición).
+    "g_lito_feldespatico": "feldespatica",
 }
 N_BLOCKS = 2
 FORMULA = ("S_G = mean(available blocks) * (n_blocks / 2); "

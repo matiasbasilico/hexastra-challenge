@@ -60,7 +60,7 @@ def test_partial_composition_is_not_used():
 
 
 def test_values_from_component_reads_labels_and_vector():
-    comp = {"vector_labels": list(LABELS), "vector": [1.0] + [0.0] * 7 + [None]}
+    comp = {"vector_labels": list(LABELS), "vector": [1.0] + [0.0] * (len(COMPOSITION) - 1) + [None]}
     v = values_from_component(comp)
     assert v["g_lito_basaltico"] == 1.0 and v["g_impacto"] is None
     feats = {"g_impacto": {"value": 1.0}, "g_lito_basaltico": {"value": None}}
@@ -97,7 +97,7 @@ def test_rank_uses_geology_from_candidate_features():
         "id": "marius-hills", "body": "moon", "name": "Marius Hills",
         "components": {
             "G": {"available": True, "score_ready": True, "vector_labels": list(LABELS),
-                  "vector": [1.0] + [0.0] * 7 + [0.0]},
+                  "vector": [1.0] + [0.0] * (len(COMPOSITION) - 1) + [0.0]},
             "T": {}, "E": {}, "Vo": {}, "O": {},
         },
     }
