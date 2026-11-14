@@ -1,4 +1,4 @@
-"""Tests del piloto G: tabla de equivalencias, filas de g-piloto.jsonl y validaciones."""
+"""Tests de G: tabla de equivalencias, filas de g-mapas.jsonl y validaciones."""
 from __future__ import annotations
 
 import json
@@ -16,8 +16,8 @@ sys.path.insert(0, str(ROOT / "db"))
 import g_equivalencias as eq  # noqa: E402
 from measurements import validate  # noqa: E402
 
-JSONL = ROOT / "data" / "measurements" / "g-piloto.jsonl"
-FEATURES = ROOT / "data" / "measurements" / "g-piloto.features.json"
+JSONL = ROOT / "data" / "measurements" / "g-mapas.jsonl"
+FEATURES = ROOT / "data" / "measurements" / "g-mapas.features.json"
 
 
 def _rows():
@@ -45,10 +45,27 @@ def test_earth_keywords_map_to_classes(liths, expected):
     assert abs(sum(comp.values()) - 1.0) < 1e-9
 
 
-@pytest.mark.parametrize("liths", ["sedimentary", "pumice", "", None])
-def test_earth_unknown_or_ambiguous_lithology_is_not_guessed(liths):
-    # "sedimentary" no dice si es clástico o químico; "pumice" no debe disparar "ice".
+@pytest.mark.parametrize("liths", ["pumice", "lake", "", None])
+def test_earth_unknown_lithology_is_not_guessed(liths):
+    # "pumice" no debe disparar "ice"; "lake" no es una litología.
     assert eq.earth_composition(liths) is None
+
+
+@pytest.mark.parametrize("liths, expected", [
+    ("sedimentary", {"g_lito_sed_indiviso": 1.0}),
+    ("Volcaniclastic, volcanic", {"g_lito_volc_indiviso": 1.0}),
+    # La clase indivisa no se suma si el mapa ya dio una clase fina de esa familia.
+    ("sandstone; sedimentary", {"g_lito_clastico": 1.0}),
+    ("volcanic: mafic rocks", {"g_lito_basaltico": 1.0}),
+    ("evaporites; sedimentary", {"g_lito_quimico": 1.0}),
+])
+def test_generic_terms_go_to_the_undivided_class_of_their_family(liths, expected):
+    comp = eq.earth_composition(liths)
+    assert {k: v for k, v in comp.items() if v} == expected
+
+
+def test_every_composition_class_has_a_family():
+    assert set(eq.FAMILY) == set(eq.COMPOSITION)
 
 
 def test_moon_rules():
@@ -71,14 +88,15 @@ def test_mars_rules_never_turn_missing_impact_into_zero():
 # ---------------------------------------------------------------- filas
 def test_every_row_passes_the_repo_validator():
     rows = _rows()
-    assert len(rows) == 12 * len(eq.FEATURES)
+    assert len(rows) == 74 * len(eq.FEATURES)
     for n, r in enumerate(rows, start=1):
-        validate(r, "g-piloto.jsonl:%d" % n)
+        validate(r, "g-mapas.jsonl:%d" % n)
 
 
 def test_features_are_declared_once_and_match_rows():
     defs = json.loads(FEATURES.read_text(encoding="utf-8"))
     assert set(defs) == set(eq.FEATURES)
+    assert all(d["service"] == ["earth", "planetary"] for d in defs.values())
     assert {r["feature"] for r in _rows()} == set(eq.FEATURES)
 
 
@@ -101,12 +119,19 @@ def test_composition_sums_to_one_when_present():
             assert abs(sum(vals) - 1.0) < 1e-3, site
 
 
-def test_sites_exist_in_base_catalogs():
+def test_all_catalog_sites_are_covered():
     ids = set()
     for svc in ("earth", "planetary"):
         data = json.loads((ROOT / "services" / svc / "data" / "catalog.json").read_text(encoding="utf-8"))
         ids |= {s["id"] for s in data["sites"]}
-    assert set(_by_site()) <= ids
+    assert set(_by_site()) == ids
+
+
+def test_every_earth_site_has_an_impact_value():
+    data = json.loads((ROOT / "services" / "earth" / "data" / "catalog.json").read_text(encoding="utf-8"))
+    by_site = _by_site()
+    for site in data["sites"]:
+        assert by_site[site["id"]]["g_impacto"]["value"] in (0.0, 1.0)
 
 
 # ---------------------------------------------------------------- validación contra lo publicado
@@ -116,6 +141,13 @@ def test_sites_exist_in_base_catalogs():
     # Lonar y Meteor Crater (Barringer): cráteres confirmados en Osinski et al. 2022, Tabla.
     ("lonar", "g_impacto", 1.0),
     ("meteor-crater", "g_impacto", 1.0),
+    ("vredefort", "g_impacto", 1.0),
+    ("nordlinger-ries", "g_impacto", 1.0),
+    ("haughton", "g_impacto", 1.0),
+    # Río Cuarto no está entre las estructuras confirmadas de Osinski et al. 2022.
+    ("crateres-rio-cuarto", "g_impacto", 0.0),
+    # Salar de Uyuni: evaporitas (CGMW South America 1:5M, Quaternary Evaporitic).
+    ("salar-de-uyuni", "g_lito_quimico", 1.0),
     # Pavonis Mons y Arsia Mons: edificios volcánicos (unidad Ave) en Tanaka et al. 2014.
     ("pavonis-mons", "g_lito_basaltico", 1.0),
     ("arsia-mons", "g_lito_basaltico", 1.0),
@@ -131,7 +163,7 @@ def test_pipeline_matches_published_geology(site, feature, value):
 def test_rows_for_builds_nulls_with_notes():
     pytest.importorskip("shapefile")
     pytest.importorskip("shapely")
-    import ingest_g_piloto as ing
+    import ingest_g_mapas as ing
 
     res = ing.GResult(site_id="jezero", composition=None, impact=None, detail="Unidad mapeada: HNt.",
                       source="x https://example.org", composition_note="sin litología; a completar.",
