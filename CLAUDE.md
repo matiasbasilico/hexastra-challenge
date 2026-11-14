@@ -67,7 +67,7 @@ Respetar las condiciones de uso de cada sitio no gubernamental.
 ## 5. Cómo trabajan los agentes
 
 - **Un agente, una tarea, un worktree, un PR.** Nada de commits en `main`, merges ni force-push. Commits chicos y descriptivos en español (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
-- **Datos nuevos:** cada agente escribe sus mediciones en `data/measurements/<agente>.jsonl` con su script de ingesta reproducible (formato y reglas: [`data/measurements/README.md`](data/measurements/README.md)). No edita los catálogos base ni el archivo de otro agente, ni corre `db/export.py`; puede correr `db/load.py` contra la base local para probar. La integración la hace el orquestador.
+- **Datos nuevos:** cada agente escribe sus mediciones en `data/measurements/<agente>.jsonl` con su script de ingesta reproducible (formato y reglas: [`data/measurements/README.md`](data/measurements/README.md)). No edita los catálogos base ni el archivo de otro agente, ni corre `db/export.py`; no corre `db/load.py` contra la base compartida (los tests usan una base temporal propia). La integración la hace el orquestador.
 - **Tests:** `./services/run_tests.sh` en verde, más tests nuevos que validen esquema, fuentes y nulos de lo que agregaste.
 - **Reporte final de cada agente:** qué cargó (tabla sitio × feature × valor × fuente), qué quedó `null` y por qué, validaciones hechas, dudas para el usuario.
 - **No apagar** la demo que corre en 8765/8766/8767; usar otros puertos para verificar.

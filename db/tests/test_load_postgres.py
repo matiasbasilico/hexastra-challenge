@@ -26,19 +26,37 @@ def _db_up() -> bool:
 pytestmark = pytest.mark.skipif(not _db_up(), reason="hexastra-db no está corriendo")
 
 
+@pytest.fixture()
+def temp_db_url():
+    """A throwaway database on the same server, so parallel agents never touch the shared one."""
+    import uuid
+
+    import psycopg
+
+    name = "hexastra_test_%s" % uuid.uuid4().hex[:10]
+    with psycopg.connect(URL, autocommit=True) as conn:
+        conn.execute("CREATE DATABASE %s" % name)
+    url = URL.rsplit("/", 1)[0] + "/" + name
+    try:
+        yield url
+    finally:
+        with psycopg.connect(URL, autocommit=True) as conn:
+            conn.execute("DROP DATABASE IF EXISTS %s WITH (FORCE)" % name)
+
+
 @pytest.mark.parametrize("service", ["planetary", "earth"])
-def test_db_catalog_matches_merged_json(service, monkeypatch):
+def test_db_catalog_matches_merged_json(service, monkeypatch, temp_db_url):
     import load
     from build import build
 
-    monkeypatch.setenv("HEXASTRA_DATABASE_URL", URL)
+    monkeypatch.setenv("HEXASTRA_DATABASE_URL", temp_db_url)
     assert load.main() == 0
     sys.path.insert(0, str(ROOT / "services" / service))
     import importlib
 
     dbsource = importlib.import_module("dbsource")
     dbsource.clear_cache()
-    from_db = dbsource.load(service, ROOT / "services" / service / "data", url=URL)
+    from_db = dbsource.load(service, ROOT / "services" / service / "data", url=temp_db_url)
     dbsource.clear_cache()
     merged, _ = build()
     expected = merged[service]
