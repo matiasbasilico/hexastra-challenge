@@ -37,6 +37,7 @@ Dimensiones del desafío y cómo las cubre la matriz V = [G, T, E, Vo, O] (`cont
 - **Comparativa lado a lado, siempre:** el núcleo de la interfaz es la vista Tierra | destino (Marte o Luna) con los dos mapas a la vez. El punto del destino elegido y el del sitio terrestre seleccionado se ven marcados y resaltados en su mapa, sincronizados (elegir uno mueve y resalta el otro), con la ficha que explica qué se parece y qué no. Vale para el modo fácil y el avanzado; ningún rediseño puede sacarla ni esconderla.
 - **Componentes de similitud sin contraparte:** G y O sólo puntúan si hay un valor comparable en los dos lados (destino y sitio terrestre). Cargar datos de un solo lado está bien, pero cambiar fórmulas de `tasi.py` requiere propuesta y OK del usuario.
 - **Publicación:** front en Cloudflare Pages (`scripts/deploy_pages.sh`); servicios en la Mac vía túnel `cloudflared` (`scripts/share.sh`). El sitio es público con link.
+- **Identidad visual:** todo lo visual respeta [`docs/marca.md`](docs/marca.md) y sus tokens [`css/brand.css`](css/brand.css): fondo azul noche, acento cian, Montserrat + Open Sans, logo en `assets/brand/` sin modificar, puntaje de violeta a óxido y cuerpos con su color. Ninguna herramienta o tema de diseño (Hallmark incluido) reemplaza la paleta, la tipografía ni el logo; se puede tomar estructura, no identidad.
 
 ## 3. Reglas de datos (críticas)
 
