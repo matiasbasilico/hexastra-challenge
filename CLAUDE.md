@@ -34,6 +34,7 @@ Dimensiones del desafío y cómo las cubre la matriz V = [G, T, E, Vo, O] (`cont
 - **MVP: el mapa de puntos actual** (Leaflet). No grilla H3, no Cesium, no migrar a Next/MapLibre.
 - **No tocar** el monorepo `~/Desarrollo/nasa/nasa` (ni su Postgres en el puerto 5432) ni las carpetas viejas.
 - **Base de datos:** PostgreSQL + PostGIS propio del repo (contenedor `hexastra-db`, `127.0.0.1:55432`, `docker compose up -d db`). Se reconstruye entera desde archivos versionados con `db/load.py` (catálogos base + `data/measurements/*.jsonl`). Las APIs leen de ahí cuando `HEXASTRA_DATABASE_URL` está definida; si no, del snapshot `catalog.merged.json` (`db/export.py`) o del catálogo base. `/health` informa `catalog_origin`.
+- **Comparativa lado a lado, siempre:** el núcleo de la interfaz es la vista Tierra | destino (Marte o Luna) con los dos mapas a la vez. El punto del destino elegido y el del sitio terrestre seleccionado se ven marcados y resaltados en su mapa, sincronizados (elegir uno mueve y resalta el otro), con la ficha que explica qué se parece y qué no. Vale para el modo fácil y el avanzado; ningún rediseño puede sacarla ni esconderla.
 - **Componentes de similitud sin contraparte:** G y O sólo puntúan si hay un valor comparable en los dos lados (destino y sitio terrestre). Cargar datos de un solo lado está bien, pero cambiar fórmulas de `tasi.py` requiere propuesta y OK del usuario.
 - **Publicación:** front en Cloudflare Pages (`scripts/deploy_pages.sh`); servicios en la Mac vía túnel `cloudflared` (`scripts/share.sh`). El sitio es público con link.
 
