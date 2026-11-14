@@ -110,7 +110,9 @@ Montserrat 700 para titulares y la marca escrita; Montserrat 600 en mayúsculas 
 
 - Contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
 - **Comparativa lado a lado siempre:** Tierra | destino con los dos mapas a la vez y los puntos marcados; bajo 560 px los mapas se apilan, más anchos, y siguen visibles a la vez.
-- Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con alto fijo y scroll interno; la búsqueda completa va debajo.
+- Escritorio desde 960 × 640 px: cabecera compacta y espacio de trabajo ajustado al alto disponible, sin scroll de página; listas y fichas largas se desplazan dentro de sus paneles. En ventanas menores vuelve el flujo de documento.
+- Los límites físicos se abren desde «Límites de la Tierra» en un diálogo con foco contenido, cierre con Escape y retorno al botón. Los lugares destacados del modo fácil son desplegables.
+- Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con scroll interno; el resumen de búsqueda queda al pie.
 - Espacios generosos y textos largos fuera de la pantalla principal (el detalle del método vive en «Cómo se calcula»).
 
 ## Elevation & Depth

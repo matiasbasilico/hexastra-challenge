@@ -59,6 +59,8 @@ a.btn { text-decoration: none; }
 
 /* ---------- Featured shortcuts ---------- */
 .easy-featured { padding: var(--space-md) 0 var(--space-sm); border-bottom: var(--rule-hair) solid var(--color-rule); }
+.easy-featured > summary { cursor: pointer; font: 600 var(--text-sm)/1.5 var(--font-display); color: var(--color-accent); }
+.easy-featured[open] > summary { margin-bottom: var(--space-xs); }
 .easy-featured-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs) var(--space-lg); align-items: baseline; }
 .easy-featured-head h2 { font-size: var(--text-lg); color: var(--color-ink); }
 .easy-featured-head p { max-width: 72ch; font-size: var(--text-sm); color: var(--color-muted); }
@@ -365,4 +367,45 @@ a.btn { text-decoration: none; }
   .easy-maps { grid-template-columns: minmax(0, 1fr); }
   .easy-map { height: clamp(200px, 30dvh, 260px); }
 
+}
+
+/* Mismo alto que el shell de escritorio: mapas fijos a la vista, listas y ficha desplazables. */
+@media (min-width: 60rem) and (min-height: 40rem) {
+  #easy-app { min-height: 0; }
+  .easy { height: 100%; }
+  .easy-layout {
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.25fr);
+    gap: var(--space-lg);
+    padding-block: var(--space-sm);
+    align-items: stretch;
+  }
+  .easy-side { display: flex; flex-direction: column; min-height: 0; }
+  .easy-steps { flex: none; }
+  .easy-stepper { gap: 0 var(--space-sm); }
+  .easy-step-btn { gap: var(--space-2xs); }
+  .easy-step-label { font-size: var(--text-sm); }
+  .easy-featured { flex: none; padding-block: var(--space-xs); }
+  .easy-featured[open] { max-height: 40%; overflow: auto; }
+  .easy-main { flex: 1; min-height: 0; overflow: auto; padding-right: var(--space-xs); }
+  .easy-compare {
+    position: static;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    grid-template-rows: minmax(0, 1fr) auto auto minmax(0, auto);
+    align-content: stretch;
+  }
+  .easy-maps { min-height: 0; }
+  .easy-map { height: 100%; min-height: 0; }
+  .easy-map-label { min-height: 60px; padding-inline: var(--space-sm); }
+  .easy-map-label h3 { font-size: var(--text-lg); }
+  .easy-map-btn { padding-inline: var(--space-xs); }
+  .easy-pair { max-height: 34dvh; min-height: 0; overflow: auto; padding: var(--space-sm); }
+  .easy-pair-col h3 { font-size: var(--text-lg); }
+  .easy-pair-score { margin-top: var(--space-xs); }
+  .easy-pair-score .easy-score-num { font-size: var(--text-2xl); }
+  .easy-main, .easy-featured, .easy-pair { overscroll-behavior: contain; scrollbar-gutter: stable; }
 }

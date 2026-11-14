@@ -192,14 +192,14 @@
         '<nav class="easy-steps" aria-label="Pasos del modo fácil">' +
           '<ol class="easy-stepper" id="easy-stepper"></ol>' +
         '</nav>' +
-        '<section class="easy-featured" aria-label="Lugares destacados">' +
+        '<details class="easy-featured" aria-label="Lugares destacados">' +
+          '<summary>Lugares destacados</summary>' +
           '<div class="easy-featured-head">' +
-            '<h2>Lugares destacados</h2>' +
             '<p>Atajos a sitios de referencia. Tocá uno para ir al mapa. Los que dicen «análogo clásico» (Antártida, Atacama, Hawái, Haughton…) están muy estudiados: el desafío pide también buscar análogos menos conocidos.</p>' +
           '</div>' +
           '<div id="easy-featured-groups"></div>' +
           '<div id="easy-featured-panel" class="easy-feat-panel" hidden></div>' +
-        '</section>' +
+        '</details>' +
           '<section class="easy-main" id="easy-main" aria-live="polite"></section>' +
           '</div>' +
           '<section class="easy-compare" id="easy-compare" aria-labelledby="easy-compare-title">' +
@@ -255,6 +255,14 @@
     if (!maps.length) return;
     requestAnimationFrame(function () { maps.forEach(function (m) { m.invalidateSize(); }); });
     setTimeout(function () { maps.forEach(function (m) { m.invalidateSize(); }); }, 200);
+  }
+
+  function observeMapSize(map, element) {
+    if (typeof ResizeObserver === "undefined") return;
+    // La ficha puede crecer al elegir un resultado sin que cambie el tamaño de la ventana.
+    new ResizeObserver(function () {
+      if (element.clientWidth && element.clientHeight) map.invalidateSize({ pan: false });
+    }).observe(element);
   }
 
   function renderFeatured() {
@@ -1107,6 +1115,7 @@
     );
     state.tileEsri.addTo(map);
     state.map = map;
+    observeMapSize(map, el);
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
@@ -1150,6 +1159,7 @@
       )
     };
     state.destMap = map;
+    observeMapSize(map, el);
     setDestBody(state.body || "moon");
     setTimeout(function () { map.invalidateSize(); }, 200);
   }

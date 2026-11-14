@@ -25,6 +25,7 @@
           <button type="button" role="tab" id="mode-advanced" aria-selected="false">Modo avanzado</button>
         </div>
         <div class="header-actions">
+          <button type="button" id="btn-limites" aria-haspopup="dialog">Límites de la Tierra</button>
           <button type="button" id="btn-metodo">Cómo se calcula</button>
           <button type="button" id="btn-fuentes">Fuente</button>
           <a class="btn" href="https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/" target="_blank" rel="noopener">El desafío</a>
@@ -36,26 +37,9 @@
           <div class="brand-text">
             <p class="brand-tag">NASA Space Apps 2026 · Equipo HexAstra</p>
             <h1>Análogos terrestres de la Luna y Marte</h1>
-            <p class="subtitle">Elegí un sitio de la Luna o de Marte y buscamos lugares de la Tierra que se le parezcan. Podés filtrar por continente y por país. El desafío pide justificar la analogía con datos, no quedarse solo en los análogos ya famosos.</p>
+            <p class="subtitle">Elegí un destino, buscá análogos terrestres y compará la evidencia.</p>
           </div>
         </div>
-        <section class="limits" aria-labelledby="limits-title">
-          <h2 id="limits-title">Lo que la Tierra no puede imitar</h2>
-          <p class="limits-lead">Quedan fuera del puntaje. Las mostramos como brecha.</p>
-          <table class="limits-table">
-            <caption class="visually-hidden">Valores de referencia de la Tierra, Marte y la Luna, según el servicio planetary</caption>
-            <thead>
-              <tr><th scope="col">Magnitud</th><th scope="col" class="num">Tierra</th><th scope="col" class="num">Marte</th><th scope="col" class="num">Luna</th></tr>
-            </thead>
-            <tbody id="limits-rows">
-              <tr><td colspan="4" class="limits-pending" role="status">Cargando los valores de referencia del servicio…</td></tr>
-            </tbody>
-          </table>
-          <details class="limits-sources">
-            <summary>Fuentes y datos a completar</summary>
-            <div id="limits-notes"></div>
-          </details>
-        </section>
       </div>
     </header>
 
@@ -142,6 +126,27 @@
     </section>
   </div>
 
+  <dialog class="limits-dialog" id="limits-dialog" aria-labelledby="limits-title">
+    <form method="dialog"><button type="submit">Cerrar</button></form>
+    <section class="limits" aria-labelledby="limits-title">
+      <h2 id="limits-title">Lo que la Tierra no puede imitar</h2>
+      <p class="limits-lead">Quedan fuera del puntaje. Las mostramos como brecha.</p>
+      <table class="limits-table">
+        <caption class="visually-hidden">Valores de referencia de la Tierra, Marte y la Luna, según el servicio planetary</caption>
+        <thead>
+          <tr><th scope="col">Magnitud</th><th scope="col" class="num">Tierra</th><th scope="col" class="num">Marte</th><th scope="col" class="num">Luna</th></tr>
+        </thead>
+        <tbody id="limits-rows">
+          <tr><td colspan="4" class="limits-pending" role="status">Cargando los valores de referencia del servicio…</td></tr>
+        </tbody>
+      </table>
+      <details class="limits-sources">
+        <summary>Fuentes y datos a completar</summary>
+        <div id="limits-notes"></div>
+      </details>
+    </section>
+  </dialog>
+
   <div class="modal-bg" id="modal-bg" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal">
       <button type="button" class="close">Cerrar</button>
@@ -153,7 +158,7 @@
       <ul>
         <li>Sitios terrestres: cada ficha muestra la fuente de sus coordenadas, tal como la devuelve el servicio earth (/candidates).</li>
         <li>Destinos de la Luna y de Marte: servicio planetary (/sites), con la fuente de cada punto.</li>
-        <li>Lo que la Tierra no puede imitar: servicio planetary (/bodies), con la fuente de cada valor en la tabla de arriba.</li>
+        <li>Lo que la Tierra no puede imitar: servicio planetary (/bodies), con la fuente de cada valor en «Límites de la Tierra».</li>
         <li>Teselas de los mapas: OpenStreetMap, Esri, NASA GIBS, OpenPlanetaryMap y WhereOnMars/Carto (MOLA y relieve).</li>
       </ul>
       <h3>Servicios</h3>

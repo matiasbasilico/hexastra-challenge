@@ -78,6 +78,9 @@
   }
 
   async function boot() {
+    const button = document.getElementById("btn-limites");
+    const dialog = document.getElementById("limits-dialog");
+    if (button && dialog) button.addEventListener("click", () => dialog.showModal());
     const ready = window.HEXASTRA_API_READY;
     const api = ready && typeof ready.then === "function" ? await ready.catch(() => window.HexastraAPI) : window.HexastraAPI;
     try {
