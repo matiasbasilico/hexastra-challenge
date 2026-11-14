@@ -598,7 +598,7 @@
     const box = $("#finder-features");
     box.innerHTML = "";
     const comps = [
-      { id: "G", name: "G · geología / espectro", def: 2, hint: "solo si hay espectros reales" },
+      { id: "G", name: "G · geología (mapas)", def: 2, hint: "tipo de roca y origen por impacto; × ½ si sólo hay uno" },
       { id: "T", name: "T · topografía (Mahalanobis)", def: 2, hint: "relieve relativo, pendiente, rugosidad" },
       { id: "E", name: "E · régimen térmico", def: 2, hint: "temperatura y amplitud" },
       { id: "V", name: "V · volátiles / aridez", def: 2, hint: "precipitación u hielo" },
@@ -858,7 +858,7 @@
         " · candidatos " + data.n_scored +
         (discardedN ? " · descartados por M(x): " + discardedN : "") +
         "</p><ol class='rank-list'>" + items + "</ol>" +
-        "<p class='muted'>G (espectro) y O (operacional) quedan nulos si no hay dato real comparable. S_T usa distancia de Mahalanobis sobre relieve relativo, pendiente y rugosidad, no la cota absoluta. Si solo entra la precipitación (0 mm por convención en Luna/Marte), el ranking refleja sobre todo quién es más árido.</p>";
+        "<p class='muted'>G compara el tipo de roca y el origen por impacto según mapas geológicos (USGS para Luna y Marte; Macrostrat y Osinski et al. 2022 para la Tierra); si sólo se puede comparar uno de los dos, el puntaje G se multiplica por ½. O (operacional) queda nulo si no hay dato real comparable. S_T usa distancia de Mahalanobis sobre relieve relativo, pendiente y rugosidad, no la cota absoluta. Si solo entra la precipitación (0 mm por convención en Luna/Marte), el ranking refleja sobre todo quién es más árido.</p>";
       out.querySelectorAll(".rank-item").forEach((btn) => {
         btn.addEventListener("click", () => selectSiteOrRemote(btn.dataset.id));
       });

@@ -61,7 +61,7 @@
       </div>
       <div class="buscador-grid">
         <div>
-          <p class="muted" style="margin-top:0">Elegí un sitio de la Luna o de Marte y ajustá los pesos de TASI (G, T, E, V, O). Si un componente no tiene dato real (hoy G espectro y O operacional), se omite y se renormalizan los pesos. Podés filtrar el catálogo terrestre mundial por continente y país (ISO-3166 alpha-2). El puntaje va de 0 a 100.</p>
+          <p class="muted" style="margin-top:0">Elegí un sitio de la Luna o de Marte y ajustá los pesos de TASI (G, T, E, V, O). Si un componente no tiene dato real en los dos lados (hoy O operacional, y G en algunos destinos de Marte), se omite y se renormalizan los pesos. Podés filtrar el catálogo terrestre mundial por continente y país (ISO-3166 alpha-2). El puntaje va de 0 a 100.</p>
           <p>
             <label for="finder-target">Objetivo</label><br>
             <select id="finder-target" disabled></select>
@@ -157,7 +157,7 @@ altitud / UV (proxy) = min(1, elevación_m / 4000)
       </ul>
       <h3>Servicios (TASI)</h3>
       <p>El índice TASI es una propuesta del equipo, no un estándar publicado bajo esa sigla. El buscador pide el vector del objetivo a <code>planetary-service</code> (<a href="http://127.0.0.1:8766/docs" target="_blank" rel="noopener">http://127.0.0.1:8766/docs</a>) y ranking a <code>earth-service</code> (<a href="http://127.0.0.1:8767/docs" target="_blank" rel="noopener">http://127.0.0.1:8767/docs</a>). La capa de llamadas está en <code>js/api.js</code> (<code>getTargets</code>, <code>getTargetVector</code>, <code>getRegions</code>, <code>rankAnalogs</code>). Las URLs se pueden cambiar con <code>localStorage.HEXASTRA_PLANETARY_URL</code> y <code>HEXASTRA_EARTH_URL</code>.</p>
-      <p>TASI = suma ponderada de componentes disponibles (G espectro, T topografía de Mahalanobis, E régimen térmico, V volátiles, O operacional). G y O quedan nulos si no hay dato real comparable. La máscara M(x) descarta sitios con NDVI &gt; 0,15 o agua líquida continental; si el NDVI no se pudo bajar, no se descarta y se indica. El catálogo terrestre es mundial; país y continente salen de Natural Earth 50m (point-in-polygon), no a ojo. Detalle en el <code>README.md</code>.</p>
+      <p>TASI = suma ponderada de componentes disponibles (G geología por mapas: tipo de roca y origen por impacto, T topografía de Mahalanobis, E régimen térmico, V volátiles, O operacional). G y O quedan nulos si no hay dato comparable en los dos lados; G se multiplica por ½ si sólo se pudo comparar uno de sus dos bloques. La máscara M(x) descarta sitios con NDVI &gt; 0,15 o agua líquida continental; si el NDVI no se pudo bajar, no se descarta y se indica. El catálogo terrestre es mundial; país y continente salen de Natural Earth 50m (point-in-polygon), no a ojo. Detalle en el <code>README.md</code>.</p>
     </div>
   </div>
 
