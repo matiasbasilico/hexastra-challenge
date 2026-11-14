@@ -81,3 +81,15 @@ def test_repo_measurement_files_are_valid():
 
     merged, report = build()
     assert report["sites"] == {"planetary": len(merged["planetary"]["sites"]), "earth": len(merged["earth"]["sites"])}
+
+
+@pytest.mark.parametrize("payload, earth, planetary", [
+    ({"service": "earth"}, True, False),
+    ({"service": "planetary"}, False, True),
+    ({}, False, True),
+    ({"service": ["earth", "planetary"]}, True, True),
+])
+def test_feature_defs_can_be_shared_by_both_services(payload, earth, planetary):
+    from build import serves
+    assert serves(payload, "earth") is earth
+    assert serves(payload, "planetary") is planetary
