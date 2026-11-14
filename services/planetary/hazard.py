@@ -24,7 +24,7 @@ SPACING_M = 120.0
 
 # Thresholds in degrees. Sources are documented in docs/propuestas/O.md and in
 # each measurement row; keep the ids in sync with o-comparable.features.json.
-SLOPE_THRESHOLDS_DEG = (8.0, 15.0, 30.0)
+SLOPE_THRESHOLDS_DEG = (10.0, 15.0, 30.0)
 
 
 def feature_id(threshold_deg: float) -> str:

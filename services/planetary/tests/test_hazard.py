@@ -24,7 +24,7 @@ def plane(slope_deg: float, n: int = 7, spacing: float = 120.0):
 
 def test_feature_ids_match_thresholds():
     assert [feature_id(t) for t in SLOPE_THRESHOLDS_DEG] == [
-        "slope_frac_gt_8deg", "slope_frac_gt_15deg", "slope_frac_gt_30deg"]
+        "slope_frac_gt_10deg", "slope_frac_gt_15deg", "slope_frac_gt_30deg"]
 
 
 def test_plane_has_uniform_slope_on_the_25_interior_cells():
@@ -40,8 +40,8 @@ def test_centre_cell_equals_T_slope():
 
 
 def test_fractions_on_planes():
-    fr = slope_fractions(plane(10.0))
-    assert fr["slope_frac_gt_8deg"] == 1.0
+    fr = slope_fractions(plane(12.0))
+    assert fr["slope_frac_gt_10deg"] == 1.0
     assert fr["slope_frac_gt_15deg"] == 0.0
     assert fr["slope_frac_gt_30deg"] == 0.0
     flat = slope_fractions([100.0] * 49)
@@ -53,8 +53,8 @@ def test_half_steep_half_flat():
     g = math.tan(math.radians(20.0)) * 120.0
     z = [max(0, ix - 3) * g for iy in range(7) for ix in range(7)]
     fr = slope_fractions(z)
-    # interior columns ix = 1..5: ix 1,2 flat (stencil 0..3), ix 3 half ramp, ix 4,5 full ramp
-    assert fr["slope_frac_gt_8deg"] == pytest.approx(15 / 25)
+    # interior columns ix = 1..5: ix 1,2 flat (stencil 0..3), ix 3 half ramp (~10.3 deg), ix 4,5 full ramp
+    assert fr["slope_frac_gt_10deg"] == pytest.approx(15 / 25)
     assert fr["slope_frac_gt_15deg"] == pytest.approx(10 / 25)
 
 
@@ -64,7 +64,7 @@ def test_missing_cells_give_null_not_zero():
         z[i] = None
     fr = slope_fractions(z)
     assert fr["n_valid"] < MIN_VALID_CELLS
-    assert fr["slope_frac_gt_8deg"] is None
+    assert fr["slope_frac_gt_10deg"] is None
 
 
 def test_sea_fill():
