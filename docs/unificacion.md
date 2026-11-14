@@ -426,7 +426,12 @@ Decisiones:
 - **Utopía:** el documento da una franja (40–50°N). Se usa un punto real dentro de esa franja con la misma fuente que Jezero y Gale (Mars24, Viking 2). El centro IAU de la planicie (USGS 6260: 46.74°N 117.52°E en MDIM 2.1; 49.67°N 118.0°E en MDIM 2.0) queda citado. Que haya hielo somero justo en el punto Viking 2 no se verificó con fuente primaria (a completar).
 - **Arsia Mons:** cota de cumbre en `null`; las cifras NASA/ASU no coinciden («>9 km», «~20 km», «más de 20 km sobre las llanuras») y ninguna está referida al datum MOLA.
 - **Redes del Gazetteer en Marte:** la ficha muestra MDIM 2.0 y MDIM 2.1; se usa MDIM 2.1 (la seleccionada por defecto), que no siempre es la primera del desplegable.
-- **Sin mediciones verificadas:** elevación, pendiente, rugosidad, temperaturas, iluminación e hielo quedan en `null`. Solo `precip_mm = 0` (convención). El vector resultante tiene únicamente `Vo` listo, así que TASI puntúa con cobertura 1/5 y **los tres destinos devuelven hoy el mismo ranking** (solo aridez). Completar T (MOLA/LOLA) y E (Diviner/MCD) es el siguiente paso para que se diferencien.
+- **T y E completados (14 nov 2026, segunda pasada):**
+  - **T:** relieve relativo, pendiente y rugosidad en una grilla 7×7 a 120 m con valores bilineales, con las mismas fórmulas que los candidatos terrestres (`services/planetary/terrain.py`). Se lee una ventana de los DEM globales de USGS Astrogeology por HTTP: LOLA LDEM 118 m (Luna) y HRSC-MOLA Blend 200 m (Marte). Validación: Bradbury Landing da −4.504,7 m contra −4.501 m publicados por NASA. En Marte el DEM nativo (200 m) es más grueso que la grilla. En Utopia la planicie sale casi plana (pendiente 0,00°, relieve 1,39 m), lo que es consistente con un DEM suave pero no resuelve el relieve fino.
+  - **E en Marius Hills:** Diviner Global Cumulative Product (LRO-L-DLRE-5-GCP-V1.0; Williams et al. 2017), bin de 0,5° y 96 horas locales, 48 con dato y huecos de hasta 1,25 h interpolados. Es temperatura de **superficie** (la Luna no tiene aire): media −54,53 °C y amplitud 295,38 K.
+  - **E en Utopia y Arsia:** Mars Climate Database v6.2 (modelo, como ERA5 en la Tierra), aire a 2 m, Ls cada 15° y 24 horas locales, media anual ponderada por el tiempo en cada Ls. Utopia: −80,27 °C / 36,77 K. Arsia: −72,71 °C / 65,73 K. Validación: en Jezero el método da medias diarias de 207–222 K contra 209–225 K medidos por MEDA.
+  - **Siguen en `null`:** iluminación e indicador de hielo.
+  - **Efecto en TASI:** los tres destinos ya no comparten ranking. Marius usa T, E y V; Utopia y Arsia, T, E y V.
 
 ### 8.2 Verificación de Jezero y Gale
 
