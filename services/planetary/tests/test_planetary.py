@@ -175,3 +175,19 @@ def test_dbsource_is_identical_in_both_services():
     here = (ROOT / "dbsource.py").read_text(encoding="utf-8")
     other = (ROOT.parent / "earth" / "dbsource.py").read_text(encoding="utf-8")
     assert here == other
+
+
+def test_bodies_values_are_sourced_or_marked_null():
+    r = client.get("/bodies")
+    assert r.status_code == 200
+    bodies = r.json()["bodies"]
+    assert set(bodies) == {"earth", "moon", "mars"}
+    assert bodies["mars"]["gravity_m_s2"]["value"] == 3.73
+    for body in bodies.values():
+        for key, item in body.items():
+            if not isinstance(item, dict):
+                continue
+            if item["value"] is None:
+                assert "a completar" in item["note"], key
+            else:
+                assert "http" in item["source"], key

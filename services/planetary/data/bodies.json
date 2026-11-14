@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "title": "Valores físicos de referencia por cuerpo (capa de honestidad)",
+    "note": "Se muestran como brecha cuantificada: no entran en TASI. Cada valor lleva su fuente; lo no verificado queda null con nota 'a completar'.",
+    "retrieved_at": "2026-11-14"
+  },
+  "bodies": {
+    "earth": {
+      "name_es": "Tierra",
+      "gravity_m_s2": {"value": 9.820, "source": "NASA NSSDC Earth Fact Sheet, surface gravity (mean). https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
+      "surface_pressure_pa": {"value": 101400, "source": "NASA NSSDC Earth Fact Sheet: 1014 mb. https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
+      "day_length_h": {"value": 24.0, "source": "NASA NSSDC Earth Fact Sheet, length of day 24.0000 h. https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
+      "mean_temp_c": {"value": 15, "source": "NASA NSSDC Earth Fact Sheet, average temperature 288 K (15 C). https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
+      "surface_dose_msv_day": {"value": null, "source": null, "quality": "placeholder", "note": "a completar: dosis de radiación cósmica a nivel del mar con fuente primaria (p. ej. UNSCEAR)."}
+    },
+    "moon": {
+      "name_es": "Luna",
+      "gravity_m_s2": {"value": 1.62, "source": "NASA NSSDC Moon Fact Sheet, surface gravity. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "measured"},
+      "surface_pressure_pa": {"value": 3e-10, "source": "NASA NSSDC Moon Fact Sheet: surface pressure (night) 3 x 10^-15 bar. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "measured", "note": "Valor nocturno; la ficha no da el diurno. En la práctica, vacío."},
+      "day_length_h": {"value": 708.7, "source": "NASA NSSDC Moon Fact Sheet: synodic period 29.53 days (= 708.7 h). https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "derived"},
+      "surface_temp_range_k": {"value": [95, 390], "source": "NASA NSSDC Moon Fact Sheet: diurnal temperature range (equator) 95 K to 390 K. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "measured"},
+      "surface_dose_msv_day": {"value": null, "source": null, "quality": "placeholder", "note": "a completar: Zhang et al. (2020), Science Advances, doi:10.1126/sciadv.aaz1334 (Chang'e-4 LND) o CRaTER/LRO; la cifra de 1,369 mSv/día solo se encontró en prensa, no en la fuente primaria."}
+    },
+    "mars": {
+      "name_es": "Marte",
+      "gravity_m_s2": {"value": 3.73, "source": "NASA NSSDC Mars Fact Sheet, surface gravity (mean). https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html", "quality": "measured"},
+      "surface_pressure_pa": {"value": 636, "source": "NASA NSSDC Mars Fact Sheet: 6.36 mb at mean radius (4.0 to 8.7 mb by season). https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html", "quality": "measured"},
+      "day_length_h": {"value": 24.6597, "source": "NASA NSSDC Mars Fact Sheet, length of day. https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html", "quality": "measured"},
+      "mean_temp_c": {"value": -59, "source": "NASA NSSDC Mars Fact Sheet, mean temperature ~214 K (-59 C). https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html", "quality": "measured"},
+      "surface_dose_msv_day": {"value": 0.67, "source": "RAD/MSL (Curiosity), Gale, ago 2012 a jun 2013, dosis equivalente media de GCR; Hassler et al. (2014), Science 343, doi:10.1126/science.1244797, citado por SwRI. https://www.swri.org/press-release/swri-scientists-publish-first-radiation-measurements-surface-mars", "quality": "measured", "note": "Medido en Gale durante el máximo solar; varía con el ciclo solar."}
+    }
+  }
+}

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, HTTPException, Query
@@ -67,6 +69,20 @@ def sources(live: bool = False) -> Dict[str, Any]:
 @app.get("/trek")
 def trek_status() -> Dict[str, Any]:
     return trek.capabilities_status()
+
+
+BODIES_PATH = Path(__file__).resolve().parent / "data" / "bodies.json"
+
+
+@app.get("/bodies")
+def bodies() -> Dict[str, Any]:
+    """Physical reference values per body (gravity, pressure, day, temperature, dose).
+
+    Honesty layer: shown as a quantified gap, never used by TASI. Each value has a source;
+    unverified values stay null with a note.
+    """
+    with BODIES_PATH.open(encoding="utf-8") as f:
+        return json.load(f)
 
 
 @app.get("/features")
