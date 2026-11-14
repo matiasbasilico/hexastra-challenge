@@ -42,7 +42,7 @@ Hoy G está vacío. `tasi.py` sólo acepta un coseno entre espectros reales (`s_
 
 ¿Por qué Macrostrat y no GLiM? GLiM (Hartmann y Moosdorf 2012) es la referencia clásica, pero en PANGAEA sólo hay una grilla de 0,5° (~50 km, demasiado gruesa para la regla de escala) y el vector original se distribuye como una geodatabase por fuera de PANGAEA. Macrostrat devuelve la litología del mapa fuente en el punto, cita ese mapa y trabaja a 1:5M, la misma escala que el mapa lunar. Ninguna agencia de la lista oficial del desafío publica un mapa litológico global de la Tierra, así que esto es una fuente del nivel 3 (§4 de CLAUDE.md) y queda documentado.
 
-### Representación propuesta: vector G de 9 componentes
+### Representación: vector G de 10 componentes
 
 | Feature | Qué es | Tierra (palabra clave en `lith`) | Luna (unidad DOMU) | Marte (unidad SIM 3292) |
 |---|---|---|---|---|
@@ -54,9 +54,10 @@ Hoy G está vacío. `tasi.py` sólo acepta un coseno entre espectros reales (`s_
 | `g_lito_hielo` | hielo | ice, glacier | — | casquete lApc |
 | `g_lito_volc_indiviso` | volcánico sin composición en el mapa | volcanic, volcaniclastic, volcano-sedimentary (sólo si no hay una clase volcánica fina) | — | — |
 | `g_lito_sed_indiviso` | sedimentario sin tipo en el mapa | sedimentary (sólo si no hay una clase sedimentaria fina) | — | — |
+| `g_lito_feldespatico` | corteza feldespática / anortosítica (familia propia) | anorthosite | unidades de cráter o terra con FeO ≤ 6 % y Th ≤ 1,5 ppm (Lunar Prospector GRS; terreno FHT de Jolliff et al. 2000) | — |
 | `g_impacto` | origen por impacto (0/1) | 1 si figura en la tabla de Osinski et al. 2022 | 1 en cráteres, cuencas, formaciones de eyecta y terras/planicies (la DOMU las interpreta como «megaregolito; eyecta de cráteres y cuencas»); 0 en mare | 1 en AHi; **null** en el resto (un cráter de menos de ~100 km no se ve a 1:20M; que no esté en el mapa no quiere decir 0) |
 
-Las ocho fracciones de composición suman 1. Si el texto de litología trae varias clases, se reparte en partes iguales. Un término genérico (`sedimentary` a secas, `volcanic` sin más) va a la clase **indivisa** de su familia: no se adivina si es clástico o químico, pero tampoco se pierde que es sedimentario. Las clases se agrupan en cuatro familias (volcánica, sedimentaria, cristalina, hielo) para dar crédito parcial en S_G. Si no aparece ninguna palabra clave (p. ej. «lake»), la composición queda **null** con «a completar». Tampoco se completa la composición de cráteres y terras lunares ni de las unidades morfoestratigráficas de Marte: el mapa las define por su origen y no por su roca.
+Las nueve fracciones de composición suman 1. Si el texto de litología trae varias clases, se reparte en partes iguales. Un término genérico (`sedimentary` a secas, `volcanic` sin más) va a la clase **indivisa** de su familia: no se adivina si es clástico o químico, pero tampoco se pierde que es sedimentario. Las clases se agrupan en cinco familias (volcánica, sedimentaria, cristalina, hielo, feldespática) para dar crédito parcial en S_G. Si no aparece ninguna palabra clave (p. ej. «lake»), la composición queda **null** con «a completar». Tampoco se completa la composición de cráteres y terras lunares ni de las unidades morfoestratigráficas de Marte: el mapa las define por su origen y no por su roca.
 
 **Defensa ante el jurado:** media-alta. Cada valor sale de un mapa publicado y de una regla escrita (`services/earth/scripts/g_equivalencias.py`), y cada fila cita la unidad leída. La tabla sigue la idea de *análogo funcional* de Foucher et al. 2021 (Planet. Space Sci. 197:105162, doi:10.1016/j.pss.2021.105162): se compara la propiedad que importa para un uso concreto (aquí, tipo de roca y proceso de formación) y no la composición total. El punto débil está a la vista y conviene mostrarlo: la escala de los mapas (1:5M y 1:20M) y que en Marte muchas unidades no tienen litología.
 
@@ -80,22 +81,28 @@ El eje propuesto (posición del rasgo de Christiansen en el infrarrojo térmico 
 - **Marte:** en el mapa global de TES, la posición del rasgo depende sobre todo de la **cubierta de polvo** y no del contenido de sílice. Compararla con la Tierra mediría polvo, no roca. (Lo leí en un resumen secundario; si se retoma, hay que confirmarlo en el paper original.)
 - **Tierra:** ASTER GED tiene 5 bandas entre 8,3 y 11,3 µm, que no muestrean la zona del rasgo como Diviner, y la medición se hace a través de la atmósfera. Los índices usuales de ASTER (cuarzo, máfico) son cocientes de bandas, no la misma magnitud.
 
-**Alternativa que propongo (pendiente de OK):** usar el producto composicional oficial de cada cuerpo para **asignar una clase** de la tabla, en vez de comparar un número físico entre cuerpos. Es lo que ya hacemos con los mapas.
+**Hecho (aprobado por el usuario el 14 nov): composición de los polos lunares con Lunar Prospector.**
 
-- Luna, polos: hierro (FeO) y torio de Lunar Prospector GRS (PDS Geosciences; Lawrence et al. 1998, Science 281:1484). FeO bajo indica corteza feldespática (anortosítica); FeO alto, basalto de mare. Haría falta una clase nueva `g_lito_feldespatico` (en la Tierra, la palabra clave «anorthosite») y un umbral publicado de FeO (terrenos de Jolliff et al. 2000, **a verificar**). El resultado esperable es informativo: ningún sitio terrestre del catálogo es anortosita, así que la geología de los polos lunares no tendría análogo, y eso conviene decirlo.
-- Marte: Odyssey GRS (también en PDS Geosciences) tiene resolución de cientos de km; habría que ver si alcanza para Jezero o Meridiani o si conviene CRISM puntual.
-- Esfuerzo estimado: 1 a 2 días para la Luna (ubicar las tablas PDS4, validar contra un valor publicado de Apollo 16 y cargar); Marte, a evaluar aparte.
+- Fuente oficial: `LP-L-GRS-5-ELEM-ABUNDANCE-V1.0` (Prettyman et al. 2006), PDS Geosciences Node, píxeles de 2° de área igual (~60 km). Sólo uso FeO y Th: el propio PDS recomienda cautela con los demás óxidos a 2°.
+- Regla: en una unidad de cráter o terra, **FeO ≤ 6 % y Th ≤ 1,5 ppm → `g_lito_feldespatico` = 1**. Son los valores publicados del Terreno de Tierras Altas Feldespáticas (Jolliff et al. 2000, JGR 105:4197): parte anortosítica con FeO medio de 4,2 % y Th de 0,8 ppm; parte externa con 5,5 % y 1,5 ppm. Si el píxel no cae en ese rango, la composición queda null; las unidades de mare siguen el mapa.
+- Resultado: los 6 polos (Shackleton, Haworth, Malapert, de Gerlache, Amundsen, Nobile) tienen FeO de 4,5 a 5,3 % y Th de 0,63 a 0,89 ppm, es decir, feldespáticos.
+- Validación:
+  - Controles: el píxel de Marius Hills da FeO 23,1 %, coherente con su unidad volcánica del mapa; Mare Tranquillitatis (Apollo 11) 12,2 %; farside ecuatorial 2,6 %; Apollo 16 5,7 %.
+  - Los polos caen junto a las medias publicadas del FHT.
+- Consecuencia: la clase feldespática tiene **familia propia**, y ningún sitio terrestre del catálogo es anortosita. Contra los polos lunares, el bloque de composición da 0 con todos los sitios terrestres y S_G sale sólo del origen por impacto (cráteres terrestres = 50). Es honesto: la Tierra del catálogo no tiene la roca de los polos lunares. Sugerencia para otro PR: agregar al catálogo un análogo anortosítico verificado.
+- Escala: un píxel de 2° (~60 km) es más grueso que el mapa geológico. Cerca del polo, el píxel 0 cubre todo el casquete al sur de −89°.
+- **Marte** sigue pendiente: Odyssey GRS tiene resolución de cientos de km y habría que evaluarlo aparte (Jezero, Meridiani, Medusae Fossae y Utopia siguen sin composición).
 
 ## 5. Carga completa (74 sitios, `g-mapas.jsonl`)
 
-Script: `services/earth/scripts/ingest_g_mapas.py` (más `remote_zip.py` y `g_equivalencias.py`). Dependencia extra: `pyshp` (`services/earth/requirements-g.txt`). Calidad `derived` (clase derivada de un mapa publicado con una regla documentada); los nulos van como `unavailable`. Son 666 filas: 74 sitios × 9 features. Las features se declaran con `"service": ["earth", "planetary"]` (cambio chico en `db/build.py`, con test) para usar la misma definición en los tres cuerpos.
+Script: `services/earth/scripts/ingest_g_mapas.py` (más `remote_zip.py` y `g_equivalencias.py`). Dependencia extra: `pyshp` (`services/earth/requirements-g.txt`). Calidad `derived` (clase derivada de un mapa publicado con una regla documentada); los nulos van como `unavailable`. Son 740 filas: 74 sitios × 10 features. Las features se declaran con `"service": ["earth", "planetary"]` (cambio chico en `db/build.py`, con test) para usar la misma definición en los tres cuerpos.
 
 **Cobertura**
 
 | | Composición | Impacto |
 |---|---|---|
 | Tierra (60) | 58 | 60 |
-| Luna (7) | 1 (Marius Hills) | 7 |
+| Luna (7) | 7 (Marius Hills por mapa; los 6 polos por Lunar Prospector, fase 2) | 7 |
 | Marte (7) | 2 (Pavonis, Arsia) | 1 (Gale) |
 
 En la Tierra, el impacto vale 1 en los 11 sitios que están dentro de una estructura de la tabla de Osinski et al. 2022: Lonar, Meteor Crater (Barringer), Vredefort, Tswaing, Popigai, Ries, Haughton, Devon/FMARS (a 6,9 km del centro de Haughton, dentro del radio de ~11,5 km), Wolfe Creek, Acraman y Campo del Cielo (Tabla 3: cráter sin metamorfismo de choque). En los otros 49 vale 0. Río Cuarto queda en 0 porque no está en esa tabla.
@@ -103,7 +110,7 @@ En la Tierra, el impacto vale 1 en los 11 sitios que están dentro de una estruc
 **Qué quedó null y por qué**
 
 - Composición de **lake-natron** («lake» no es una litología) y de **popigai** (el mapa dice impactita, que no es una de nuestras clases; su impacto sí es 1).
-- Composición de los **6 destinos lunares polares**, de **gale** y de las unidades morfoestratigráficas de Marte (**jezero, medusae-fossae, meridiani, utopia-planitia**): el mapa define la unidad por su origen o su terreno, no por su roca. A completar en la fase 2.
+- Composición de **gale** y de las unidades morfoestratigráficas de Marte (**jezero, medusae-fossae, meridiani, utopia-planitia**): el mapa define la unidad por su origen o su terreno, no por su roca. A completar en la fase 2.
 - Impacto de **jezero, medusae-fossae, pavonis-mons, meridiani, utopia-planitia y arsia-mons**: a 1:20M no se mapean cráteres chicos, y que no estén en el mapa no quiere decir 0.
 
 **Validaciones contra lo publicado** (`services/earth/tests/test_g_mapas.py`)
@@ -183,13 +190,13 @@ En la Tierra, el impacto vale 1 en los 11 sitios que están dentro de una estruc
 | medusae-fossae | Marte | **null** | **null** | AHtu |
 | pavonis-mons | Marte | basaltico 1 | **null** | Ave |
 | meridiani | Marte | **null** | **null** | HNhu |
-| shackleton-rim | Luna | **null** | 1 | Ec |
-| haworth | Luna | **null** | 1 | pNc |
-| malapert | Luna | **null** | 1 | Ip |
-| de-gerlache | Luna | **null** | 1 | Ec |
-| amundsen | Luna | **null** | 1 | Nc |
-| nobile | Luna | **null** | 1 | pNc |
-| marius-hills | Luna | basaltico 1 | 0 | EIp |
+| shackleton-rim | Luna | feldespatico 1 | 1 | Ec · LP FeO 4,92 %, Th 0,80 ppm |
+| haworth | Luna | feldespatico 1 | 1 | pNc · LP FeO 4,80 %, Th 0,89 ppm |
+| malapert | Luna | feldespatico 1 | 1 | Ip · LP FeO 4,57 %, Th 0,76 ppm |
+| de-gerlache | Luna | feldespatico 1 | 1 | Ec · LP FeO 5,25 %, Th 0,74 ppm |
+| amundsen | Luna | feldespatico 1 | 1 | Nc · LP FeO 4,47 %, Th 0,63 ppm |
+| nobile | Luna | feldespatico 1 | 1 | pNc · LP FeO 5,24 %, Th 0,66 ppm |
+| marius-hills | Luna | basaltico 1 | 0 | EIp · LP FeO 23,08 %, Th 3,33 ppm |
 | utopia-planitia | Marte | **null** | **null** | lHl |
 | arsia-mons | Marte | basaltico 1 | **null** | Ave |
 
@@ -204,7 +211,7 @@ S_G responde «¿qué tan parecida es la geología del sitio terrestre a la del 
 
 S_G es el promedio de los bloques que se pueden comparar. **Si falta el dato de un lado, ese bloque no entra**: no se inventa.
 
-El problema aparece cuando sólo se puede comparar un bloque. Ejemplo real: Lonar (cráter en basalto) contra Shackleton (cráter lunar). Del lado lunar no sabemos la roca, así que sólo comparamos «¿los dos son cráteres?». La respuesta es sí y S_G da 1,0. Pero ese 1,0 vale menos que el 1,0 de Payún Matrú contra Marius Hills, donde coinciden la roca **y** el origen. Por eso hay que decidir qué hacer con la «cobertura» (cuántos de los 2 bloques se usaron):
+El problema aparece cuando sólo se puede comparar un bloque. Ejemplo (con los datos de antes de la fase 2): Lonar (cráter en basalto) contra Shackleton (cráter lunar). Del lado lunar no sabíamos la roca, así que sólo se comparaba «¿los dos son cráteres?». La respuesta es sí y S_G daba 1,0. Pero ese 1,0 vale menos que el 1,0 de Payún Matrú contra Marius Hills, donde coinciden la roca **y** el origen. Por eso hay que decidir qué hacer con la «cobertura» (cuántos de los 2 bloques se usaron):
 
 | Opción | Lonar vs Shackleton (1 bloque) | Payún vs Marius Hills (2 bloques) | Efecto |
 |---|---|---|---|
@@ -229,7 +236,7 @@ Cableado (hecho): `tasi.rank()` arma el G del candidato desde sus `features` (`g
 Prueba de punta a punta con los catálogos integrados en memoria (pesos por defecto):
 
 - **Marius Hills:** arriba quedan sitios basálticos con G = 100 y cobertura 2/2 (Timanfaya, Laguna Antofagasta, University Valley).
-- **Shackleton:** arriba quedan cráteres (Haughton, Devon/FMARS, Meteor Crater, Acraman) con G = 50 y cobertura 1/2.
+- **Shackleton:** arriba quedan cráteres (Haughton, Devon/FMARS, Meteor Crater, Acraman) con G = 50, ahora con cobertura 2/2: coincide el origen (impacto) y no la roca (anortosita contra sedimentario o cristalino).
 - **Jezero:** sin G; TASI se calcula con T, E y V.
 
 ### Ejemplo con los datos cargados (S_G sin multiplicar por la cobertura · bloques usados)
@@ -246,4 +253,5 @@ Hoy sólo Marius Hills tiene los dos bloques contra casi todos los sitios terres
 
 ## 7. Pendiente
 
-- Fase 2: completar la composición de los polos lunares con el FeO de Lunar Prospector y una clase feldespática (§4), en curso.
+- Composición de Marte para Jezero, Meridiani, Medusae Fossae y Utopia (Odyssey GRS o CRISM puntual; a evaluar).
+- Un análogo anortosítico terrestre verificado para el catálogo (otro PR y otro agente).
