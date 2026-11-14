@@ -131,8 +131,10 @@ def permafrost_row(site: Dict, stat: Optional[Dict]) -> Dict:
         return {**base, "value": None, "quality": "unavailable", "is_real": False,
                 "note": "Fuera de la cobertura de Permafrost_cci v5.0 (solo hemisferio norte 25–85° N y Antártida): a completar con otro producto (p. ej. permafrost de montaña andino)."}
     if not stat or stat["centre_mean"] is None:
+        neigh = (stat or {}).get("neigh_mean")
+        extra = "" if neigh is None else " El entorno 3x3 (~3 km) sí tiene dato: media %.1f %% (no se usa como valor del punto)." % neigh
         return {**base, "value": None, "quality": "unavailable", "is_real": False,
-                "note": "Celda sin dato (relleno: océano o capa de hielo) en 2019–2023: a completar."}
+                "note": extra.strip() + " Celda de relleno (255) en 2019–2023: el producto no modela esa celda (océano, glaciar o región fuera de su dominio de permafrost, p. ej. toda Europa central y el SO de EE. UU. son relleno). No se asume 0: a completar."}
     note = "Media de %d años; media del entorno 3x3 (~3 km): %s %%. Permafrost es suelo ≤ 0 °C por ≥ 2 años: indica estabilidad térmica del hielo, no su presencia." % (
         stat["n_centre"], "n/d" if stat["neigh_mean"] is None else "%.1f" % stat["neigh_mean"])
     return {**base, "value": round(stat["centre_mean"] / 100.0, 4), "quality": "measured", "is_real": True,
