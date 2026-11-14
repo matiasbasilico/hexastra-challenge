@@ -1,0 +1,32 @@
+{
+  "permafrost_fraction": {
+    "service": "earth",
+    "unit": "fraction_0_1",
+    "name_es": "Fracción de permafrost",
+    "description": "ESA Permafrost_cci L4 v5.0 (PFR/100): fracción del área de la celda de 0,01° con suelo ≤ 0 °C durante ≥ 2 años. Media 2019–2023. Indica estabilidad térmica del hielo, no su presencia. Magnitud cruda; no comparable directamente con Luna/Marte."
+  },
+  "moon_ice_stable_frac": {
+    "service": "planetary",
+    "unit": "fraction_0_1",
+    "name_es": "Fracción con hielo estable (Luna)",
+    "description": "LRO Diviner PRP v2: fracción de triángulos (~240 m) a ≤ 5 km del punto donde el hielo de agua es estable a la sublimación (< 1 kg m⁻² por 10⁹ años) a ≤ 2,87 m de profundidad."
+  },
+  "moon_ice_surface_frac": {
+    "service": "planetary",
+    "unit": "fraction_0_1",
+    "name_es": "Fracción con hielo estable en superficie (Luna)",
+    "description": "LRO Diviner PRP v2: fracción de triángulos a ≤ 5 km del punto con ice_depth = 0 (hielo estable expuesto en superficie)."
+  },
+  "moon_ice_depth_min_m": {
+    "service": "planetary",
+    "unit": "m",
+    "name_es": "Profundidad mínima de estabilidad del hielo (Luna)",
+    "description": "LRO Diviner PRP v2: profundidad de estabilidad del hielo más somera entre los triángulos a ≤ 5 km del punto. Null si ninguno es estable en los 2,87 m modelados."
+  },
+  "mars_grs_h2o_wt_pct": {
+    "service": "planetary",
+    "unit": "wt_pct",
+    "name_es": "Hidrógeno equivalente a agua (GRS, Marte)",
+    "description": "2001 Mars Odyssey GRS (ODY-M-GRS-5-ELEMENTS-V1.0): H2O en % en peso del primer metro, bin suavizado de 5°×5° que contiene el punto. A latitudes bajas refleja sobre todo minerales hidratados, no hielo."
+  }
+}

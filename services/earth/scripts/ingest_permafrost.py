@@ -139,11 +139,29 @@ def permafrost_row(site: Dict, stat: Optional[Dict]) -> Dict:
             "note": note, "comparable": False}
 
 
+INDEX_NOTE = "Índice I_hielo (docs/propuestas/vo-hielo.md): fracción del área del sitio donde el hielo de agua es térmicamente estable en el primer ~1–3 m. Tierra: = permafrost_fraction."
+
+
+def index_row(pf: Dict) -> Dict:
+    """water_ice_indicator from the permafrost row (same value, quality derived)."""
+    row = dict(pf, feature="water_ice_indicator", unit="index_0_1")
+    if pf["value"] is None:
+        row["note"] = INDEX_NOTE + " " + pf["note"]
+        row.pop("comparable", None)
+        return row
+    row.update(quality="derived", comparable=True, note=INDEX_NOTE)
+    return row
+
+
 def build() -> List[Dict]:
     sites = json.loads(CATALOG.read_text(encoding="utf-8"))["sites"]
     with SITES_CSV.open(encoding="utf-8") as fh:
         stats = pfr_stats(csv.DictReader(fh))
-    return [permafrost_row(s, stats.get(s["id"])) for s in sites]
+    rows = []
+    for s in sites:
+        pf = permafrost_row(s, stats.get(s["id"]))
+        rows += [pf, index_row(pf)]
+    return rows
 
 
 def write(rows: List[Dict]) -> None:

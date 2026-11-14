@@ -179,6 +179,94 @@ def grs_bin(lat: float, lon_east: float) -> Tuple[float, float]:
     return (math.floor(lat / 5.0) * 5.0 + 2.5, math.floor(lon / 5.0) * 5.0 + 2.5)
 
 
+# ---------------------------------------------------------------- rows
+
+REPO = PLANETARY.parent.parent
+OUT = REPO / "data" / "measurements" / "vo-hielo.jsonl"
+METHOD = "services/planetary/scripts/ingest_ice.py"
+RETRIEVED = "2026-11-14"
+WHEN = "consultado %s (America/Buenos_Aires)" % RETRIEVED
+PRP_SOURCE = ("LRO Diviner Polar Resource Products v2 (LRO-L-DLRE-5-PRP-V2.0, Paige et al.), tabla polar sur, "
+              "PDS Geosciences Node; triángulos de ~240 m con centro a <= %.0f km del punto; %s. %s %s"
+              % (RADIUS_KM, WHEN, PRP_URL, PRP_LABEL))
+GRS_SOURCE = ("2001 Mars Odyssey GRS, concentraciones elementales (ODY-M-GRS-5-ELEMENTS-V1.0, Boynton et al. 2007, "
+              "doi:10.1029/2007JE002887), tabla H2O suavizada 5x5 grados, bin que contiene el punto; %s. %s %s"
+              % (WHEN, GRS_URL, GRS_LABEL))
+INDEX_NOTE = "Índice I_hielo (docs/propuestas/vo-hielo.md): fracción del área del sitio donde el hielo de agua es térmicamente estable en el primer ~1–3 m."
+
+
+def _row(site_id: str, feature: str, value, unit: str, quality: str, source: str, note: Optional[str],
+         comparable: Optional[bool] = None) -> Dict:
+    row = {"site_id": site_id, "feature": feature, "value": value, "unit": unit, "quality": quality,
+           "is_real": value is not None, "source": source, "note": note, "method": METHOD, "retrieved_at": RETRIEVED}
+    if comparable is not None:
+        row["comparable"] = comparable
+    return row
+
+
+def moon_rows(targets: List[Dict], stats: Dict[str, Dict]) -> List[Dict]:
+    out = []
+    for t in targets:
+        st = stats.get(t["id"])
+        if t["lat"] > PRP_MIN_LAT or not st or st["n"] < MIN_TRIANGLES:
+            why = ("fuera de la cobertura del PRP polar sur (lat > %.1f)" % PRP_MIN_LAT if t["lat"] > PRP_MIN_LAT
+                   else "menos de %d triángulos en el círculo" % MIN_TRIANGLES)
+            note = "Sin dato Diviner PRP: %s; a completar (p. ej. con LEND o neutrones de Lunar Prospector)." % why
+            for fid, unit in (("moon_ice_stable_frac", "fraction_0_1"), ("moon_ice_surface_frac", "fraction_0_1"),
+                              ("moon_ice_depth_min_m", "m"), ("water_ice_indicator", "index_0_1")):
+                out.append(_row(t["id"], fid, None, unit, "unavailable", PRP_SOURCE, note, False if fid != "water_ice_indicator" else None))
+            continue
+        ctx = "n=%d triángulos; Tmax mediana %.1f K (mín %.1f K)." % (st["n"], st["tmax_median"], st["tmax_min"])
+        out.append(_row(t["id"], "moon_ice_stable_frac", round(st["stable_frac"], 4), "fraction_0_1", "derived", PRP_SOURCE,
+                        "Fracción de triángulos con ice_depth en [0, 2,87 m]. " + ctx, False))
+        out.append(_row(t["id"], "moon_ice_surface_frac", round(st["surface_frac"], 4), "fraction_0_1", "derived", PRP_SOURCE,
+                        "Fracción de triángulos con ice_depth = 0 (hielo estable en superficie). " + ctx, False))
+        if st["depth_min"] is None:
+            out.append(_row(t["id"], "moon_ice_depth_min_m", None, "m", "unavailable", PRP_SOURCE,
+                            "Ningún triángulo con hielo estable en los 2,87 m modelados: no hay profundidad que reportar (a completar si se usa un modelo más profundo). " + ctx, False))
+        else:
+            out.append(_row(t["id"], "moon_ice_depth_min_m", round(st["depth_min"], 4), "m", "derived", PRP_SOURCE,
+                            "Profundidad de estabilidad más somera del círculo. " + ctx, False))
+        out.append(_row(t["id"], "water_ice_indicator", round(st["stable_frac"], 4), "index_0_1", "derived", PRP_SOURCE,
+                        INDEX_NOTE + " Luna: = moon_ice_stable_frac.", True))
+    return out
+
+
+def mars_rows(targets: List[Dict], grid: Dict) -> List[Dict]:
+    out = []
+    for t in targets:
+        key = grs_bin(t["lat"], t["lon"])
+        conc, sigma = grid.get(key, (None, None))
+        if conc is None:
+            out.append(_row(t["id"], "mars_grs_h2o_wt_pct", None, "wt_pct", "unavailable", GRS_SOURCE,
+                            "Bin %s sin dato en el producto (latitud alta o sin cobertura): a completar." % (key,), False))
+        else:
+            out.append(_row(t["id"], "mars_grs_h2o_wt_pct", conc, "wt_pct", "measured", GRS_SOURCE,
+                            "Bin centrado en lat %.1f, lon %.1f E; sigma %.3f wt%%. Hidrógeno equivalente a agua en el primer metro (incluye minerales hidratados; a estas latitudes no implica hielo)." % (key[0], key[1], sigma or float("nan")), False))
+        out.append(_row(t["id"], "water_ice_indicator", None, "index_0_1", "unavailable", GRS_SOURCE,
+                        INDEX_NOTE + " Marte: el GRS mide hidrógeno, no estabilidad del hielo; falta un mapa de estabilidad o de consistencia de hielo "
+                        "(p. ej. SWIM, Morgan et al. 2021) para este punto: a completar."))
+    return out
+
+
+def build() -> List[Dict]:
+    with MOON_RAW.open(encoding="utf-8") as fh:
+        mstats = moon_stats(csv.DictReader(fh))
+    grid = parse_grs(MARS_RAW.read_text(encoding="ascii"))
+    return moon_rows(load_targets("moon"), mstats) + mars_rows(load_targets("mars"), grid)
+
+
+def write(rows: List[Dict]) -> None:
+    """Replace this script's rows in vo-hielo.jsonl, keep the other scripts' rows."""
+    keep = []
+    if OUT.exists():
+        for line in OUT.read_text(encoding="utf-8").splitlines():
+            if line.strip() and json.loads(line).get("method") != METHOD:
+                keep.append(line)
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text("".join(l + "\n" for l in keep) + "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+
+
 # ---------------------------------------------------------------- CLI
 
 def main(argv: List[str]) -> int:
@@ -190,6 +278,11 @@ def main(argv: List[str]) -> int:
         return 0
     if cmd == "fetch-mars":
         fetch_mars()
+        return 0
+    if cmd == "build":
+        rows = build()
+        write(rows)
+        print("filas:", len(rows), "->", OUT)
         return 0
     print(__doc__)
     return 2
