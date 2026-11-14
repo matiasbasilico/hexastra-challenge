@@ -89,11 +89,37 @@ test("index.html conserva los ids que leen app.js y easy.js", () => {
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "orden de scripts roto");
 });
 
-test("la tabla de lo que la Tierra no puede imitar cita su fuente y no inventa la radiación", () => {
+test("la tabla de lo que la Tierra no puede imitar cita sus fuentes y deja la Tierra a completar en radiación", () => {
   const html = readFileSync(join(ROOT, "index.html"), "utf8");
   assert.match(html, /nssdc\.gsfc\.nasa\.gov/);
   assert.match(html, /consultadas el 14\/11\/2026/);
-  assert.match(html, /Radiación en superficie<\/th><td colspan="3"[^>]*><span class="chip chip-warn">Dato a completar/);
+  // Marte: RAD/MSL (Hassler et al. 2014) y Luna: CRaTER/LRO (Schwadron et al. 2012), con unidad y fecha.
+  assert.match(html, /0,67 mSv\/día/);
+  assert.match(html, /doi\.org\/10\.1126\/science\.1244797/);
+  assert.match(html, /11,7 cGy\/año/);
+  assert.match(html, /doi\.org\/10\.1029\/2011JE003978/);
+  assert.match(html, /órbita lunar \(LRO\), no en superficie/);
+  assert.match(html, /Radiación cósmica<\/th><td class="num" data-label="Tierra"><span class="chip chip-warn">A completar/);
+});
+
+test("la identidad sigue el manual de marca: brand.css primero, logo y favicons, sin otras familias", () => {
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const brand = html.indexOf('href="css/brand.css"');
+  assert.ok(brand > 0 && brand < html.indexOf('href="css/style.css"'), "brand.css tiene que cargarse antes");
+  assert.match(html, /src="assets\/brand\/hexastra-logo-512\.png"/);
+  assert.match(html, /assets\/brand\/favicon-32\.png/);
+  assert.ok(!/Hanken|Newsreader|IBM\+Plex/.test(html), "quedó una familia que no es de la marca");
+  for (const f of ["style.css", "easy.css", "tokens.css"]) {
+    const css = readFileSync(join(ROOT, "css", f), "utf8");
+    assert.ok(!/oklch\(|#[0-9a-fA-F]{6}\b/.test(css), `${f} tiene un color fuera de brand.css`);
+  }
+});
+
+test("los pines del avanzado conservan el número de ranking al elegir un sitio", () => {
+  const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
+  assert.match(app, /function earthIconFor\(/);
+  assert.ok(!/rankIcon\(i \+ 1, true\)/.test(app), "todos los pines quedan resaltados a la vez");
+  assert.ok(!/marker\.setIcon\(divIcon\(kind, sid === id\)\)/.test(app), "elegir un sitio vuelve a borrar el número");
 });
 
 test("el modo avanzado ya no toma el par de paired_mars_ids", () => {

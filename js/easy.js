@@ -349,7 +349,7 @@
         "</div>" +
         '<p class="easy-feat-meta">' + (place ? "<span>" + escapeHtml(place) + "</span>" : "") +
           (pl.classic ? ' <span class="easy-chip">Análogo clásico</span>' : "") +
-          (pl.highlight_less_studied ? ' <span class="easy-chip">Menos estudiado</span>' : "") +
+          (pl.highlight_less_studied ? ' <span class="easy-chip easy-chip-menos">Menos estudiado</span>' : "") +
         "</p>" +
         "<p>" + escapeHtml(pl.summary || "") + "</p>" +
         (pl.coord_source ? '<p class="easy-note">Coordenadas: ' + escapeHtml(pl.coord_source) + "</p>" : "") +
@@ -464,7 +464,7 @@
         });
         return (
           '<li><button type="button" class="easy-result" data-rev-id="' + escapeHtml(site.id) + '" data-body="' + escapeHtml(site.body || "") + '">' +
-            '<div class="easy-score"><span class="easy-score-num">' + escapeHtml(String(score)) + '</span><span class="easy-score-den">/ 100</span></div>' +
+            scoreBlock(m.score, score) +
             '<div class="easy-result-body">' +
               '<p class="easy-result-rank"><span class="num">' + (i + 1) + "</span>" + (body ? "<span>" + body + "</span>" : "") + "</p>" +
               "<h3>" + escapeHtml(site.name) + "</h3>" +
@@ -953,6 +953,21 @@
     if (state.results) plotResults(state.results);
   }
 
+  // Fracción 0–1 para la escala de color del puntaje (violeta → óxido, docs/marca.md).
+  function scoreFraction(score) {
+    const n = Number(score);
+    if (score == null || Number.isNaN(n)) return "0";
+    return Math.max(0, Math.min(1, n / 100)).toFixed(3);
+  }
+
+  function scoreBlock(raw, shown) {
+    return '<div class="easy-score" style="--s:' + scoreFraction(raw) + '" aria-label="Coincidencia ' + escapeHtml(String(shown)) + ' de 100">' +
+      '<span class="easy-score-num score-color">' + escapeHtml(String(shown)) + "</span>" +
+      '<span class="easy-score-den">de 100</span>' +
+      '<span class="score-bar" aria-hidden="true"><span></span></span>' +
+    "</div>";
+  }
+
   function resultExplain(m) {
     const ex = explainMatch(m);
     return (ex.why ? '<p class="easy-why"><strong>Por qué se parece.</strong> ' + escapeHtml(ex.why) + "</p>" : "") +
@@ -1034,13 +1049,10 @@
         return (
           '<li>' +
             '<button type="button" class="easy-result' + active + '" data-id="' + escapeHtml(site.id) + '">' +
-              '<div class="easy-score" aria-label="Coincidencia ' + escapeHtml(String(score)) + ' de 100">' +
-                '<span class="easy-score-num">' + escapeHtml(String(score)) + "</span>" +
-                '<span class="easy-score-den">/ 100</span>' +
-              "</div>" +
+              scoreBlock(m.score, score) +
               '<div class="easy-result-body">' +
                 '<p class="easy-result-rank"><span class="num">' + (i + 1) + "</span>" + (place ? "<span>" + escapeHtml(place) + "</span>" : "") +
-                  (site.highlight_less_studied || site.known_level === "lesser-known" ? ' <span class="easy-chip">Menos estudiado</span>' : "") +
+                  (site.highlight_less_studied || site.known_level === "lesser-known" ? ' <span class="easy-chip easy-chip-menos">Menos estudiado</span>' : "") +
                 "</p>" +
                 "<h3>" + escapeHtml(site.name) + "</h3>" +
                 resultExplain(m) +
@@ -1210,6 +1222,8 @@
     });
     const label = $("#easy-dest-label");
     if (label) label.textContent = body === "mars" ? "Marte" : "Luna";
+    const compare = $("#easy-compare");
+    if (compare) compare.setAttribute("data-body", body);
     const note = $("#easy-dest-note");
     if (note) {
       note.textContent = body === "moon"
@@ -1224,7 +1238,7 @@
   function destIcon(active) {
     return L.divIcon({
       className: "",
-      html: '<div class="easy-pin easy-pin-dest' + (active ? " is-active" : "") + '"></div>',
+      html: '<div class="easy-pin easy-pin-dest ' + (state.destBody === "mars" ? "mars" : "moon") + (active ? " is-active" : "") + '"></div>',
       iconSize: active ? [22, 22] : [12, 12],
       iconAnchor: active ? [11, 11] : [6, 6]
     });
@@ -1303,7 +1317,7 @@
         "<h3>" + escapeHtml(site.name) + "</h3>" +
         "<p class='easy-pair-coord num'>" + coordText(site.lat, site.lon) + "</p>" +
         (place ? "<p class='easy-pair-place'>" + escapeHtml(place) + "</p>" : "") +
-        (site.highlight_less_studied || site.known_level === "lesser-known" ? "<p><span class='easy-chip'>Menos estudiado</span></p>" : "");
+        (site.highlight_less_studied || site.known_level === "lesser-known" ? "<p><span class='easy-chip easy-chip-menos'>Menos estudiado</span></p>" : "");
     } else if (feat) {
       earth = "<p class='easy-pair-side'>Tierra</p><h3>" + escapeHtml(feat.name) + "</h3>" +
         (feat.lat != null ? "<p class='easy-pair-coord num'>" + coordText(feat.lat, feat.lon) + "</p>" : "") +
@@ -1317,7 +1331,8 @@
     if (m) {
       const ex = explainMatch(m);
       detail =
-        "<div class='easy-pair-score'><span class='easy-score-num num'>" + escapeHtml(formatScore(m.score)) + "</span><span class='easy-score-den'>de 100, índice TASI</span></div>" +
+        "<div class='easy-pair-score' style='--s:" + scoreFraction(m.score) + "'><span class='easy-score-num score-color'>" + escapeHtml(formatScore(m.score)) + "</span><span class='easy-score-den'>de 100, índice TASI</span>" +
+        "<span class='score-bar' aria-hidden='true'><span></span></span></div>" +
         "<dl class='easy-pair-why'>" +
           "<div><dt>Por qué se parece</dt><dd>" + escapeHtml(ex.why || "Sin componentes con dato.") + "</dd></div>" +
           "<div><dt>En qué no</dt><dd>" + escapeHtml(ex.breaks) + "</dd></div>" +
@@ -1329,8 +1344,8 @@
     }
     box.innerHTML =
       "<div class='easy-pair-grid'>" +
-        "<div class='easy-pair-col'>" + earth + "</div>" +
-        "<div class='easy-pair-col'>" + dest + "</div>" +
+        "<div class='easy-pair-col is-earth'>" + earth + "</div>" +
+        "<div class='easy-pair-col " + (t ? "is-" + t.body : "is-dest-empty") + "'>" + dest + "</div>" +
       "</div>" + detail;
     const calc = $("#easy-pair-calc");
     if (calc) calc.addEventListener("click", openCalc);

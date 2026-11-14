@@ -88,7 +88,7 @@
     return clamp01(z / SCORING.elevScale);
   }
   function pct(x) {
-    return (x * 100).toFixed(0) + " %";
+    return (x * 100).toFixed(0) + "\u00a0%";
   }
   function fmt(n, digits, unit) {
     if (n === null || n === undefined || Number.isNaN(n)) return "—";
@@ -143,7 +143,8 @@
       attribution: "Teselas: Esri, Maxar, Earthstar Geographics",
       maxZoom: 18,
     });
-    osm.addTo(earth);
+    // Mapa base según el control (por defecto satelital, que convive con el fondo noche de la marca).
+    ($("#layer-esri") && $("#layer-esri").checked ? esri : osm).addTo(earth);
 
     const gibsDate = $("#gibs-date").value || "2026-11-10";
     const gibsTrueColor = L.tileLayer(
@@ -311,11 +312,7 @@
     if (!site) return;
     renderList(state.data);
 
-    Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
-      const s = (state.data.earth_sites || []).find((x) => x.id === sid) || state.remoteEarth[sid];
-      const kind = s && s.highlight_less_studied ? "menos" : "earth";
-      marker.setIcon(divIcon(kind, sid === id));
-    });
+    refreshEarthIcons();
     // El par sale del destino elegido en el buscador (y del ranking TASI), no de paired_mars_ids.
     safeFly(state.earthMap, [site.lat, site.lon], 8, flyOpts(0.9));
     keepTargetInView();
@@ -399,6 +396,13 @@
     drawCharts(scores, q);
   }
 
+  // Fracción 0–1 del puntaje para la escala de color violeta → óxido del manual.
+  function scoreFraction(score) {
+    const n = Number(score);
+    if (score == null || Number.isNaN(n)) return 0;
+    return Math.max(0, Math.min(1, n / 100)).toFixed(3);
+  }
+
   function currentMatch(id) {
     return ((state.lastTasi && state.lastTasi.matches) || []).find((m) => m.site && m.site.id === id) || null;
   }
@@ -416,8 +420,9 @@
     }
     const ex = window.HexastraExplain.explainMatch(match);
     html +=
-      "<div class='score-hero'><div class='num'>" + escapeHtml(window.HexastraExplain.formatScore(match.score)) +
-      "</div><p>de 100, índice TASI frente a " + escapeHtml(t.short_name || t.name) + ".</p></div>" +
+      "<div class='score-hero' style='--s:" + scoreFraction(match.score) + "'><div class='num score-color'>" + escapeHtml(window.HexastraExplain.formatScore(match.score)) +
+      "</div><p>de 100, índice TASI frente a " + escapeHtml(t.short_name || t.name) + ".</p>" +
+      "<span class='score-bar' aria-hidden='true'><span></span></span></div>" +
       "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why || "Sin componentes con dato.") + "</p>" +
       "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks) + "</p>" +
       (ex.missing.length
@@ -538,10 +543,10 @@
   }
 
 
-  function targetIcon() {
+  function targetIcon(body) {
     return L.divIcon({
       className: "",
-      html: '<div class="pin target"></div>',
+      html: '<div class="pin target ' + (body === "moon" ? "moon" : "mars") + '"></div>',
       iconSize: [24, 24],
       iconAnchor: [12, 12],
     });
@@ -557,7 +562,7 @@
     state.target = t;
     if (state.targetMarker) state.marsMap.removeLayer(state.targetMarker);
     state.targetMarker = L.marker(targetLatLng(t), {
-      icon: targetIcon(),
+      icon: targetIcon(t.body),
       title: t.name,
       alt: "Destino elegido: " + t.name,
       zIndexOffset: 1000,
@@ -799,35 +804,40 @@
     const site = state.remoteEarth[id];
     if (!site) return;
     state.selectedId = id;
-    Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
-      const s = (state.data.earth_sites || []).find((x) => x.id === sid) || state.remoteEarth[sid];
-      const kind = s && s.highlight_less_studied ? "menos" : "earth";
-      marker.setIcon(divIcon(kind, sid === id));
-    });
+    refreshEarthIcons();
     safeFly(state.earthMap, [site.lat, site.lon], 8, flyOpts(0.9));
     const match = ((state.lastTasi && state.lastTasi.matches) || []).find((m) => m.site.id === id);
     renderRemotePanel(site, match);
   }
 
-  function resetEarthIcons() {
-    if (!state.data && !Object.keys(state.remoteEarth).length) return;
-    state.rankIds = [];
+  // Un solo lugar decide el ícono de cada sitio terrestre: los puntuados conservan su número
+  // de ranking y solo el seleccionado se resalta (anillo cian), sin perder el número.
+  function earthIconFor(sid) {
+    const active = sid === state.selectedId;
+    const rank = state.rankIds.indexOf(sid);
+    if (rank !== -1) return rankIcon(rank + 1, active);
+    const s = ((state.data && state.data.earth_sites) || []).find((x) => x.id === sid) || state.remoteEarth[sid];
+    return divIcon(s && s.highlight_less_studied ? "menos" : "earth", active);
+  }
+
+  function refreshEarthIcons() {
     Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
-      const s = ((state.data && state.data.earth_sites) || []).find((x) => x.id === sid) || state.remoteEarth[sid];
-      const kind = s && s.highlight_less_studied ? "menos" : "earth";
-      marker.setIcon(divIcon(kind, sid === state.selectedId));
+      marker.setIcon(earthIconFor(sid));
+      marker.setZIndexOffset(sid === state.selectedId ? 1000 : 0);
     });
+  }
+
+  function resetEarthIcons() {
+    state.rankIds = [];
+    refreshEarthIcons();
   }
 
   function highlightRanks(matches) {
     resetEarthIcons();
     const scored = matches.filter((m) => m.score != null);
     state.rankIds = scored.map((m) => m.site.id);
-    scored.forEach((m, i) => {
-      ensureEarthMarker(m.site);
-      const marker = state.earthMarkers[m.site.id];
-      if (marker) marker.setIcon(rankIcon(i + 1, true));
-    });
+    scored.forEach((m) => ensureEarthMarker(m.site));
+    refreshEarthIcons();
     if (scored.length && state.earthMap) {
       const pts = scored.map((m) => [m.site.lat, m.site.lon]);
       try {
@@ -920,9 +930,9 @@
         }).join(" · ");
         return (
           '<li><button type="button" class="rank-item" data-id="' + m.site.id + '">' +
-          "<strong>#" + (i + 1) + " " + m.site.name + "</strong> · <span class='score'>" +
-          (m.score == null ? "sin puntaje" : m.score.toLocaleString("es-AR") + " / 100") +
-          "</span><br><span class='muted'>" +
+          "<strong>" + (i + 1) + ". " + escapeHtml(m.site.name) + "</strong> <span class='score'>" +
+          (m.score == null ? "sin puntaje" : m.score.toLocaleString("es-AR") + " de 100") +
+          "</span><span class='score-bar' style='--s:" + scoreFraction(m.score) + "' aria-hidden='true'><span></span></span><span class='muted'>" +
           (m.site.country_iso || "") + (m.site.continent ? " · " + m.site.continent : "") +
           " · usó: " + (used.join(", ") || "—") +
           (skipped.length ? " · omitió: " + skipped.join(", ") : "") +
@@ -969,7 +979,7 @@
       populateFinder(targets, regions);
       (moon || []).forEach((s) => {
         const lat = Math.max(-85.05, Math.min(85.05, s.lat));
-        const m = L.marker([lat, s.lon], { icon: divIcon("menos", false), title: s.name });
+        const m = L.marker([lat, s.lon], { icon: divIcon("moon", false), title: s.name });
         m.bindTooltip(s.short_name || s.name);
         state.moonMarkers[s.id] = m;
       });
@@ -991,7 +1001,16 @@
     }
   }
 
+  // Las notas a y b de la tabla de límites abren el bloque plegado de fuentes.
+  function bindLimitNotes() {
+    const box = document.querySelector(".limits-sources");
+    document.querySelectorAll(".limits-table sup a").forEach((link) => {
+      link.addEventListener("click", () => { if (box) box.open = true; });
+    });
+  }
+
   function bindModal() {
+    bindLimitNotes();
     const bg = $("#modal-bg");
     $("#btn-metodo").addEventListener("click", () => bg.classList.add("open"));
     $("#btn-fuentes").addEventListener("click", () => {
