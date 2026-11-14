@@ -29,7 +29,21 @@ COMPOSITION = (
     "g_lito_quimico",
     "g_lito_cristalino",
     "g_lito_hielo",
+    "g_lito_volc_indiviso",
+    "g_lito_sed_indiviso",
 )
+# Familias: permiten crédito parcial entre una clase indivisa y sus clases finas
+# (p. ej. «sedimentary» a secas frente a «sandstone»). Ver S_G en docs/propuestas/G.md.
+FAMILY = {
+    "g_lito_basaltico": "volcanica",
+    "g_lito_silicico": "volcanica",
+    "g_lito_volc_indiviso": "volcanica",
+    "g_lito_clastico": "sedimentaria",
+    "g_lito_quimico": "sedimentaria",
+    "g_lito_sed_indiviso": "sedimentaria",
+    "g_lito_cristalino": "cristalina",
+    "g_lito_hielo": "hielo",
+}
 IMPACT = "g_impacto"
 FEATURES = COMPOSITION + (IMPACT,)
 
@@ -40,6 +54,8 @@ FEATURE_DEFS = {
     "g_lito_quimico": "Fracción sedimentaria química (carbonatos, evaporitas)",
     "g_lito_cristalino": "Fracción plutónica o metamórfica (granito, gneis, esquisto)",
     "g_lito_hielo": "Fracción de hielo (glaciares, casquete polar)",
+    "g_lito_volc_indiviso": "Fracción volcánica sin composición informada por el mapa («volcanic», «volcaniclastic»)",
+    "g_lito_sed_indiviso": "Fracción sedimentaria sin tipo informado por el mapa («sedimentary» a secas)",
     "g_impacto": "1 si el punto está en material de impacto mapeado o en una estructura de impacto confirmada",
 }
 
@@ -82,8 +98,17 @@ EARTH_KEYWORDS: Tuple[Tuple[str, str], ...] = (
     ("schist", "g_lito_cristalino"),
     ("plutonic", "g_lito_cristalino"),
     ("metamorphic", "g_lito_cristalino"),
+    ("intrusive", "g_lito_cristalino"),
     ("ice", "g_lito_hielo"),
     ("glacier", "g_lito_hielo"),
+)
+
+# Términos genéricos que no dicen la composición: van a la clase indivisa de su familia.
+EARTH_UNDIVIDED: Tuple[Tuple[str, str], ...] = (
+    ("volcanic", "g_lito_volc_indiviso"),
+    ("volcaniclastic", "g_lito_volc_indiviso"),
+    ("volcano-sedimentary", "g_lito_volc_indiviso"),
+    ("sedimentary", "g_lito_sed_indiviso"),
 )
 
 
@@ -100,6 +125,11 @@ def earth_composition(liths: str) -> Optional[Dict[str, float]]:
             # se evalúan sólo palabras completas para evitar falsos positivos.
             if _whole_word(text, keyword):
                 found.append(cls)
+    # Clases indivisas: sólo si el mapa no dio ninguna clase fina de esa familia.
+    families = {FAMILY[c] for c in found}
+    for keyword, cls in EARTH_UNDIVIDED:
+        if FAMILY[cls] not in families and cls not in found and _whole_word(text, keyword):
+            found.append(cls)
     if not found:
         return None
     share = 1.0 / len(found)
@@ -107,7 +137,7 @@ def earth_composition(liths: str) -> Optional[Dict[str, float]]:
 
 
 def _whole_word(text: str, keyword: str) -> bool:
-    return re.search(r"(?<![a-z])%s(?![a-z])" % re.escape(keyword), text) is not None
+    return re.search(r"(?<![a-z])%s(?:e?s)?(?![a-z])" % re.escape(keyword), text) is not None  # admite plural
 
 
 # ---------------------------------------------------------------- Luna
