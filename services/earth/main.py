@@ -119,6 +119,27 @@ def method() -> Dict[str, Any]:
     }
 
 
+EXAMPLES_PATH = Path(__file__).resolve().parent / "data" / "literature_examples.json"
+
+
+@app.get("/examples")
+def examples() -> Dict[str, Any]:
+    """Earth–target pairs proposed in published work, with their sources.
+
+    Starting points for the side-by-side comparison. They carry no score: the score
+    always comes from POST /tasi with real data.
+    """
+    with EXAMPLES_PATH.open(encoding="utf-8") as f:
+        doc = json.load(f)
+    out = []
+    for ex in doc["examples"]:
+        site = site_by_id(ex["earth_id"])
+        if site is None:
+            continue  # a stale example never reaches the UI
+        out.append({**ex, "site": summary(site)})
+    return {"meta": doc["meta"], "n": len(out), "examples": out}
+
+
 @app.get("/featured")
 def featured() -> Dict[str, Any]:
     """Reference baseline / shortcut sites (includes well-known analogs kept as baselines)."""

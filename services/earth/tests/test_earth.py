@@ -382,3 +382,17 @@ def test_method_explains_tasi_from_running_code():
     assert ids == ["equilibrado", "terreno", "clima", "robots"]
     for p in body["presets"]:
         assert sum(p["weights"].values()) == pytest.approx(1.0)
+
+
+def test_examples_come_from_literature_with_sources_and_no_score():
+    from main import app
+
+    body = TestClient(app).get("/examples").json()
+    assert body["n"] == 5
+    ids = {e["earth_id"] for e in body["examples"]}
+    assert ids == {"campo-piedra-pomez", "laguna-negra", "payun-matru", "ischigualasto", "laguna-antofagasta"}
+    for ex in body["examples"]:
+        assert ex["site"]["id"] == ex["earth_id"]
+        assert ex["target_ids"]
+        assert ex["sources"] and all(s["url"].startswith("http") for s in ex["sources"])
+        assert "score" not in ex
