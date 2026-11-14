@@ -23,7 +23,7 @@ def test_health():
     body = r.json()
     assert body["ok"] is True
     assert body["service"] == "planetary"
-    assert body["n_sites"] >= 11
+    assert body["n_sites"] >= 14
 
 
 def test_cors():
@@ -82,3 +82,65 @@ def test_vector_does_not_fill_missing_slope():
     # either way, missing values stay None
     if vec["components"]["T"]["available"]:
         assert any(v is None or k != "slope_deg" for k, v in zip(vec["components"]["T"]["vector_labels"], vec["components"]["T"]["vector"]))
+
+
+# --- Sitios del documento HexAstra (Marius Hills, Utopia Planitia, Arsia Mons) ---
+
+DOCUMENT_TARGETS = {
+    "marius-hills": ("moon", 14.0917, -56.7701, "lroc.im-ldi.com/atlases/pits/1"),
+    "utopia-planitia": ("mars", 48.27, 134.28, "giss.nasa.gov/tools/mars24"),
+    "arsia-mons": ("mars", -8.26, -120.09, "planetarynames.wr.usgs.gov/Feature/394"),
+}
+
+
+@pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
+def test_document_target_listed_with_cited_coordinates(site_id):
+    body, lat, lon, url = DOCUMENT_TARGETS[site_id]
+    listed = client.get("/sites", params={"body": body}).json()["sites"]
+    site = next((s for s in listed if s["id"] == site_id), None)
+    assert site is not None, site_id
+    assert site["body"] == body
+    assert site["lat"] == pytest.approx(lat)
+    assert site["lon"] == pytest.approx(lon)
+    assert url in site["coord_source"]
+
+
+@pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
+def test_document_target_lon_conventions_agree(site_id):
+    site = site_by_id(site_id)
+    assert site is not None
+    assert -180 <= site["lon"] <= 180
+    assert site["lon_east_0_360"] == pytest.approx(site["lon"] % 360)
+
+
+@pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
+def test_document_target_has_no_invented_measurements(site_id):
+    feats = site_by_id(site_id)["features"]
+    for key, item in feats.items():
+        if key == "precip_mm":
+            assert item["quality"] == "convention" and item["value"] == 0.0
+            continue
+        assert item["value"] is None, key
+        assert item["quality"] == "placeholder", key
+        assert "a completar" in item["note"], key
+
+
+@pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
+def test_document_target_vector_responds(site_id):
+    r = client.get(f"/sites/{site_id}/vector")
+    assert r.status_code == 200
+    vec = r.json()
+    assert vec["id"] == site_id
+    assert set(vec["components"]) == {"G", "T", "E", "Vo", "O"}
+    # Sin DEM ni térmica verificados: T y E no pueden quedar listos para puntuar.
+    assert vec["components"]["T"]["score_ready"] is False
+    assert vec["components"]["E"]["score_ready"] is False
+
+
+def test_jezero_and_gale_keep_mars24_points_and_cite_iau_centres():
+    jezero = site_by_id("jezero")
+    gale = site_by_id("gale")
+    assert (jezero["lat"], jezero["lon"]) == (18.44, 77.45)
+    assert (gale["lat"], gale["lon"]) == (-4.59, 137.44)
+    assert "Feature/14300" in jezero["coord_source"]
+    assert "Feature/2071" in gale["coord_source"]
