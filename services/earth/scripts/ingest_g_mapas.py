@@ -1,6 +1,6 @@
-"""Piloto G (geología): vector categórico de materiales para 12 sitios.
+"""G (geología): vector categórico de materiales para los 74 sitios del catálogo.
 
-Escribe data/measurements/g-piloto.jsonl y g-piloto.features.json.
+Escribe data/measurements/g-mapas.jsonl y g-mapas.features.json.
 
 Fuentes (consultadas por este script):
 * Tierra: Macrostrat API v2, /geologic_units/map, escala "small" (~1:5M), que
@@ -10,7 +10,7 @@ Fuentes (consultadas por este script):
 * Marte: USGS SIM 3292 Geologic Map of Mars 1:20M (Tanaka et al. 2014).
 
 Uso:
-    services/.venv/bin/python services/earth/scripts/ingest_g_piloto.py
+    services/.venv/bin/python services/earth/scripts/ingest_g_mapas.py
 """
 from __future__ import annotations
 
@@ -34,10 +34,10 @@ import g_equivalencias as eq  # noqa: E402
 from remote_zip import extract_members  # noqa: E402
 
 TODAY = "2026-11-14"
-METHOD = "services/earth/scripts/ingest_g_piloto.py"
+METHOD = "services/earth/scripts/ingest_g_mapas.py"
 CACHE = Path.home() / ".cache" / "hexastra" / "g"
-OUT = ROOT / "data" / "measurements" / "g-piloto.jsonl"
-OUT_FEATURES = ROOT / "data" / "measurements" / "g-piloto.features.json"
+OUT = ROOT / "data" / "measurements" / "g-mapas.jsonl"
+OUT_FEATURES = ROOT / "data" / "measurements" / "g-mapas.features.json"
 
 MACROSTRAT = "https://macrostrat.org/api/v2/geologic_units/map"
 MOON_ZIP = "https://asc-astropedia.s3.us-west-2.amazonaws.com/Moon/Geology/Unified_Geologic_Map_of_the_Moon_GIS_v2.zip"
@@ -56,17 +56,21 @@ SRC_EARTH = ("Macrostrat API v2 geologic_units/map, scale=small y, si no hay uni
 SRC_IMPACT = ("Osinski et al. 2022, Impact Earth: A review of the terrestrial impact record, Earth-Sci. Rev. 232:104112, "
               "Tabla de cráteres confirmados, https://doi.org/10.1016/j.earscirev.2022.104112")
 
-# Sitios del piloto. Para la Tierra, el nombre con que figura en Osinski et al. 2022
-# (None = no es una estructura de impacto confirmada en esa tabla).
-EARTH_SITES: Dict[str, Optional[str]] = {
-    "pali-aike": None,
-    "craters-of-the-moon": None,
-    "payun-matru": None,
-    "campo-piedra-pomez": None,
-    "lonar": "Lonar",
-    "meteor-crater": "Barringer",
+# Sitios terrestres dentro de una estructura de impacto confirmada en Osinski et al. 2022.
+# Valor: (nombre en la tabla del paper, nota). El resto de los sitios terrestres va 0.
+EARTH_IMPACT: Dict[str, Tuple[str, str]] = {
+    "lonar": ("Lonar", "Tabla de cráteres confirmados (blanco «Crystalline»)."),
+    "meteor-crater": ("Barringer", "Tabla de cráteres confirmados (blanco «Sedimentary»)."),
+    "vredefort": ("Vredefort", "Tabla de cráteres confirmados; D ≈ 300 km, el punto del catálogo es el centroide."),
+    "tswaing": ("Tswaing", "Tabla de cráteres confirmados."),
+    "popigai": ("Popigai", "Tabla de cráteres confirmados; D ≈ 100 km."),
+    "nordlinger-ries": ("Ries", "Tabla de cráteres confirmados; D ≈ 24 km."),
+    "haughton": ("Haughton", "Tabla de cráteres confirmados; D ≈ 23 km."),
+    "devon-island-fmars": ("Haughton", "FMARS está a ~7 km del centro de Haughton (coordenadas del catálogo), dentro del radio de ~11,5 km (D ≈ 23 km en Osinski et al. 2022)."),
+    "wolfe-creek": ("Wolfe Creek", "Tabla de cráteres confirmados."),
+    "acraman": ("Acraman", "Tabla de cráteres confirmados; D ≈ 90 km."),
+    "campo-del-cielo": ("Campo del Cielo", "Tabla 3: cráteres de impacto sin metamorfismo de choque documentado (impacto de baja velocidad con meteoritos)."),
 }
-PLANETARY_SITES = ("marius-hills", "shackleton-rim", "pavonis-mons", "arsia-mons", "jezero", "gale")
 
 
 @dataclass(frozen=True)
@@ -107,7 +111,7 @@ def macrostrat_point(client: httpx.Client, lat: float, lon: float, scale: str) -
     raise RuntimeError("Macrostrat no respondió para %s,%s: %s" % (lat, lon, last))
 
 
-def earth_result(client: httpx.Client, site: Dict[str, Any], impact_name: Optional[str]) -> GResult:
+def earth_result(client: httpx.Client, site: Dict[str, Any]) -> GResult:
     units, refs, scale = [], {}, MACROSTRAT_SCALES[0]
     for scale in MACROSTRAT_SCALES:
         units, refs = macrostrat_point(client, site["lat"], site["lon"], scale)
@@ -119,8 +123,9 @@ def earth_result(client: httpx.Client, site: Dict[str, Any], impact_name: Option
     comp = eq.earth_composition(liths)
     detail = "Macrostrat scale=%s. Unidad: %s. Litología: %s. Mapa fuente: %s." % (
         scale, names or "sin unidad", liths or "sin dato", map_refs or "sin dato")
-    impact = 1.0 if impact_name else 0.0
-    impact_note = ("Estructura confirmada '%s' en Osinski et al. 2022." % impact_name) if impact_name else (
+    known = EARTH_IMPACT.get(site["id"])
+    impact = 1.0 if known else 0.0
+    impact_note = ("Estructura '%s' en Osinski et al. 2022. %s" % known) if known else (
         "No figura como estructura de impacto confirmada en Osinski et al. 2022.")
     return GResult(
         site_id=site["id"], composition=comp, impact=impact, detail=detail,
@@ -200,7 +205,7 @@ def rows_for(res: GResult) -> List[Dict[str, Any]]:
         else:
             rows.append(_row(res.site_id, feat, res.composition[feat], res.source,
                              "%s Clase derivada con la tabla g_equivalencias v0 (docs/propuestas/G.md)." % res.detail))
-    impact_src = SRC_IMPACT if res.site_id in EARTH_SITES else res.source
+    impact_src = SRC_IMPACT if res.source == SRC_EARTH else res.source
     impact_note = "%s %s" % (res.detail, res.impact_note or "")
     rows.append(_row(res.site_id, eq.IMPACT, res.impact, impact_src, impact_note.strip()))
     return rows
@@ -209,7 +214,7 @@ def rows_for(res: GResult) -> List[Dict[str, Any]]:
 def feature_defs() -> Dict[str, Dict[str, Any]]:
     return {
         fid: {
-            "service": "earth",
+            "service": ["earth", "planetary"],
             "unit": "boolean" if fid == eq.IMPACT else "fraction",
             "name_es": fid,
             "description": desc + ". Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte.",
@@ -222,12 +227,14 @@ def main() -> int:
     sites = load_sites()
     results: List[GResult] = []
     with httpx.Client(follow_redirects=True, headers={"User-Agent": "hexastra-g-pilot/0.1"}) as client:
-        for sid, impact_name in EARTH_SITES.items():
-            results.append(earth_result(client, sites[sid], impact_name))
+        for site in sites.values():
+            if site.get("body", "earth") == "earth":
+                results.append(earth_result(client, site))
     moon = moon_reader()
     mars = mars_reader()
-    for sid in PLANETARY_SITES:
-        site = sites[sid]
+    for site in sites.values():
+        if site.get("body") not in ("moon", "mars"):
+            continue
         results.append(moon_result(moon, site) if site["body"] == "moon" else mars_result(mars, site))
     lines = [json.dumps(r, ensure_ascii=False) for res in results for r in rows_for(res)]
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")

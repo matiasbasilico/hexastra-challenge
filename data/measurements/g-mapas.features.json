@@ -1,42 +1,81 @@
 {
   "g_lito_basaltico": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "fraction",
     "name_es": "g_lito_basaltico",
     "description": "Fracción basáltica / volcánica máfica (incluye piroclastos basálticos). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
   "g_lito_silicico": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "fraction",
     "name_es": "g_lito_silicico",
     "description": "Fracción volcánica intermedia a félsica (andesita, dacita, riolita, ignimbrita). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
   "g_lito_clastico": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "fraction",
     "name_es": "g_lito_clastico",
     "description": "Fracción sedimentaria clástica o no consolidada (arenisca, aluvio, médanos). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
   "g_lito_quimico": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "fraction",
     "name_es": "g_lito_quimico",
     "description": "Fracción sedimentaria química (carbonatos, evaporitas). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
   "g_lito_cristalino": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "fraction",
     "name_es": "g_lito_cristalino",
     "description": "Fracción plutónica o metamórfica (granito, gneis, esquisto). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
   "g_lito_hielo": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "fraction",
     "name_es": "g_lito_hielo",
     "description": "Fracción de hielo (glaciares, casquete polar). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
+  "g_lito_volc_indiviso": {
+    "service": [
+      "earth",
+      "planetary"
+    ],
+    "unit": "fraction",
+    "name_es": "g_lito_volc_indiviso",
+    "description": "Fracción volcánica sin composición informada por el mapa («volcanic», «volcaniclastic»). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
+  },
+  "g_lito_sed_indiviso": {
+    "service": [
+      "earth",
+      "planetary"
+    ],
+    "unit": "fraction",
+    "name_es": "g_lito_sed_indiviso",
+    "description": "Fracción sedimentaria sin tipo informado por el mapa («sedimentary» a secas). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
+  },
   "g_impacto": {
-    "service": "earth",
+    "service": [
+      "earth",
+      "planetary"
+    ],
     "unit": "boolean",
     "name_es": "g_impacto",
     "description": "1 si el punto está en material de impacto mapeado o en una estructura de impacto confirmada. Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
