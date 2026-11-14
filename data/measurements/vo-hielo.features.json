@@ -28,5 +28,11 @@
     "unit": "wt_pct",
     "name_es": "Hidrógeno equivalente a agua (GRS, Marte)",
     "description": "2001 Mars Odyssey GRS (ODY-M-GRS-5-ELEMENTS-V1.0): H2O en % en peso del primer metro, bin suavizado de 5°×5° que contiene el punto. A latitudes bajas refleja sobre todo minerales hidratados, no hielo."
+  },
+  "moon_prp_code_m1_frac": {
+    "service": "planetary",
+    "unit": "fraction_0_1",
+    "name_es": "Fracción con código -1 en Diviner PRP (Luna)",
+    "description": "LRO Diviner PRP v2: fracción de triángulos a ≤ 5 km del punto con ice_depth = -1, código que no definen ni la etiqueta ni el SIS. En el producto sólo aparece donde la temperatura máxima anual es ≤ ~101 K. Se reporta aparte para no interpretarlo."
   }
 }

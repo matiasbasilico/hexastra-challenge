@@ -13,6 +13,9 @@ lies within RADIUS_KM of the site coordinate and report:
   * moon_ice_stable_frac   fraction of triangles with ice stable within 2.87 m
   * moon_ice_surface_frac  fraction with ice stable at the surface (depth 0)
   * moon_ice_depth_min_m   shallowest stability depth in the circle
+  * moon_prp_code_m1_frac  fraction with ice_depth = -1, a code that the v2 label
+                           and SIS do not define (it only occurs where Tmax <= ~101 K)
+The 0-1 index for the Moon stays null until the -1 code is confirmed.
 Sites outside the PRP coverage (latitude > -75.9) stay null.
 
 Mars — 2001 Mars Odyssey GRS element concentrations (ODY-M-GRS-5-ELEMENTS-V1.0,
@@ -47,6 +50,7 @@ RADIUS_KM = 5.0       # analysis circle (site scale: a rim or a crater floor)
 SEARCH_KM = 10.0      # what fetch keeps, so RADIUS_KM can be revisited offline
 PRP_MIN_LAT = -75.9   # northern edge of the south PRP table
 ICE_EXCLUDE = -999.0
+ICE_UNDOCUMENTED = -1.0  # present in v2 (only where Tmax <= ~101 K); not defined in the label nor in the SIS
 MIN_TRIANGLES = 20
 GRS_NA = 9999.0
 
@@ -138,10 +142,13 @@ def moon_stats(rows: Iterable[Dict], radius_km: float = RADIUS_KM) -> Dict[str, 
     out = {}
     for sid, rs in acc.items():
         depths = [float(r["ice_depth_m"]) for r in rs]
-        stable = [d for d in depths if d != ICE_EXCLUDE and d >= 0]
+        stable = [d for d in depths if d >= 0]
+        code_m1 = [r for r in rs if float(r["ice_depth_m"]) == ICE_UNDOCUMENTED]
         tmax = sorted(float(r["temp_max_k"]) for r in rs)
         out[sid] = {
             "n": len(rs),
+            "code_m1_frac": len(code_m1) / len(rs),
+            "code_m1_tmax_max": max((float(r["temp_max_k"]) for r in code_m1), default=None),
             "stable_frac": len(stable) / len(rs),
             "surface_frac": sum(1 for d in stable if d == 0.0) / len(rs),
             "depth_min": min(stable) if stable else None,
@@ -213,7 +220,8 @@ def moon_rows(targets: List[Dict], stats: Dict[str, Dict]) -> List[Dict]:
                    else "menos de %d triángulos en el círculo" % MIN_TRIANGLES)
             note = "Sin dato Diviner PRP: %s; a completar (p. ej. con LEND o neutrones de Lunar Prospector)." % why
             for fid, unit in (("moon_ice_stable_frac", "fraction_0_1"), ("moon_ice_surface_frac", "fraction_0_1"),
-                              ("moon_ice_depth_min_m", "m"), ("water_ice_indicator", "index_0_1")):
+                              ("moon_ice_depth_min_m", "m"), ("moon_prp_code_m1_frac", "fraction_0_1"),
+                              ("water_ice_indicator", "index_0_1")):
                 out.append(_row(t["id"], fid, None, unit, "unavailable", PRP_SOURCE, note, False if fid != "water_ice_indicator" else None))
             continue
         ctx = "n=%d triángulos; Tmax mediana %.1f K (mín %.1f K)." % (st["n"], st["tmax_median"], st["tmax_min"])
@@ -227,8 +235,15 @@ def moon_rows(targets: List[Dict], stats: Dict[str, Dict]) -> List[Dict]:
         else:
             out.append(_row(t["id"], "moon_ice_depth_min_m", round(st["depth_min"], 4), "m", "derived", PRP_SOURCE,
                             "Profundidad de estabilidad más somera del círculo. " + ctx, False))
-        out.append(_row(t["id"], "water_ice_indicator", round(st["stable_frac"], 4), "index_0_1", "derived", PRP_SOURCE,
-                        INDEX_NOTE + " Luna: = moon_ice_stable_frac.", True))
+        out.append(_row(t["id"], "moon_prp_code_m1_frac", round(st["code_m1_frac"], 4), "fraction_0_1", "derived", PRP_SOURCE,
+                        "Fracción de triángulos con ice_depth = -1, código que no define la etiqueta ni el SIS de Diviner; "
+                        "en este producto sólo aparece con Tmax <= ~101 K (aquí máx %s K). No se cuenta como estable ni como inestable. "
+                        % ("n/d" if st["code_m1_tmax_max"] is None else "%.1f" % st["code_m1_tmax_max"]) + ctx, False))
+        upper = st["stable_frac"] + st["code_m1_frac"]
+        out.append(_row(t["id"], "water_ice_indicator", None, "index_0_1", "unavailable", PRP_SOURCE,
+                        INDEX_NOTE + " Luna: pendiente de confirmar qué significa ice_depth = -1 en el PRP v2 (a completar). "
+                        "Cota documentada %.3f (sólo ice_depth en [0, 2,87 m]); %.3f si -1 se lee como hielo estable en superficie."
+                        % (st["stable_frac"], upper)))
     return out
 
 
@@ -242,7 +257,7 @@ def mars_rows(targets: List[Dict], grid: Dict) -> List[Dict]:
                             "Bin %s sin dato en el producto (latitud alta o sin cobertura): a completar." % (key,), False))
         else:
             out.append(_row(t["id"], "mars_grs_h2o_wt_pct", conc, "wt_pct", "measured", GRS_SOURCE,
-                            "Bin centrado en lat %.1f, lon %.1f E; sigma %.3f wt%%. Hidrógeno equivalente a agua en el primer metro (incluye minerales hidratados; a estas latitudes no implica hielo)." % (key[0], key[1], sigma or float("nan")), False))
+                            "Bin centrado en lat %.1f, lon %.1f E; sigma %.3f wt%%. Hidrógeno equivalente a agua en el primer metro; por sí solo no distingue hielo de minerales hidratados o agua adsorbida." % (key[0], key[1], sigma or float("nan")), False))
         out.append(_row(t["id"], "water_ice_indicator", None, "index_0_1", "unavailable", GRS_SOURCE,
                         INDEX_NOTE + " Marte: el GRS mide hidrógeno, no estabilidad del hielo; falta un mapa de estabilidad o de consistencia de hielo "
                         "(p. ej. SWIM, Morgan et al. 2021) para este punto: a completar."))

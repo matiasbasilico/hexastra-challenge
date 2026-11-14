@@ -25,6 +25,7 @@ Casos de control: Lake Natron, Laguna de Antofagasta y Salar de Uyuni. Los resul
 | Luna | `moon_ice_stable_frac` | **LRO Diviner Polar Resource Products v2** (LRO-L-DLRE-5-PRP-V2.0, PDS Geosciences) | fracción 0–1 | Fracción de triángulos de ~240 m, a ≤ 5 km del sitio, donde el hielo es estable a la sublimación (< 1 kg m⁻² por 10⁹ años) a ≤ 2,87 m. |
 | Luna | `moon_ice_surface_frac` | ídem | fracción 0–1 | Idem, con hielo estable en superficie (`ice_depth = 0`). |
 | Luna | `moon_ice_depth_min_m` | ídem | m | Profundidad de estabilidad más somera del círculo. |
+| Luna | `moon_prp_code_m1_frac` | ídem | fracción 0–1 | Fracción de triángulos con el código no documentado `ice_depth = −1` (sólo aparece con Tmax ≤ ~101 K). |
 | Marte | `mars_grs_h2o_wt_pct` | **2001 Mars Odyssey GRS** (ODY-M-GRS-5-ELEMENTS-V1.0, PDS Geosciences; Boynton et al. 2007) | % en peso | Hidrógeno equivalente a agua en el primer metro, bin suavizado de 5°×5°. |
 
 Neutrones lunares (LEND / Lunar Prospector NS): el PDS de Geociencias no publica un mapa derivado de hidrógeno de LP (sólo los RDR de cuentas, y el producto derivado de LP GRS trae óxidos, no H). Quedan como trabajo futuro; por eso Marius Hills (14° N, fuera del PRP polar) queda `null`.
@@ -36,7 +37,7 @@ Neutrones lunares (LEND / Lunar Prospector NS): el PDS de Geociencias no publica
 | Cuerpo | Mapeo | Calidad | `comparable` | Justificación |
 |---|---|---|---|---|
 | Tierra | `I = permafrost_fraction` | `derived` | `true` | El permafrost es, por definición, el suelo donde el hielo persiste (≤ 0 °C ≥ 2 años). Es una fracción de área a escala de 1 km. |
-| Luna | `I = moon_ice_stable_frac` | `derived` | `true` | Diviner calcula directamente dónde el hielo es estable a ≤ 2,87 m; se toma la fracción de área en un círculo de 5 km (escala de un borde o del piso de un cráter). |
+| Luna | `I = moon_ice_stable_frac` (+ código −1, ver abajo) | **no se carga todavía (`null`)** | — | Diviner calcula directamente dónde el hielo es estable a ≤ 2,87 m; se toma la fracción de área en un círculo de 5 km (escala de un borde o del piso de un cráter). **Bloqueo:** el PRP v2 trae `ice_depth = −1` en 4393 de los 14 726 triángulos muestreados, justo en los más fríos (Tmax ≤ 101 K). La etiqueta y el SIS sólo documentan `0` (estable en superficie) y `−999`/`−32768` (> 2,87 m). Según la física, −1 parece «trampa fría con hielo estable en superficie» (Paige et al. 2010 usan ~110 K como umbral), pero eso es una inferencia. Hasta confirmarlo se cargan las magnitudes crudas y `moon_prp_code_m1_frac`, y la nota del índice lleva las dos cotas. |
 | Marte | **no se carga (`null`)** | `unavailable` | — | El GRS mide **hidrógeno**, no estabilidad. A latitudes bajas (todos los sitios salvo Utopia) el 2–7 % en peso se explica por minerales hidratados y agua adsorbida (Boynton et al. 2007). Convertirlo en una «fracción con hielo» sería inventar. Falta un mapa de estabilidad o de consistencia de hielo (p. ej. **SWIM**, Morgan et al. 2021, Nature Astronomy; o el modelo de Mellon et al. 2004) para el punto. |
 
 **Límites de la analogía:**
@@ -48,17 +49,20 @@ Neutrones lunares (LEND / Lunar Prospector NS): el PDS de Geociencias no publica
 
 **Efecto en TASI (sin tocar fórmulas):** `s_volatiles` compara `precip_mm` y `water_ice_indicator` con `exp(-|x-y|/escala)`, donde la escala es el desvío estándar terrestre. Con este cambio:
 
-- Contra destinos lunares polares, la Vo pasa a premiar sitios con permafrost (Ártico canadiense, Svalbard, valles secos) frente a desiertos cálidos (índice 0).
+- **Hoy, ningún cambio de puntaje.** El índice sólo tiene valor en la Tierra, y `s_volatiles` necesita el dato en los dos lados.
+- Si se confirma el código −1 y se carga el índice lunar, la Vo contra destinos lunares polares pasa a premiar sitios con permafrost (Ártico canadiense, valles secos, Antártida) frente a desiertos cálidos (índice 0).
 - Contra Marte, nada cambia (índice `null` en Marte).
 - Un sitio terrestre fuera de cobertura sólo usa `precip_mm`, igual que hoy.
 
-**Para decidir el usuario:** ¿aceptamos `comparable: true` para el índice Tierra↔Luna con los límites de arriba? Si no, basta con borrar las filas `water_ice_indicator` de `vo-hielo.jsonl`: las magnitudes crudas quedan igual.
+**Para decidir el usuario:**
+1. ¿Aceptamos `comparable: true` para el índice Tierra↔Luna con los límites de arriba? Si no, basta con borrar las filas `water_ice_indicator` de `vo-hielo.jsonl`: las magnitudes crudas quedan igual.
+2. ¿Leemos `ice_depth = −1` como hielo estable en superficie (cota superior) o esperamos la confirmación del equipo Diviner (PDS Geosciences / UCLA)? Con la cota superior, el índice lunar sería: Shackleton 1,00 · de Gerlache 1,00 · Haworth 1,00 · Malapert 1,00 · Amundsen 0,95 · Nobile 0,47.
 
 ## Validaciones contra valores publicados
 
 - **Marte (GRS):** el rango del producto (1,6–7,4 % en peso en ±57,5°) cae dentro de lo publicado por Boynton et al. 2007 (1,5–7,5 %), y el máximo (7,40 % en −7,5°, 177,5° E) está junto a Apollinaris Patera, una de las dos zonas más ricas según ese trabajo. Hay un test (`test_grs_raw_matches_published_range`).
-- **Luna (Diviner PRP):** ver el PR. Se espera hielo estable en superficie en el piso de Haworth (cold trap de Paige et al. 2010, Science 330, 479) y no en los bordes iluminados.
-- **Tierra (Permafrost_cci):** ver el PR. Se espera fracción ~1 en Svalbard y Devon/Haughton (permafrost continuo) y 0 en los sitios templados.
+- **Luna (Diviner PRP):** los triángulos centrales de Haworth (Tmax 62,8 K) y de Gerlache (60,6 K) quedan muy por debajo de los ~110 K de las trampas frías de Paige et al. 2010 (Science 330, 479). Los macizos iluminados (Malapert 230 K, Amundsen 214 K) quedan por encima y con hielo estable sólo en el subsuelo (1–4 cm). Además, en todo lo muestreado los triángulos con hielo estable en superficie (`0`) tienen Tmax ≤ 126 K y los `−999` ≥ 223 K: es el orden físico esperado.
+- **Tierra (Permafrost_cci):** fracción 1,0 en Haughton, Devon/FMARS, McGill (Ártico canadiense), Popigai (Siberia), valles secos de McMurdo y bases antárticas, todas zonas de permafrost continuo. 0,0 en el Valle de los Diez Mil Humos (península de Alaska, fuera de la zona continua). Las celdas templadas son relleno en el producto, no 0 (ver nota).
 
 ## Reproducir
 

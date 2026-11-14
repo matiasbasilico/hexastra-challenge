@@ -36,11 +36,22 @@ def test_filter_prp_keeps_only_nearby_triangles():
 
 def test_moon_stats_fractions():
     rows = [{"site_id": "s", "dist_km": 1, "ice_depth_m": d, "temp_max_k": t}
-            for d, t in ((0.0, 80), (0.5, 100), (-999.0, 250), (-999.0, 260))]
+            for d, t in ((0.0, 80), (0.5, 100), (-999.0, 250), (-1.0, 60))]
     rows.append({"site_id": "s", "dist_km": 9, "ice_depth_m": 0.0, "temp_max_k": 50})  # outside 5 km
     st = ice.moon_stats(rows)["s"]
     assert st["n"] == 4
     assert st["stable_frac"] == 0.5 and st["surface_frac"] == 0.25 and st["depth_min"] == 0.0
+    assert st["code_m1_frac"] == 0.25 and st["code_m1_tmax_max"] == 60  # undocumented code kept apart
+
+
+def test_moon_index_null_until_code_is_confirmed():
+    st = {"n": 100, "stable_frac": 0.5, "surface_frac": 0.1, "depth_min": 0.0, "tmax_median": 90.0,
+          "tmax_min": 40.0, "code_m1_frac": 0.3, "code_m1_tmax_max": 99.0}
+    rows = {r["feature"]: r for r in ice.moon_rows([{"id": "h", "lat": -86.9, "lon": -4.0}], {"h": st})}
+    assert rows["moon_ice_stable_frac"]["value"] == 0.5
+    assert rows["moon_prp_code_m1_frac"]["value"] == 0.3
+    idx = rows["water_ice_indicator"]
+    assert idx["value"] is None and "a completar" in idx["note"] and "0.800" in idx["note"]
 
 
 def test_grs_bin_and_parse():
