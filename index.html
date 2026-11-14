@@ -43,21 +43,17 @@
           <h2 id="limits-title">Lo que la Tierra no puede imitar</h2>
           <p class="limits-lead">Quedan fuera del puntaje. Las mostramos como brecha.</p>
           <table class="limits-table">
-            <caption class="visually-hidden">Gravedad, presión y radiación en la Tierra, Marte y la Luna</caption>
+            <caption class="visually-hidden">Valores de referencia de la Tierra, Marte y la Luna, según el servicio planetary</caption>
             <thead>
               <tr><th scope="col">Magnitud</th><th scope="col" class="num">Tierra</th><th scope="col" class="num">Marte</th><th scope="col" class="num">Luna</th></tr>
             </thead>
-            <tbody>
-              <tr><th scope="row">Gravedad, m/s²</th><td class="num" data-label="Tierra">9,82</td><td class="num" data-label="Marte">3,73</td><td class="num" data-label="Luna">1,62</td></tr>
-              <tr><th scope="row">Presión en superficie, mbar</th><td class="num" data-label="Tierra">1014</td><td class="num" data-label="Marte">6,36</td><td class="num" data-label="Luna">3×10<sup>−12</sup></td></tr>
-              <tr><th scope="row">Radiación cósmica</th><td class="num" data-label="Tierra"><span class="chip chip-warn">A completar</span></td><td class="num" data-label="Marte">0,67 mSv/día<sup><a href="#rad-a" aria-label="Nota a">a</a></sup></td><td class="num" data-label="Luna">11,7 cGy/año<sup><a href="#rad-b" aria-label="Nota b">b</a></sup></td></tr>
+            <tbody id="limits-rows">
+              <tr><td colspan="4" class="limits-pending" role="status">Cargando los valores de referencia del servicio…</td></tr>
             </tbody>
           </table>
           <details class="limits-sources">
-            <summary>Fuentes y notas a y b</summary>
-            <p class="limits-source">Gravedad y presión: <a href="https://nssdc.gsfc.nasa.gov/planetary/planetfact.html" target="_blank" rel="noopener">NASA NSSDC, fichas de la Tierra, Marte y la Luna</a>, consultadas el 14/11/2026. Marte: media al radio medio (varía de 4,0 a 8,7 mbar). Luna: presión nocturna.</p>
-            <p class="limits-source" id="rad-a"><span class="limits-note">a</span> Equivalente de dosis de rayos cósmicos galácticos en la superficie de Marte, cráter Gale, medido por RAD (Curiosity) de agosto de 2012 a junio de 2013: <a href="https://www.swri.org/press-release/swri-scientists-publish-first-radiation-measurements-surface-mars" target="_blank" rel="noopener">SwRI</a>, por <a href="https://doi.org/10.1126/science.1244797" target="_blank" rel="noopener">Hassler et al. 2014, Science 343</a>. Consultado el 14/11/2026.</p>
-            <p class="limits-source" id="rad-b"><span class="limits-note">b</span> Dosis absorbida máxima de rayos cósmicos galácticos en órbita lunar (LRO), no en superficie, medida por CRaTER en el mínimo solar 2009–2010: <a href="https://doi.org/10.1029/2011JE003978" target="_blank" rel="noopener">Schwadron et al. 2012, JGR 117, E00H13</a>. Consultado el 14/11/2026. No se compara directo con Marte: son magnitudes distintas (Sv y Gy) y lugares distintos.</p>
+            <summary>Fuentes y datos a completar</summary>
+            <div id="limits-notes"></div>
           </details>
         </section>
       </div>
@@ -90,7 +86,7 @@
       </div>
       <div class="buscador-grid">
         <div>
-          <p class="muted" style="margin-top:0">Elegí un sitio de la Luna o de Marte y ajustá los pesos de TASI (G, T, E, V, O). Si un componente no tiene dato real (hoy G espectro y O operacional), se omite y se renormalizan los pesos. Podés filtrar el catálogo terrestre mundial por continente y país (ISO-3166 alpha-2). El puntaje va de 0 a 100.</p>
+          <p class="muted buscador-intro">Elegí un destino de la Luna o de Marte y ajustá los pesos de TASI (G, T, E, V, O). Los pesos iniciales, γ y el umbral de la máscara vienen del servicio. Un componente sin dato en los dos lados se omite y los pesos se renormalizan. El puntaje va de 0 a 100.</p>
           <p>
             <label for="finder-target">Objetivo</label><br>
             <select id="finder-target" disabled></select>
@@ -105,12 +101,12 @@
             <select id="finder-country" disabled></select>
           </p>
           <p>
-            <label for="finder-gamma">gamma (S_T = exp(−gamma·D<sub>M</sub>))</label><br>
+            <label for="finder-gamma">γ del terreno (S_T = exp(−γ·D<sub>M</sub>))</label><br>
             <input type="range" id="finder-gamma" min="0.1" max="3" step="0.1" value="1">
-            <span id="finder-gamma-val">1.0</span>
+            <span id="finder-gamma-val"></span>
           </p>
           <p>
-            <label><input type="checkbox" id="finder-mask" checked> Aplicar máscara M(x) (descarta NDVI &gt; 0,15 o agua líquida continental)</label>
+            <label><input type="checkbox" id="finder-mask" checked> Aplicar la máscara M(x): descarta sitios con NDVI mayor que <span id="finder-mask-ndvi">el umbral del servicio</span> o con agua líquida continental</label>
           </p>
           <p>
             <button type="button" id="btn-buscar" disabled>Buscar análogos en la Tierra</button>
@@ -118,7 +114,7 @@
         </div>
         <div>
           <div id="finder-results">
-            <p class="muted">Los resultados van a aparecer acá. Si los servicios no están levantados, el mapa estático sigue funcionando: usá <code>./run_all.sh</code> (planetary :8766, earth :8767, front :8765).</p>
+            <p class="muted">Los resultados van a aparecer acá.</p>
           </div>
         </div>
       </div>
@@ -145,8 +141,7 @@
 
       <aside class="panel" id="panel">
         <div class="panel-head"><h2>Ficha</h2></div>
-        <p class="placeholder-msg">Elegí un análogo a la izquierda o en el mapa de la Tierra. Vas a ver por qué se parece, dónde se corta la comparación, el destino elegido y su puntaje TASI con la fórmula a la vista.</p>
-        <p class="placeholder-msg">Los números verdes son datos bajados de una fuente en esta corrida. Si algo no se pudo verificar, aparece como «valor de ejemplo / a completar».</p>
+        <p class="placeholder-msg">Elegí un sitio a la izquierda o en el mapa de la Tierra. Vas a ver por qué se parece al destino elegido, en qué no, qué datos faltan y su puntaje TASI.</p>
       </aside>
     </div>
   </div>
@@ -154,44 +149,23 @@
   <div class="modal-bg" id="modal-bg" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal">
       <button type="button" class="close">Cerrar</button>
-      <h2 id="modal-title">Método y límites de este prototipo</h2>
-      <p>Armamos un índice ambiental cuantitativo, deliberadamente simple, para que el jurado y el equipo puedan ver de dónde sale cada número. <strong>No es una métrica científica validada.</strong> Un analogía fuerte en geología puede tener un índice bajo si el clima no se parece, y eso es parte de lo que pide el desafío: decir en qué se parece y en qué no.</p>
-      <h3>Fórmulas (dimensiones con datos)</h3>
-      <div class="formula">
-temperatura = max(0, 1 − |T_media_sitio − (−59 °C)| / 80)
-
-amplitud térmica = max(0, 1 − |amplitud_diaria_media − 58 °C| / 58)
-
-aridez = max(0, 1 − precipitación_anual_mm / 500)
-
-altitud / UV (proxy) = min(1, elevación_m / 4000)
-
-índice = 0,20·temperatura + 0,20·amplitud + 0,35·aridez + 0,25·altitud
+      <h2 id="modal-title">Cómo se calcula</h2>
+      <div id="method-body">
+        <p class="muted">El método se carga desde el servicio earth (/method) al abrir esta ventana.</p>
       </div>
-      <p>El −59 °C es el promedio global de Marte según la <a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html" target="_blank" rel="noopener">NASA NSSDC Mars Fact Sheet</a> (~214 K). El rango diurno de 58 °C es el publicado para el sitio de Viking 1 (184 K a 242 K), no un dato de Jezero ni de Gale: falta incorporar REMS y MEDA. La precipitación líquida de Marte se toma como 0 mm/año. La escala de 80 °C, la de 500 mm y el umbral de 4000 m son convenios del prototipo, declarados acá para que se puedan cambiar.</p>
-      <p>La altitud no «imita» la cota de un cráter marciano: es un proxy tosco de atmósfera más delgada y más UV en los Andes. No es un dato de UV medido.</p>
-      <h3>Lo que no entra en el índice</h3>
-      <p>Geología, relieve, sales y vulcanismo aparecen en el gráfico en color ámbar como <em>valor de ejemplo / a completar</em>. Son juicios preliminares del equipo, justificados en el texto, no un score publicado ni un índice espectral.</p>
-      <h3>Clima y elevación</h3>
-      <p>La temperatura de 1991 a 2020 sale de ERA5-Land vía Open-Meteo. La precipitación del mismo período sale de ERA5 (0,25°), porque ERA5-Land devolvió nulos de precipitación en esta consulta. La elevación es SRTM 30 m vía OpenTopoData en el punto citado, no necesariamente la cumbre ni un promedio del área. En Ischigualasto, Payún Matrú y Laguna Negra el reanálisis de lluvia puede no coincidir con la percepción local o con la literatura: lo dejamos explícito en cada ficha.</p>
-      <h3 id="fuentes-anchor">Fuentes principales</h3>
+      <h3 id="fuentes-anchor">Fuentes</h3>
       <ul>
-        <li>Coordenadas terrestres: Wikipedia/Wikidata (Piedra Pómez, Laguna Negra), GVP e IGN (Payún Matrú), sitio oficial de Ischigualasto, abstract EPSC 2022-1152 (Laguna de Antofagasta).</li>
-        <li>Coordenadas de Marte: NASA GISS Mars24 (landers) y USGS IAU Gazetteer (Medusae Fossae, Pavonis Mons).</li>
-        <li>Elevación terrestre: OpenTopoData SRTM30m, 14 de noviembre de 2026.</li>
-        <li>Elevación de Gale: NASA Facts MSL/Curiosity, −4501 m. El resto de cotas marcianas quedó pendiente.</li>
-        <li>Clima: Open-Meteo Historical Weather API, ERA5-Land (temperatura) y ERA5 (precipitación), de 1991 a 2020.</li>
-        <li>Constantes de Marte: NASA NSSDC Mars Fact Sheet.</li>
-        <li>Teselas: OpenStreetMap, Esri, NASA GIBS, OpenPlanetaryMap, WhereOnMars/Carto (MOLA y relieve).</li>
+        <li>Sitios terrestres: cada ficha muestra la fuente de sus coordenadas, tal como la devuelve el servicio earth (/candidates).</li>
+        <li>Destinos de la Luna y de Marte: servicio planetary (/sites), con la fuente de cada punto.</li>
+        <li>Lo que la Tierra no puede imitar: servicio planetary (/bodies), con la fuente de cada valor en la tabla de arriba.</li>
+        <li>Teselas de los mapas: OpenStreetMap, Esri, NASA GIBS, OpenPlanetaryMap y WhereOnMars/Carto (MOLA y relieve).</li>
       </ul>
-      <h3>Servicios (TASI)</h3>
-      <p>El índice TASI es una propuesta del equipo, no un estándar publicado bajo esa sigla. El buscador pide el vector del objetivo a <code>planetary-service</code> (<a href="http://127.0.0.1:8766/docs" target="_blank" rel="noopener">http://127.0.0.1:8766/docs</a>) y ranking a <code>earth-service</code> (<a href="http://127.0.0.1:8767/docs" target="_blank" rel="noopener">http://127.0.0.1:8767/docs</a>). La capa de llamadas está en <code>js/api.js</code> (<code>getTargets</code>, <code>getTargetVector</code>, <code>getRegions</code>, <code>rankAnalogs</code>). Las URLs se pueden cambiar con <code>localStorage.HEXASTRA_PLANETARY_URL</code> y <code>HEXASTRA_EARTH_URL</code>.</p>
-      <p>TASI = suma ponderada de componentes disponibles (G espectro, T topografía de Mahalanobis, E régimen térmico, V volátiles, O operacional). G y O quedan nulos si no hay dato real comparable. La máscara M(x) descarta sitios con NDVI &gt; 0,15 o agua líquida continental; si el NDVI no se pudo bajar, no se descarta y se indica. El catálogo terrestre es mundial; país y continente salen de Natural Earth 50m (point-in-polygon), no a ojo. Detalle en el <code>README.md</code>.</p>
+      <h3>Servicios</h3>
+      <p>El buscador pide el vector del destino a <code>planetary-service</code> y el ranking TASI a <code>earth-service</code>, a través de <code>js/api.js</code>. Las direcciones se configuran en <code>js/config.js</code> o con <code>?planetary=…&amp;earth=…</code> en el link. Sin servicios, la página avisa que no están disponibles y no muestra datos.</p>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script>
     window.HEXASTRA_API_READY = new Promise(function (resolve) {
       window.__hexastraResolveApi = resolve;
@@ -201,6 +175,7 @@ altitud / UV (proxy) = min(1, elevación_m / 4000)
   <script src="js/api.js"></script>
   <script src="js/api-stub.js"></script>
   <script src="js/explain.js"></script>
+  <script src="js/limits.js"></script>
   <script src="js/app.js"></script>
   <script src="js/easy.js"></script>
 </body>

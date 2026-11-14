@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -81,25 +81,66 @@ test("index.html conserva los ids que leen app.js y easy.js", () => {
     "finder-features", "finder-continent", "finder-country", "finder-gamma",
     "finder-gamma-val", "finder-mask", "btn-buscar", "finder-results",
     "site-buttons", "map-earth", "map-mars", "map-right-label", "panel",
-    "modal-bg", "fuentes-anchor",
+    "modal-bg", "fuentes-anchor", "limits-rows", "limits-notes", "method-body", "finder-mask-ndvi",
   ];
   for (const id of ids) assert.ok(html.includes(`id="${id}"`), `falta #${id}`);
   // explain.js tiene que cargarse antes que app.js y easy.js, que lo usan.
-  const order = ["js/config.js", "js/api.js", "js/api-stub.js", "js/explain.js", "js/app.js", "js/easy.js"].map((s) => html.indexOf(`src="${s}"`));
+  const order = ["js/config.js", "js/api.js", "js/api-stub.js", "js/explain.js", "js/limits.js", "js/app.js", "js/easy.js"].map((s) => html.indexOf(`src="${s}"`));
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "orden de scripts roto");
 });
 
-test("la tabla de lo que la Tierra no puede imitar cita sus fuentes y deja la Tierra a completar en radiación", () => {
+test("la tabla de lo que la Tierra no puede imitar sale de /bodies: index.html no trae cifras", () => {
   const html = readFileSync(join(ROOT, "index.html"), "utf8");
-  assert.match(html, /nssdc\.gsfc\.nasa\.gov/);
-  assert.match(html, /consultadas el 14\/11\/2026/);
-  // Marte: RAD/MSL (Hassler et al. 2014) y Luna: CRaTER/LRO (Schwadron et al. 2012), con unidad y fecha.
-  assert.match(html, /0,67 mSv\/día/);
-  assert.match(html, /doi\.org\/10\.1126\/science\.1244797/);
-  assert.match(html, /11,7 cGy\/año/);
-  assert.match(html, /doi\.org\/10\.1029\/2011JE003978/);
-  assert.match(html, /órbita lunar \(LRO\), no en superficie/);
-  assert.match(html, /Radiación cósmica<\/th><td class="num" data-label="Tierra"><span class="chip chip-warn">A completar/);
+  const start = html.indexOf('<section class="limits"');
+  const table = html.slice(start, html.indexOf("</section>", start));
+  assert.ok(!/\d,\d/.test(table), "quedó una cifra escrita a mano en la tabla de límites");
+  assert.match(table, /id="limits-rows"/);
+  const limits = readFileSync(join(ROOT, "js", "limits.js"), "utf8");
+  assert.match(limits, /getBodies\(\)/);
+  assert.match(limits, /A completar/);
+});
+
+test("limits.js formatea en es-AR y escribe los valores muy chicos en notación científica", async () => {
+  const src = readFileSync(join(ROOT, "js", "limits.js"), "utf8");
+  const ctx = {};
+  new Function("window", "document", src)(ctx, undefined);
+  const { formatValue } = ctx.HexastraLimits;
+  assert.equal(formatValue(3.73), "3,73");
+  assert.equal(formatValue(1014), "1014");
+  assert.equal(formatValue(3e-12), "3×10<sup>−12</sup>");
+  assert.equal(formatValue(null), null);
+});
+
+test("nada inventado en el front: sin sites.json, sin el índice viejo, sin presets ni γ propios", () => {
+  const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
+  const easy = readFileSync(join(ROOT, "js", "easy.js"), "utf8");
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  for (const [name, src] of [["app.js", app], ["easy.js", easy], ["index.html", html]]) {
+    assert.ok(!/sites\.json|catalog\.json|qualitative_scores|paired_mars_ids/.test(src), name + " usa datos del prototipo viejo");
+    assert.ok(!/índice ambiental|\btMars\b|\bdiurnalRef\b|\bprecipScale\b|\belevScale\b/.test(src), name + " conserva el índice ambiental propio");
+  }
+  assert.ok(!/weights:\s*\{\s*G:\s*0\.\d/.test(easy), "easy.js tiene pesos de presets escritos a mano");
+  assert.ok(!/gamma:\s*0\.75/.test(easy), "easy.js tiene un γ propio");
+  assert.match(easy, /callApi\("getMethod"/);
+  assert.match(app, /api\.getCandidates\(\)/);
+  assert.ok(!/chart\.js/i.test(html), "Chart.js se cargaba solo para el índice viejo");
+});
+
+test("sin servicios, api-stub.js avisa que no están disponibles y no trae datos", async () => {
+  const src = readFileSync(join(ROOT, "js", "api-stub.js"), "utf8");
+  assert.ok(!/fetch\(|lat:|lon:|coord_source/.test(src), "el respaldo vuelve a tener datos o a leer archivos");
+  const ctx = {};
+  new Function("window", "module", src)(ctx, undefined);
+  const stub = ctx.HexastraAPIStub;
+  for (const m of ["getTargets", "rankAnalogs", "getMethod", "getBodies", "getFeatured", "getCandidates"]) {
+    await assert.rejects(stub[m](), (e) => e.code === "SERVICE_UNAVAILABLE" && /no está disponible/.test(e.message));
+  }
+});
+
+test("los archivos del prototipo viejo ya no están en data/", () => {
+  for (const f of ["sites.json", "catalog.json", "climate-era5-1991-2020.json", "earth-sites.geojson", "mars-sites.geojson"]) {
+    assert.ok(!existsSync(join(ROOT, "data", f)), "sigue data/" + f);
+  }
 });
 
 test("la identidad sigue el manual de marca: brand.css primero, logo y favicons, sin otras familias", () => {

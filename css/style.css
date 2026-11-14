@@ -246,9 +246,10 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 250px) minmax(0, 1fr) minmax(0, 1fr) minmax(320px, 420px);
-  flex: 1;
-  min-height: 70dvh;
+  grid-template-columns: minmax(0, 270px) minmax(0, 1fr) minmax(0, 1fr) minmax(320px, 420px);
+  /* Alto fijo: los dos mapas mandan; la lista de sitios y la ficha scrollean adentro. */
+  grid-template-rows: minmax(0, 1fr);
+  height: clamp(560px, 86dvh, 920px);
 }
 .sitelist, .panel { min-height: 0; overflow: auto; background: var(--color-paper); color: var(--color-ink-2); }
 .sitelist { border-right: var(--rule-hair) solid var(--color-rule); }
@@ -400,7 +401,8 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .masthead { grid-template-columns: minmax(0, 1fr); }
-  .workspace { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 42dvh auto; }
+  .workspace { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 46dvh auto; height: auto; }
+  .panel { max-height: none; }
   .sitelist { grid-column: 1 / -1; max-height: 220px; border-right: 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
   #site-buttons { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
   .panel { grid-column: 1 / -1; border-left: 0; border-top: var(--rule-bar) solid var(--color-rule-2); }
@@ -445,6 +447,8 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 
 /* En el celular la tabla de límites pasa a bloques: cada fila con el nombre del cuerpo al lado del valor. */
 @media (max-width: 560px) {
+  /* Por debajo de 560 px los dos mapas del avanzado se apilan, más anchos, y siguen visibles a la vez. */
+  .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 240px 240px auto; }
   .limits-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .limits-table, .limits-table tbody, .limits-table tr, .limits-table th, .limits-table td { display: block; }
   .limits-table tbody tr { padding: var(--space-xs) 0; }
@@ -454,3 +458,20 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
   .limits-table td.num { display: flex; justify-content: space-between; gap: var(--space-sm); padding: var(--space-3xs) 0; white-space: normal; }
   .limits-table td.num::before { content: attr(data-label); font-weight: 400; color: var(--color-muted); }
 }
+
+/* Componentes TASI de la ficha (de POST /tasi): nombre, puntaje y barra violeta → óxido. */
+.comp-list { display: grid; gap: var(--space-xs); margin: var(--space-xs) 0; padding: 0; list-style: none; }
+.comp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-3xs) var(--space-sm); align-items: baseline; }
+.comp-row .score-bar { grid-column: 1 / -1; }
+.comp-name { font-size: var(--text-sm); color: var(--color-ink); }
+.comp-score { font-weight: 600; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.comp-reason { grid-column: 1 / -1; font-size: var(--text-xs); color: var(--color-muted); }
+.site-title { margin-top: var(--space-2xs); font-size: var(--text-xl); }
+.panel h3.site-title { margin-top: var(--space-2xs); }
+
+/* Notas de la tabla de límites y pasos del método, que llegan de la API. */
+.limits-list { margin: var(--space-2xs) 0 var(--space-xs); padding-left: var(--space-md); font-size: var(--text-xs); line-height: 1.45; color: var(--color-muted); }
+.limits-list li + li { margin-top: var(--space-2xs); }
+.method-steps { padding-left: var(--space-lg); }
+.method-steps li + li { margin-top: var(--space-xs); }
+.buscador-intro { max-width: 70ch; margin-bottom: var(--space-sm); }

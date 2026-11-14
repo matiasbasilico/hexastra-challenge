@@ -2,33 +2,6 @@
 (function () {
   "use strict";
 
-  const PRESETS = [
-    {
-      id: "equilibrado",
-      title: "Equilibrado",
-      lead: "Un poco de todo: terreno, clima, hielo y condiciones para operar.",
-      weights: { G: 0.2, T: 0.2, E: 0.2, V: 0.2, O: 0.2 }
-    },
-    {
-      id: "terreno",
-      title: "Que el terreno se parezca",
-      lead: "Prioriza la forma del paisaje, la pendiente y la geología.",
-      weights: { G: 0.35, T: 0.45, E: 0.05, V: 0.05, O: 0.1 }
-    },
-    {
-      id: "clima",
-      title: "Que el clima sea extremo",
-      lead: "Prioriza temperatura, amplitud térmica, iluminación y sequedad o hielo.",
-      weights: { G: 0.05, T: 0.1, E: 0.5, V: 0.25, O: 0.1 }
-    },
-    {
-      id: "robots",
-      title: "Para probar robots",
-      lead: "Prioriza pendientes, rugosidad y restricciones para moverse u operar.",
-      weights: { G: 0.1, T: 0.3, E: 0.1, V: 0.1, O: 0.4 }
-    }
-  ];
-
   const STEP_LABELS = ["Elegí destino", "¿Qué te importa?", "¿Dónde buscar?"];
 
   const state = {
@@ -38,7 +11,10 @@
     targets: { moon: [], mars: [] },
     targetId: null,
     targetVector: null,
-    presetId: "equilibrado",
+    presetId: null,
+    // Presets, pesos y γ salen de GET {earth}/method: el front no guarda parámetros del cálculo.
+    method: null,
+    methodError: null,
     regions: { continents: [] },
     scope: "world",
     continent: "",
@@ -83,8 +59,20 @@
     return state.api || window.HexastraAPI;
   }
 
+  function presets() {
+    return ((state.method && state.method.presets) || []).map(function (p) {
+      return { id: p.id, title: p.title_es || p.id, lead: p.lead_es || "", weights: p.weights || {} };
+    });
+  }
+
   function currentPreset() {
-    return PRESETS.find(function (p) { return p.id === state.presetId; }) || PRESETS[0];
+    const list = presets();
+    return list.find(function (p) { return p.id === state.presetId; }) || list[0] ||
+      { id: null, title: "Pesos del servicio", lead: "", weights: (state.method && state.method.default_weights) || {} };
+  }
+
+  function methodGamma() {
+    return state.method && state.method.default_gamma != null ? Number(state.method.default_gamma) : undefined;
   }
 
   function currentTarget() {
@@ -117,26 +105,7 @@
   }
 
   async function loadFeatured() {
-    const live = api();
-    const stub = stubApi();
-    if (live && typeof live.getFeatured === "function" && live.source !== "stub") {
-      try {
-        return normalizeFeatured(await live.getFeatured());
-      } catch (e) { /* fallback */ }
-    }
-    if (live && typeof live.getServiceUrls === "function") {
-      try {
-        const urls = live.getServiceUrls();
-        if (urls && urls.earth) {
-          const r = await fetch(String(urls.earth).replace(/\/$/, "") + "/featured", { cache: "no-store" });
-          if (r.ok) return normalizeFeatured(await r.json());
-        }
-      } catch (e) { /* servicio todavía no tiene /featured */ }
-    }
-    if (stub && typeof stub.getFeatured === "function") {
-      return normalizeFeatured(await stub.getFeatured());
-    }
-    throw new Error("No pude cargar los lugares destacados.");
+    return normalizeFeatured(await callApi("getFeatured", []));
   }
 
   function normalizeFeatured(raw) {
@@ -150,8 +119,9 @@
       { id: "argentina", name: "Argentina", places: [] }
     ];
     places.forEach(function (p) {
-      const g = p.group === "argentina" || p.country === "AR" || p.country_name === "Argentina" ? groups[1] : groups[0];
-      g.places.push(p);
+      const g = p.group === "argentina" || p.country_iso === "AR" || p.country === "AR" ? groups[1] : groups[0];
+      // «Análogo clásico» = sitio que el catálogo marca como conocido (known_level de la API).
+      g.places.push(Object.assign({}, p, { classic: p.classic || p.known_level === "known" }));
     });
     return { source: raw.source || "api", groups: groups };
   }
@@ -296,7 +266,9 @@
     }
     const groups = state.featured.groups || [];
     if (!groups.length) {
-      box.innerHTML = '<p class="easy-status">No hay lugares destacados disponibles.</p>';
+      box.innerHTML = state.featured.error
+        ? '<p class="easy-status easy-status-warn" role="status">' + escapeHtml(state.featured.error) + "</p>"
+        : '<p class="easy-status">No hay lugares destacados disponibles.</p>';
       return;
     }
     box.innerHTML = groups.map(function (g) {
@@ -334,12 +306,10 @@
     }
     const pending = pl.status === "pending_service" || pl.lat == null || pl.lon == null;
     const place = [pl.province, pl.country_name || pl.country].filter(Boolean).join(", ");
-    const canCompare = !pending && (pl.has_features || !!state.targetId);
-    const compareHint = pl.has_features
-      ? "Busca sitios de la Luna y de Marte que se parezcan a este lugar."
-      : (state.targetId
-        ? "Este lugar todavía no tiene un vector local; vamos a mostrar cómo se compara con el destino que ya elegiste, si el ranking lo incluye."
-        : "Para comparar, elegí primero un destino en la Luna o en Marte (paso 1), o esperá a que el servicio entregue el vector de este lugar.");
+    const t = currentTarget();
+    const compareHint = t
+      ? "Vamos a mostrar cómo queda este lugar frente a " + (t.short_name || t.name) + " en el ranking TASI."
+      : "Para comparar, elegí primero un destino en la Luna o en Marte (paso 1).";
     panel.hidden = false;
     panel.innerHTML =
       '<div class="easy-feat-card">' +
@@ -353,15 +323,11 @@
         "</p>" +
         "<p>" + escapeHtml(pl.summary || "") + "</p>" +
         (pl.coord_source ? '<p class="easy-note">Coordenadas: ' + escapeHtml(pl.coord_source) + "</p>" : "") +
-        (pending
-          ? '<p class="easy-status easy-status-warn">Todavía no hay coordenadas ni vector en el catálogo local. Cuando el servicio de la Tierra publique este lugar, lo vamos a poder usar como atajo completo.</p>'
-          : (!pl.has_features
-            ? '<p class="easy-note">Podés ir al mapa. Los datos para el puntaje TASI de este sitio todavía no están en el catálogo local (dato a completar / cargando del servicio).</p>'
-            : "")) +
+        (pending ? '<p class="easy-status easy-status-warn">El servicio todavía no trae coordenadas para este lugar: dato a completar.</p>' : "") +
         '<p class="easy-lead-mini">' + escapeHtml(compareHint) + "</p>" +
         '<div class="easy-actions easy-actions-inline">' +
           '<button type="button" class="easy-btn easy-btn-primary" id="easy-feat-compare"' +
-            (pending && !state.targetId ? " disabled" : "") + ">Comparar con Luna/Marte</button>" +
+            (pending || !state.targetId ? " disabled" : "") + ">Comparar con el destino</button>" +
         "</div>" +
         '<div id="easy-feat-reverse"></div>' +
       "</div>";
@@ -475,10 +441,8 @@
     }
     el.innerHTML =
       '<div class="easy-results-head">' +
-        "<h3>Luna y Marte, comparados con " + escapeHtml(t.short_name || t.name || "este lugar") + "</h3>" +
-        (data.fallback
-          ? '<p class="easy-lead-mini">El servicio todavía no arma el ranking inverso. Mostramos cómo queda este lugar frente al destino que elegiste.</p>'
-          : '<p class="easy-lead-mini">Puntaje 0–100: qué tanto se parece cada destino al lugar terrestre. Tocá uno para usarlo como destino del buscador.</p>') +
+        "<h3>Frente a " + escapeHtml(t.short_name || t.name || "el destino") + "</h3>" +
+        '<p class="easy-lead-mini">Puntaje TASI de 0 a 100 de este lugar frente al destino elegido, con el enfoque del paso 2.</p>' +
       "</div>" +
       list +
       (data.catalog_note ? '<p class="easy-note">' + escapeHtml(data.catalog_note) + "</p>" : "");
@@ -516,32 +480,16 @@
 
   async function compareFeatured(pl) {
     const box = $("#easy-feat-reverse");
-    if (box) box.innerHTML = '<p class="easy-status" role="status">Estamos comparando este lugar con la Luna y con Marte…</p>';
+    if (box) box.innerHTML = '<p class="easy-status" role="status">Estamos comparando este lugar con el destino elegido…</p>';
     state.reverseResults = null;
-    const weights = currentPreset().weights;
-    const live = api();
-    const stub = stubApi();
     try {
-      let data = null;
-      if (live && typeof live.rankTargetsFromEarth === "function" && live.source !== "stub") {
-        try {
-          data = await live.rankTargetsFromEarth({ earthId: pl.catalog_id || pl.id, weights: weights, gamma: 0.75, top: 10 });
-        } catch (e) { data = null; }
-      }
-      if (!data && stub && typeof stub.rankTargetsFromEarth === "function" && pl.has_features) {
-        data = await stub.rankTargetsFromEarth({ earthId: pl.catalog_id || pl.id, weights: weights, gamma: 0.75, top: 10 });
-      }
-      if (!data) {
-        data = await compareAgainstSelectedTarget(pl, weights);
-        data.fallback = true;
-      }
-      state.reverseResults = data;
+      state.reverseResults = await compareAgainstSelectedTarget(pl, currentPreset().weights);
     } catch (err) {
       state.reverseResults = {
         target: pl,
         matches: [],
         error: err && err.code === "NO_LOCAL_VECTOR"
-          ? "Este lugar todavía no tiene un vector en el catálogo local. Elegí un destino en el paso 1 para ver al menos esa comparación, o esperá al servicio."
+          ? "Elegí primero un destino en el paso 1."
           : ("No pudimos completar la comparación. " + (err && err.message ? err.message : ""))
       };
     }
@@ -562,7 +510,7 @@
     const data = await callApi("rankAnalogs", [{
       targetVector: vector,
       weights: weights,
-      gamma: 0.75,
+      gamma: methodGamma(),
       top: 80,
       featuredOnly: false
     }]);
@@ -580,9 +528,8 @@
       target: { id: t.id, name: t.name || t.short_name, short_name: t.short_name || t.name, body: t.body },
       matches: matches.length ? matches : [],
       catalog_note: matches.length
-        ? ("Comparación de " + (pl.short_name || pl.name) + " frente a " + (t.short_name || t.name || "el destino") + ", porque el ranking inverso todavía no está en el servicio.")
-        : ("No apareció " + (pl.short_name || pl.name) + " en el ranking frente a este destino. Puede faltar el vector de este lugar en el catálogo."),
-      fallback: true
+        ? ""
+        : ("No apareció " + (pl.short_name || pl.name) + " en el ranking TASI frente a este destino (puede faltarle dato en los componentes o quedar fuera por la máscara).")
     };
   }
 
@@ -745,9 +692,10 @@
       '<div class="easy-pane">' +
         '<h2 class="easy-title" id="easy-step-title" tabindex="-1">¿Qué te importa?</h2>' +
         recapLine(t, null) +
-        '<p class="easy-lead">Elegí un enfoque. Por detrás armamos los pesos del índice TASI (geología, terreno, clima, volátiles y operación). En este modo no mostramos las fórmulas.</p>' +
+        '<p class="easy-lead">Elegí un enfoque. Cada uno es un juego de pesos del índice TASI (geología, terreno, clima, volátiles y operación) que define el servicio.</p>' +
+        (state.methodError ? '<p class="easy-status easy-status-error" role="alert">' + escapeHtml(state.methodError) + "</p>" : "") +
         '<div class="easy-presets" role="list">' +
-          PRESETS.map(function (p) {
+          presets().map(function (p) {
             const sel = p.id === state.presetId ? " is-selected" : "";
             return (
               '<button type="button" class="easy-card easy-card-preset' + sel + '" role="listitem" data-id="' +
@@ -761,7 +709,7 @@
         "</div>" +
         '<div class="easy-actions">' +
           '<button type="button" class="easy-btn" id="easy-back-2">Volver</button>' +
-          '<button type="button" class="easy-btn easy-btn-primary" id="easy-next-2">Siguiente: dónde buscar</button>' +
+          '<button type="button" class="easy-btn easy-btn-primary" id="easy-next-2"' + (presets().length ? "" : " disabled") + '>Siguiente: dónde buscar</button>' +
         "</div>" +
       "</div>";
     $$(".easy-card-preset", main).forEach(function (btn) {
@@ -1099,7 +1047,7 @@
       const data = await callApi("rankAnalogs", [{
         targetVector: vector,
         weights: currentPreset().weights,
-        gamma: 0.75,
+        gamma: methodGamma(),
         top: state.featuredOnly ? 80 : 10,
         continent: continent,
         country: country,
@@ -1457,39 +1405,33 @@
     const W = preset.weights;
     const selected = ((state.results && state.results.matches) || [])
       .find(function (m) { return m.site.id === state.selectedResultId; });
-    const compLine = function (key, label) {
-      const w = W[key];
-      let s = "—";
-      if (selected && selected.components && selected.components[key] != null) {
-        s = Math.round(selected.components[key] * 100) + " / 100";
-      } else if (selected) {
-        s = "sin dato (se omitió y se repartieron los pesos)";
+    const labels = window.HexastraExplain.COMPONENT_LABELS;
+    const compLine = function (key) {
+      const w = Number(W[key]) || 0;
+      let shown = "—";
+      if (selected) {
+        const sc = window.HexastraExplain.componentScore((selected.components || {})[key]);
+        shown = sc == null ? "sin dato (se omitió y se repartieron los pesos)" : formatScore(Math.round(sc * 10) / 10) + " de 100";
       }
-      return "<tr><th scope='row'>" + label + "</th><td>" +
-        (w * 100).toLocaleString("es-AR") + " %</td><td>" + s + "</td></tr>";
+      return "<tr><th scope='row'>" + escapeHtml(labels[key]) + "</th><td>" +
+        Math.round(w * 100).toLocaleString("es-AR") + " %</td><td>" + escapeHtml(shown) + "</td></tr>";
     };
+    const m = state.method;
+    const methodText = m
+      ? "<p><strong>" + escapeHtml(m.name_es || m.index) + ".</strong> " + escapeHtml(m.status_es || "") + "</p>" +
+        "<ol class='method-steps'>" + (m.steps_es || []).map(function (st) { return "<li>" + escapeHtml(st) + "</li>"; }).join("") + "</ol>"
+      : "<p class='easy-status easy-status-error'>" + escapeHtml(state.methodError || "No pudimos cargar el método del servicio.") + "</p>";
 
     body.innerHTML =
-      "<p>El modo fácil usa el índice TASI: una suma ponderada de cinco componentes " +
-      "(geología G, terreno T, régimen térmico E, volátiles V y operación O). " +
-      "Los pesos salen del enfoque que elegiste. Si un componente no tiene datos, se omite y los pesos se reparten entre los que sí tienen. " +
-      "No es una métrica científica validada.</p>" +
+      methodText +
       "<p><strong>Destino:</strong> " + escapeHtml(t.name || "—") + "<br>" +
       "<strong>Enfoque:</strong> " + escapeHtml(preset.title) + "</p>" +
       (selected ? "" : "<p class='easy-note'>Elegí un lugar de la lista para ver el desglose de ese puntaje.</p>") +
       "<table class='easy-table'><thead><tr><th>Componente</th><th>Peso</th><th>" +
       (selected ? "En " + escapeHtml(selected.site.name) : "Puntaje") +
       "</th></tr></thead><tbody>" +
-      compLine("G", "Geología (G)") +
-      compLine("T", "Terreno y rugosidad (T)") +
-      compLine("E", "Clima e iluminación (E)") +
-      compLine("V", "Volátiles / hielo (V)") +
-      compLine("O", "Operación (O)") +
+      ["G", "T", "E", "V", "O"].map(compLine).join("") +
       "</tbody></table>" +
-      (selected && selected.qualitative_flags && selected.qualitative_flags.length
-        ? "<p class='easy-note'>" + escapeHtml(selected.qualitative_flags.join("; ")) + "</p>"
-        : "") +
-      "<p>La elevación absoluta no entra en la comparación entre cuerpos: no se mide igual en la Tierra, la Luna y Marte.</p>" +
       '<p><button type="button" class="easy-btn" id="easy-go-advanced">Abrir modo avanzado</button></p>';
 
     bg.hidden = false;
@@ -1565,6 +1507,14 @@
     $("#mode-advanced").addEventListener("click", function () { setMode("advanced"); });
 
     try {
+      state.method = await callApi("getMethod", []);
+      state.presetId = presets().length ? presets()[0].id : null;
+    } catch (err) {
+      state.method = null;
+      state.methodError = "No pudimos cargar el método del servicio. " + (err && err.message ? err.message : "");
+    }
+
+    try {
       const regions = await callApi("getRegions", []);
       state.regions = normalizeRegions(regions);
     } catch (err) {
@@ -1574,7 +1524,7 @@
     try {
       state.featured = await loadFeatured();
     } catch (err) {
-      state.featured = { source: "error", groups: [] };
+      state.featured = { source: "error", groups: [], error: err && err.message };
     }
     renderFeatured();
 
