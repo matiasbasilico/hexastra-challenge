@@ -245,3 +245,122 @@ def test_featured_endpoint_contains_required_baselines():
     # ranks are sorted
     ranks = [s.get("featured_rank") for s in body["sites"] if s.get("featured_rank") is not None]
     assert ranks == sorted(ranks)
+
+
+# --- Sitios argentinos del documento HexAstra (§8) ---
+
+DOCUMENT_AR_SITES = {
+    "meseta-de-somuncura": True,
+    "pali-aike": True,
+    "campo-del-cielo": False,
+    "crateres-rio-cuarto": True,
+    "dunas-de-taton": True,
+    "llullaillaco": True,
+}
+DOCUMENT_ANTARCTIC_SITES = ("base-marambio", "base-esperanza")
+DOCUMENT_ALL = tuple(DOCUMENT_AR_SITES) + DOCUMENT_ANTARCTIC_SITES
+
+needs_catalog = pytest.mark.skipif(
+    not (ROOT / "data" / "catalog.json").exists(),
+    reason="earth catalog not ingested yet",
+)
+
+
+def _client():
+    from main import app
+
+    return TestClient(app)
+
+
+def _vo_only_target():
+    """Misma forma que los vectores de Marius Hills / Utopia / Arsia: solo Vo listo."""
+    return {
+        "id": "vo-only-target",
+        "name": "Vo only",
+        "body": "mars",
+        "lat": 0,
+        "lon": 0,
+        "components": {
+            "G": {"available": False, "score_ready": False, "reason": "no spectra"},
+            "T": {"available": False, "score_ready": False, "metrics": {}, "reason": "no DEM"},
+            "E": {"available": False, "score_ready": False, "metrics": {}, "reason": "no thermal"},
+            "Vo": {
+                "available": True,
+                "score_ready": True,
+                "metrics": {
+                    "precip_mm": {"value": 0.0, "unit": "mm", "source": "convention", "quality": "convention", "is_real": True},
+                    "water_ice_indicator": {"value": None, "quality": "placeholder", "is_real": False},
+                },
+            },
+            "O": {"available": False, "score_ready": False, "reason": "unmapped"},
+        },
+    }
+
+
+@needs_catalog
+def test_document_ar_sites_listed_under_argentina_with_natural_earth_iso():
+    ar = _client().get("/candidates", params={"continent": "South America", "country": "AR"}).json()
+    by_id = {s["id"]: s for s in ar["sites"]}
+    for site_id, less_studied in DOCUMENT_AR_SITES.items():
+        assert site_id in by_id, site_id
+        site = by_id[site_id]
+        assert site["country_iso"] == "AR"
+        assert site["continent"] == "South America"
+        assert site["highlight_less_studied"] is less_studied, site_id
+        assert site["coord_source"] and "http" in site["coord_source"], site_id
+
+
+@needs_catalog
+def test_document_sites_geocode_matches_natural_earth():
+    from catalog import site_by_id
+
+    for site_id in DOCUMENT_AR_SITES:
+        site = site_by_id(site_id)
+        geo = assign_country(site["lat"], site["lon"])
+        assert geo["found"] is True
+        assert geo["country_iso"] == site["country_iso"] == "AR"
+
+
+@needs_catalog
+def test_antarctic_bases_are_not_forced_into_a_country():
+    from catalog import site_by_id
+
+    for site_id in DOCUMENT_ANTARCTIC_SITES:
+        site = site_by_id(site_id)
+        assert site is not None
+        # Natural Earth 50m no contiene estos puntos costeros/insulares: se dejan sin asignar.
+        assert assign_country(site["lat"], site["lon"])["found"] is False
+        assert site["country_iso"] is None
+        assert site["continent"] is None
+        assert "not guessed" in site["country_source"]
+        assert "comnap" in site["coord_source"].lower()
+    world = {s["id"] for s in _client().get("/candidates").json()["sites"]}
+    assert set(DOCUMENT_ANTARCTIC_SITES) <= world
+
+
+@needs_catalog
+def test_document_sites_measurements_carry_sources_or_stay_null():
+    from catalog import site_by_id
+
+    for site_id in DOCUMENT_ALL:
+        for key, item in site_by_id(site_id)["features"].items():
+            if item["value"] is None:
+                assert item["is_real"] is False, (site_id, key)
+                assert item["quality"] == "unavailable", (site_id, key)
+            else:
+                assert item["source"], (site_id, key)
+                assert item["is_real"] is True, (site_id, key)
+
+
+@needs_catalog
+def test_tasi_scores_document_sites_with_partial_coverage():
+    body = _client().post(
+        "/tasi", json={"target": _vo_only_target(), "gamma": 1.0, "top": 100, "apply_mask": False}
+    ).json()
+    scored = {m["site"]["id"]: m for m in body["matches"]}
+    for site_id in DOCUMENT_ALL:
+        assert site_id in scored, site_id
+        match = scored[site_id]
+        assert match["score"] is not None and 0 <= match["score"] <= 100
+        assert match["components"]["T"]["available"] is False
+        assert match["components"]["G"]["available"] is False

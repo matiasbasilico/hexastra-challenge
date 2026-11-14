@@ -10420,6 +10420,1607 @@
         "is_real": false,
         "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
       }
+    },
+    "meseta-de-somuncura": {
+      "id": "meseta-de-somuncura",
+      "body": "earth",
+      "name": "Meseta de Somuncurá (Río Negro)",
+      "short_name": "Somuncurá",
+      "lat": -41.58333333,
+      "lon": -67.15,
+      "coord_source": "Wikipedia en español, artículo 'Meseta de Somuncurá' (API de coordenadas): 41.5833°S, 67.15°W. Último recurso: la meseta no figura en el Smithsonian GVP (es oligo-miocena, ni Holocena ni en la capa Pleistocena) y el Plan de Manejo oficial del ANP no trae coordenadas. https://es.wikipedia.org/wiki/Meseta_de_Somuncur%C3%A1 [Fuente de último recurso: Wikipedia. A completar con una fuente oficial o un paper.]",
+      "summary": "Meseta basáltica de plateau oligo-miocena, la mayor de Patagonia, que sirve como análogo de los mares basálticos lunares y de las superficies de aterrizaje. Análogo de: Luna: mares basálticos y llanuras de lava para estudiar aterrizajes.",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": "South America",
+      "country_iso": "AR",
+      "country_name": "Argentina",
+      "country_source": "Natural Earth 50m admin-0 countries, point-in-polygon. https://www.naturalearthdata.com/ and nvkelso/natural-earth-vector ne_50m_admin_0_countries.geojson. ISO from ISO_A2, or ISO_A2_EH when ISO_A2 is -99.",
+      "country_found": true,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 1204.0,
+          "relative_relief_m": 34.0,
+          "slope_deg": 2.1342998941463125,
+          "roughness_m": 7.9902683155887875,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 18.0,
+          "slope_deg": 4.600774781144008,
+          "roughness_m": 5.634713834792322
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 2.3499230843879486,
+          "roughness_m": 5.24669207956573
+        },
+        {
+          "relative_relief_m": 22.0,
+          "slope_deg": 5.570959980093077,
+          "roughness_m": 7.474029108259555
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 1.9239987509613452,
+          "roughness_m": 5.198824653494073
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 0.23873103309890856,
+          "roughness_m": 2.0
+        },
+        {
+          "relative_relief_m": 18.0,
+          "slope_deg": 1.391763426244203,
+          "roughness_m": 5.338539126015656
+        },
+        {
+          "relative_relief_m": 15.0,
+          "slope_deg": 1.6010488697057614,
+          "roughness_m": 5.035981643246043
+        },
+        {
+          "relative_relief_m": 22.0,
+          "slope_deg": 3.6391904263716914,
+          "roughness_m": 7.507403753036806
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 2.988595219978997,
+          "roughness_m": 5.356719559996066
+        },
+        {
+          "relative_relief_m": 20.0,
+          "slope_deg": 2.199922397909264,
+          "roughness_m": 5.659308948783215
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 2.698950908923438,
+          "roughness_m": 4.850544070285083
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 2.3499230843879486,
+          "roughness_m": 4.69041575982343
+        },
+        {
+          "relative_relief_m": 17.0,
+          "slope_deg": 2.1342998941463125,
+          "roughness_m": 5.746979883188889
+        },
+        {
+          "relative_relief_m": 22.0,
+          "slope_deg": 4.495148566143528,
+          "roughness_m": 7.088723439378913
+        },
+        {
+          "relative_relief_m": 27.0,
+          "slope_deg": 4.90954349952138,
+          "roughness_m": 8.343327340522551
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 2.263636058426967,
+          "roughness_m": 5.134307266916455
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 4.072588647671146,
+          "roughness_m": 5.262551134615649
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 3.7238672163946718,
+          "roughness_m": 5.722761571129799
+        },
+        {
+          "relative_relief_m": 22.0,
+          "slope_deg": 3.646970455272818,
+          "roughness_m": 6.5659052011974035
+        },
+        {
+          "relative_relief_m": 27.0,
+          "slope_deg": 4.295742554222032,
+          "roughness_m": 8.108637370113428
+        },
+        {
+          "relative_relief_m": 12.0,
+          "slope_deg": 2.911591652223061,
+          "roughness_m": 4.527692569068709
+        },
+        {
+          "relative_relief_m": 9.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 3.0413812651491097
+        },
+        {
+          "relative_relief_m": 28.0,
+          "slope_deg": 1.86390197511197,
+          "roughness_m": 7.416198487095663
+        },
+        {
+          "relative_relief_m": 28.0,
+          "slope_deg": 6.658629502488179,
+          "roughness_m": 8.94427190999916
+        },
+        {
+          "relative_relief_m": 30.0,
+          "slope_deg": 2.0388696076811756,
+          "roughness_m": 9.433981132056605
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": 8.35,
+        "mean_diurnal_range_C": 10.74,
+        "t2m_abs_max_C": 34.7,
+        "t2m_abs_min_C": -20.3,
+        "mean_annual_precipitation_mm": 271.9,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -41.5,
+          "lon": -67.25
+        },
+        "precip_cell": {
+          "lat": -41.5,
+          "lon": -67.25
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "pali-aike": {
+      "id": "pali-aike",
+      "body": "earth",
+      "name": "Campo volcánico Pali Aike (sector argentino) (Santa Cruz)",
+      "short_name": "Pali Aike",
+      "lat": -51.995,
+      "lon": -70.155,
+      "coord_source": "Ross, Delpit, Haller, Németh y Corbella (2011), J. Volcanol. Geotherm. Res. 201:253-271: el complejo de maares del lado argentino del PAVF está 'at around 70.155°W, 51.995°S'. https://espace.inrs.ca/id/eprint/1907/1/Ross-et-al-Pali-Aike-2011-web%5B1%5D.pdf Se eligió el punto del lado argentino. Smithsonian GVP 358080 da 52.082°S, 69.698°W, sobre el límite con Chile.",
+      "summary": "Campo volcánico máfico y monogenético con maares, conos de escoria y coladas, que es un análogo del volcanismo marciano en interacción con agua. Análogo de: Marte: volcanismo freatomagmático (interacción magma-agua), maares y cráteres volcánicos que se confunden con cráteres de impacto.",
+      "analog_types": [
+        "volcanic_field"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": "South America",
+      "country_iso": "AR",
+      "country_name": "Argentina",
+      "country_source": "Natural Earth 50m admin-0 countries, point-in-polygon. https://www.naturalearthdata.com/ and nvkelso/natural-earth-vector ne_50m_admin_0_countries.geojson. ISO from ISO_A2, or ISO_A2_EH when ISO_A2 is -99.",
+      "country_found": true,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 146.0,
+          "relative_relief_m": 113.0,
+          "slope_deg": 3.2436422170779267,
+          "roughness_m": 26.252648068571006,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 25.0,
+          "slope_deg": 2.147585428298503,
+          "roughness_m": 6.990072325170257
+        },
+        {
+          "relative_relief_m": 42.0,
+          "slope_deg": 6.063765138410265,
+          "roughness_m": 14.291605927956454
+        },
+        {
+          "relative_relief_m": 47.0,
+          "slope_deg": 6.4882495697960305,
+          "roughness_m": 16.635804759614125
+        },
+        {
+          "relative_relief_m": 68.0,
+          "slope_deg": 12.137063673133053,
+          "roughness_m": 22.24360082760383
+        },
+        {
+          "relative_relief_m": 74.0,
+          "slope_deg": 15.87270741856876,
+          "roughness_m": 24.712232688376105
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 6.887992773257274
+        },
+        {
+          "relative_relief_m": 29.0,
+          "slope_deg": 5.9468630539735,
+          "roughness_m": 10.146154170149616
+        },
+        {
+          "relative_relief_m": 29.0,
+          "slope_deg": 1.5282707686904606,
+          "roughness_m": 11.443095929181249
+        },
+        {
+          "relative_relief_m": 50.0,
+          "slope_deg": 13.111764465528605,
+          "roughness_m": 19.75123062270073
+        },
+        {
+          "relative_relief_m": 56.0,
+          "slope_deg": 5.808222980428714,
+          "roughness_m": 17.514279888136997
+        },
+        {
+          "relative_relief_m": 53.0,
+          "slope_deg": 7.144576683413715,
+          "roughness_m": 17.95132307101624
+        },
+        {
+          "relative_relief_m": 40.0,
+          "slope_deg": 8.280429976643655,
+          "roughness_m": 14.601179556612694
+        },
+        {
+          "relative_relief_m": 41.0,
+          "slope_deg": 3.2436422170779267,
+          "roughness_m": 15.850867484147358
+        },
+        {
+          "relative_relief_m": 62.0,
+          "slope_deg": 12.638224684699054,
+          "roughness_m": 23.28327964680043
+        },
+        {
+          "relative_relief_m": 62.0,
+          "slope_deg": 6.729688843059036,
+          "roughness_m": 19.665960439297137
+        },
+        {
+          "relative_relief_m": 47.0,
+          "slope_deg": 6.574011000539079,
+          "roughness_m": 16.300136332081536
+        },
+        {
+          "relative_relief_m": 73.0,
+          "slope_deg": 9.795711452032467,
+          "roughness_m": 22.321514285549714
+        },
+        {
+          "relative_relief_m": 75.0,
+          "slope_deg": 13.964880910609391,
+          "roughness_m": 23.537794666828447
+        },
+        {
+          "relative_relief_m": 99.0,
+          "slope_deg": 15.288517970232027,
+          "roughness_m": 30.518209500413207
+        },
+        {
+          "relative_relief_m": 76.0,
+          "slope_deg": 16.26020470831196,
+          "roughness_m": 26.836438743701528
+        },
+        {
+          "relative_relief_m": 45.0,
+          "slope_deg": 6.857302929849532,
+          "roughness_m": 14.1578403877302
+        },
+        {
+          "relative_relief_m": 55.0,
+          "slope_deg": 12.915653689228254,
+          "roughness_m": 20.357908646136625
+        },
+        {
+          "relative_relief_m": 54.0,
+          "slope_deg": 8.327142652905913,
+          "roughness_m": 20.411053650194326
+        },
+        {
+          "relative_relief_m": 86.0,
+          "slope_deg": 16.83544559915647,
+          "roughness_m": 28.359301824974466
+        },
+        {
+          "relative_relief_m": 101.0,
+          "slope_deg": 17.01197993242201,
+          "roughness_m": 32.59132468072515
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": 6.48,
+        "mean_diurnal_range_C": 8.09,
+        "t2m_abs_max_C": 32.2,
+        "t2m_abs_min_C": -17.5,
+        "mean_annual_precipitation_mm": 404.0,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -52.0,
+          "lon": -70.25
+        },
+        "precip_cell": {
+          "lat": -52.0,
+          "lon": -70.25
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "campo-del-cielo": {
+      "id": "campo-del-cielo",
+      "body": "earth",
+      "name": "Campo del Cielo (Chaco / Santiago del Estero)",
+      "short_name": "Campo del Cielo",
+      "lat": -27.633333,
+      "lon": -61.7,
+      "coord_source": "Earth Impact Database (PASSC), Campo Del Cielo: S 27°38', W 61°42'; diámetro 0,05 km; edad < 0,004 Ma; bolido: octaedrita gruesa a hexaedrita granular. Copia en Wayback de http://www.passc.net/EarthImpactDatabase/New%20website_05-2018/Campodelcielo.html",
+      "summary": "Campo de cráteres pequeños formado por la caída de un meteorito de hierro fragmentado hace menos de 4.000 años, sobre loess chaqueño. Análogo de: Luna/Marte: cráteres simples pequeños y campos de cráteres secundarios en blanco sedimentario blando.",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "known",
+      "highlight_less_studied": false,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": "South America",
+      "country_iso": "AR",
+      "country_name": "Argentina",
+      "country_source": "Natural Earth 50m admin-0 countries, point-in-polygon. https://www.naturalearthdata.com/ and nvkelso/natural-earth-vector ne_50m_admin_0_countries.geojson. ISO from ISO_A2, or ISO_A2_EH when ISO_A2 is -99.",
+      "country_found": true,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 80.0,
+          "relative_relief_m": 10.0,
+          "slope_deg": 1.285397705905007,
+          "roughness_m": 2.5331140255951103,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 5.0,
+          "slope_deg": 0.23873103309890856,
+          "roughness_m": 1.922093765778466
+        },
+        {
+          "relative_relief_m": 6.0,
+          "slope_deg": 1.5282707686904606,
+          "roughness_m": 1.986062547968831
+        },
+        {
+          "relative_relief_m": 6.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 2.179449471770337
+        },
+        {
+          "relative_relief_m": 5.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 2.0
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.7374654402192264,
+          "roughness_m": 2.147349787787521
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.391763426244203,
+          "roughness_m": 2.2973414586817036
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.391763426244203,
+          "roughness_m": 2.449489742783178
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.4518417708617746,
+          "roughness_m": 2.5
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 0.5338064621315731,
+          "roughness_m": 2.7838821814150108
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 1.6876048941769748,
+          "roughness_m": 3.5
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 1.285397705905007,
+          "roughness_m": 2.5712081034235856
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 0.984222142020271,
+          "roughness_m": 2.5712081034235856
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.285397705905007,
+          "roughness_m": 2.1794494717703365
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 1.8175220187198482,
+          "roughness_m": 2.598076211353316
+        },
+        {
+          "relative_relief_m": 9.0,
+          "slope_deg": 1.285397705905007,
+          "roughness_m": 3.0822070014844885
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 0.4774537773095774,
+          "roughness_m": 2.4209731743889917
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 2.420973174388992
+        },
+        {
+          "relative_relief_m": 5.0,
+          "slope_deg": 0.3376147110174216,
+          "roughness_m": 1.7159383568311668
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 2.3333333333333335
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.7374654402192264,
+          "roughness_m": 2.29128784747792
+        },
+        {
+          "relative_relief_m": 9.0,
+          "slope_deg": 0.860697214462144,
+          "roughness_m": 3.1622776601683795
+        },
+        {
+          "relative_relief_m": 9.0,
+          "slope_deg": 1.0675202709770988,
+          "roughness_m": 2.8333333333333335
+        },
+        {
+          "relative_relief_m": 6.0,
+          "slope_deg": 0.23873103309890856,
+          "roughness_m": 2.0615528128088303
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 0.3376147110174216,
+          "roughness_m": 2.185812841434
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 0.860697214462144,
+          "roughness_m": 2.1794494717703365
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": 21.36,
+        "mean_diurnal_range_C": 10.96,
+        "t2m_abs_max_C": 44.6,
+        "t2m_abs_min_C": -3.3,
+        "mean_annual_precipitation_mm": 1047.1,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -27.75,
+          "lon": -61.75
+        },
+        "precip_cell": {
+          "lat": -27.75,
+          "lon": -61.75
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "crateres-rio-cuarto": {
+      "id": "crateres-rio-cuarto",
+      "body": "earth",
+      "name": "Cráteres de Río Cuarto (Córdoba)",
+      "short_name": "Río Cuarto",
+      "lat": -32.75,
+      "lon": -64.25,
+      "coord_source": "Grant y Schultz (1993), 'Martian crater degradation by eolian processes: Analogy with the Rio Cuarto Crater Field, Argentina', LPSC XXIV (NASA NTRS 19940011723): 'Rio Cuarto Crater Field is located at 32°45'S, 64°15'W'. https://ntrs.nasa.gov/citations/19940011723 Origen discutido (impacto oblicuo vs. erosión eólica). Coordenada leída del OCR del abstract en NTRS: a confirmar en el PDF.",
+      "summary": "Grupo de unas diez depresiones alargadas en loess pampeano, que podrían ser un impacto rasante o formas eólicas, y que sirven como análogo de la degradación eólica de cráteres en Marte. Análogo de: Marte: degradación eólica de cráteres en terrenos con mantos de sedimento fino; cráteres alargados por impacto oblicuo.",
+      "analog_types": [
+        "impact_crater"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": "South America",
+      "country_iso": "AR",
+      "country_name": "Argentina",
+      "country_source": "Natural Earth 50m admin-0 countries, point-in-polygon. https://www.naturalearthdata.com/ and nvkelso/natural-earth-vector ne_50m_admin_0_countries.geojson. ISO from ISO_A2, or ISO_A2_EH when ISO_A2 is -99.",
+      "country_found": true,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 486.0,
+          "relative_relief_m": 20.0,
+          "slope_deg": 1.0675202709770988,
+          "roughness_m": 4.654746681256313,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.285397705905007,
+          "roughness_m": 2.455153310442706
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 1.0675202709770988,
+          "roughness_m": 2.223610677354389
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 1.3502244696996157,
+          "roughness_m": 2.96273147243853
+        },
+        {
+          "relative_relief_m": 17.0,
+          "slope_deg": 1.0675202709770988,
+          "roughness_m": 5.2201532544552744
+        },
+        {
+          "relative_relief_m": 18.0,
+          "slope_deg": 3.880338680641138,
+          "roughness_m": 5.622375931144333
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 2.667181268490837,
+          "roughness_m": 3.295619988880865
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 2.96273147243853
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 0.3376147110174216,
+          "roughness_m": 2.449489742783178
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 2.8821812090202448,
+          "roughness_m": 4.106228331584973
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 2.0248682972773406,
+          "roughness_m": 5.659308948783215
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 3.6742346141747673
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 2.199922397909264,
+          "roughness_m": 3.427827300200522
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 1.0675202709770988,
+          "roughness_m": 2.773886162848873
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 0.5338064621315731,
+          "roughness_m": 3.407508050043479
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 2.5695028228896355,
+          "roughness_m": 4.2064764880413215
+        },
+        {
+          "relative_relief_m": 13.0,
+          "slope_deg": 2.199922397909264,
+          "roughness_m": 3.9616214413349042
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 0.5338064621315731,
+          "roughness_m": 2.9154759474226504
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 1.6876048941769748,
+          "roughness_m": 3.632415786283895
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 1.6010488697057614,
+          "roughness_m": 2.9154759474226504
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 0.5338064621315731,
+          "roughness_m": 4.333333333333334
+        },
+        {
+          "relative_relief_m": 13.0,
+          "slope_deg": 2.2510381837492695,
+          "roughness_m": 4.419024527854284
+        },
+        {
+          "relative_relief_m": 15.0,
+          "slope_deg": 2.6242200277820564,
+          "roughness_m": 4.342938073598462
+        },
+        {
+          "relative_relief_m": 15.0,
+          "slope_deg": 3.035723707408927,
+          "roughness_m": 4.657729537494039
+        },
+        {
+          "relative_relief_m": 12.0,
+          "slope_deg": 0.4774537773095774,
+          "roughness_m": 3.8405728739343044
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 2.1342998941463125,
+          "roughness_m": 2.9907264074877262
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": 16.53,
+        "mean_diurnal_range_C": 11.34,
+        "t2m_abs_max_C": 40.2,
+        "t2m_abs_min_C": -17.2,
+        "mean_annual_precipitation_mm": 723.1,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -32.75,
+          "lon": -64.25
+        },
+        "precip_cell": {
+          "lat": -32.75,
+          "lon": -64.25
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "dunas-de-taton": {
+      "id": "dunas-de-taton",
+      "body": "earth",
+      "name": "Campo de dunas de Tatón (Bolsón de Fiambalá) (Catamarca)",
+      "short_name": "Dunas de Tatón",
+      "lat": -27.343611,
+      "lon": -67.538611,
+      "coord_source": "Isla et al. (2021), 'Taton dune field: wind selection across the Southamerican arid diagonal, Puna Argentina', Quaternary and Environmental Geosciences 12(2):19-29. Sitio de muestreo 'Taton': 27°20'37\"S, 67°32'19\"W. https://revistas.ufpr.br/abequa/article/download/65221/44546 Es el punto de muestreo del paper, no el centro del campo de dunas.",
+      "summary": "Campo de dunas transversales de arena fina con ceniza volcánica en un valle tectónico árido de la Puna catamarqueña, análogo de los campos de dunas marcianos. Análogo de: Marte: campos de dunas eólicas con material volcánico, dunas que trepan relieve (climbing dunes) y transporte por vientos dominantes.",
+      "analog_types": [
+        "desert"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": "South America",
+      "country_iso": "AR",
+      "country_name": "Argentina",
+      "country_source": "Natural Earth 50m admin-0 countries, point-in-polygon. https://www.naturalearthdata.com/ and nvkelso/natural-earth-vector ne_50m_admin_0_countries.geojson. ISO from ISO_A2, or ISO_A2_EH when ISO_A2 is -99.",
+      "country_found": true,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 1834.0,
+          "relative_relief_m": 248.0,
+          "slope_deg": 16.953886083798817,
+          "roughness_m": 77.92427752126345,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 63.0,
+          "slope_deg": 5.139693807411478,
+          "roughness_m": 19.4164878389476
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 3.5204050825976285,
+          "roughness_m": 8.017342313870463
+        },
+        {
+          "relative_relief_m": 16.0,
+          "slope_deg": 3.8510305440041055,
+          "roughness_m": 5.592653911854172
+        },
+        {
+          "relative_relief_m": 15.0,
+          "slope_deg": 1.7210061534334908,
+          "roughness_m": 4.910306620885412
+        },
+        {
+          "relative_relief_m": 48.0,
+          "slope_deg": 11.276401445303803,
+          "roughness_m": 16.307803176530076
+        },
+        {
+          "relative_relief_m": 126.0,
+          "slope_deg": 20.43111271103717,
+          "roughness_m": 42.897487623920874
+        },
+        {
+          "relative_relief_m": 72.0,
+          "slope_deg": 8.323815217561519,
+          "roughness_m": 22.726636354727024
+        },
+        {
+          "relative_relief_m": 33.0,
+          "slope_deg": 1.9239987509613456,
+          "roughness_m": 10.166666666666666
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 0.9548412538721887,
+          "roughness_m": 3.427827300200522
+        },
+        {
+          "relative_relief_m": 48.0,
+          "slope_deg": 7.0343091408527,
+          "roughness_m": 16.966470201874966
+        },
+        {
+          "relative_relief_m": 159.0,
+          "slope_deg": 33.74163505181039,
+          "roughness_m": 58.38973463812891
+        },
+        {
+          "relative_relief_m": 147.0,
+          "slope_deg": 27.132064999623463,
+          "roughness_m": 52.03551137871563
+        },
+        {
+          "relative_relief_m": 110.0,
+          "slope_deg": 16.953886083798817,
+          "roughness_m": 37.509258116423
+        },
+        {
+          "relative_relief_m": 68.0,
+          "slope_deg": 8.646670214736362,
+          "roughness_m": 23.08137777516758
+        },
+        {
+          "relative_relief_m": 38.0,
+          "slope_deg": 6.344120839226984,
+          "roughness_m": 15.103347678945589
+        },
+        {
+          "relative_relief_m": 177.0,
+          "slope_deg": 28.884223166147564,
+          "roughness_m": 56.73941408854264
+        },
+        {
+          "relative_relief_m": 178.0,
+          "slope_deg": 31.693440803183943,
+          "roughness_m": 62.251506005879094
+        },
+        {
+          "relative_relief_m": 153.0,
+          "slope_deg": 33.34453323423619,
+          "roughness_m": 60.06894187329904
+        },
+        {
+          "relative_relief_m": 149.0,
+          "slope_deg": 28.03177889820412,
+          "roughness_m": 54.868023474515645
+        },
+        {
+          "relative_relief_m": 122.0,
+          "slope_deg": 21.34231267537039,
+          "roughness_m": 43.19722213291035
+        },
+        {
+          "relative_relief_m": 128.0,
+          "slope_deg": 23.492341062623062,
+          "roughness_m": 45.896622969451684
+        },
+        {
+          "relative_relief_m": 169.0,
+          "slope_deg": 28.76212306768124,
+          "roughness_m": 56.56952457915049
+        },
+        {
+          "relative_relief_m": 194.0,
+          "slope_deg": 30.684697159813553,
+          "roughness_m": 63.17436188834834
+        },
+        {
+          "relative_relief_m": 177.0,
+          "slope_deg": 32.69187719490168,
+          "roughness_m": 61.51174232977346
+        },
+        {
+          "relative_relief_m": 176.0,
+          "slope_deg": 30.634410048749555,
+          "roughness_m": 58.9915248150105
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": 16.36,
+        "mean_diurnal_range_C": 13.8,
+        "t2m_abs_max_C": 39.0,
+        "t2m_abs_min_C": -9.8,
+        "mean_annual_precipitation_mm": 168.2,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -27.5,
+          "lon": -67.5
+        },
+        "precip_cell": {
+          "lat": -27.5,
+          "lon": -67.5
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "llullaillaco": {
+      "id": "llullaillaco",
+      "body": "earth",
+      "name": "Volcán Llullaillaco (Salta)",
+      "short_name": "Llullaillaco",
+      "lat": -24.72,
+      "lon": -68.53,
+      "coord_source": "Smithsonian GVP volcán 355110 'Llullaillaco': 24.72°S, 68.53°W, cumbre 6.739 m, país Chile-Argentina, última erupción 1877. https://volcano.si.edu/volcano.cfm?vn=355110",
+      "summary": "Estratovolcán de 6.739 m sobre el límite con Chile, con permafrost y condiciones periglaciales hiperáridas de altura. Análogo de: Marte: permafrost y suelos periglaciales en ambiente hiperárido, frío, de baja presión y alta radiación UV.",
+      "analog_types": [
+        "volcanic_field",
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": "South America",
+      "country_iso": "AR",
+      "country_name": "Argentina",
+      "country_source": "Natural Earth 50m admin-0 countries, point-in-polygon. https://www.naturalearthdata.com/ and nvkelso/natural-earth-vector ne_50m_admin_0_countries.geojson. ISO from ISO_A2, or ISO_A2_EH when ISO_A2 is -99.",
+      "country_found": true,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 6418.0,
+          "relative_relief_m": 490.0,
+          "slope_deg": 30.165216823776436,
+          "roughness_m": 138.77968824993192,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 212.0,
+          "slope_deg": 31.630923673407185,
+          "roughness_m": 67.29041536504289
+        },
+        {
+          "relative_relief_m": 198.0,
+          "slope_deg": 30.73297765675388,
+          "roughness_m": 64.63250816045368
+        },
+        {
+          "relative_relief_m": 158.0,
+          "slope_deg": 34.19105644381446,
+          "roughness_m": 60.1770535817248
+        },
+        {
+          "relative_relief_m": 189.0,
+          "slope_deg": 35.257823546267794,
+          "roughness_m": 68.47708456930035
+        },
+        {
+          "relative_relief_m": 197.0,
+          "slope_deg": 32.64185320740103,
+          "roughness_m": 69.57370192824297
+        },
+        {
+          "relative_relief_m": 138.0,
+          "slope_deg": 29.992245119716017,
+          "roughness_m": 49.71530057347648
+        },
+        {
+          "relative_relief_m": 158.0,
+          "slope_deg": 33.02655685405126,
+          "roughness_m": 56.521628112116915
+        },
+        {
+          "relative_relief_m": 182.0,
+          "slope_deg": 30.935084762684767,
+          "roughness_m": 64.71239791913482
+        },
+        {
+          "relative_relief_m": 202.0,
+          "slope_deg": 32.205591836981036,
+          "roughness_m": 68.5109480302236
+        },
+        {
+          "relative_relief_m": 193.0,
+          "slope_deg": 31.27769994171204,
+          "roughness_m": 64.07569308594675
+        },
+        {
+          "relative_relief_m": 182.0,
+          "slope_deg": 24.771744420729636,
+          "roughness_m": 59.01365190454757
+        },
+        {
+          "relative_relief_m": 185.0,
+          "slope_deg": 24.65671095210871,
+          "roughness_m": 60.97016574613449
+        },
+        {
+          "relative_relief_m": 189.0,
+          "slope_deg": 30.165216823776436,
+          "roughness_m": 62.870457644623876
+        },
+        {
+          "relative_relief_m": 173.0,
+          "slope_deg": 29.829199845688947,
+          "roughness_m": 60.67010063541276
+        },
+        {
+          "relative_relief_m": 162.0,
+          "slope_deg": 28.079019934499673,
+          "roughness_m": 56.44490922818264
+        },
+        {
+          "relative_relief_m": 224.0,
+          "slope_deg": 33.3824690287381,
+          "roughness_m": 71.96835724430873
+        },
+        {
+          "relative_relief_m": 226.0,
+          "slope_deg": 36.83463249565188,
+          "roughness_m": 72.88518367953804
+        },
+        {
+          "relative_relief_m": 244.0,
+          "slope_deg": 35.50363606515792,
+          "roughness_m": 74.73750360056486
+        },
+        {
+          "relative_relief_m": 228.0,
+          "slope_deg": 32.71326956168635,
+          "roughness_m": 69.19798487753174
+        },
+        {
+          "relative_relief_m": 217.0,
+          "slope_deg": 30.72370388892213,
+          "roughness_m": 65.35437586301659
+        },
+        {
+          "relative_relief_m": 230.0,
+          "slope_deg": 39.472690214041606,
+          "roughness_m": 78.8555289402363
+        },
+        {
+          "relative_relief_m": 226.0,
+          "slope_deg": 35.93401595703205,
+          "roughness_m": 73.34412799339229
+        },
+        {
+          "relative_relief_m": 230.0,
+          "slope_deg": 32.60602842621144,
+          "roughness_m": 69.6391492704435
+        },
+        {
+          "relative_relief_m": 218.0,
+          "slope_deg": 32.500305093480996,
+          "roughness_m": 66.71602339601617
+        },
+        {
+          "relative_relief_m": 191.0,
+          "slope_deg": 32.592781071440136,
+          "roughness_m": 61.58530668917709
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": -11.82,
+        "mean_diurnal_range_C": 11.68,
+        "t2m_abs_max_C": 7.3,
+        "t2m_abs_min_C": -38.0,
+        "mean_annual_precipitation_mm": 196.6,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -24.75,
+          "lon": -68.5
+        },
+        "precip_cell": {
+          "lat": -24.75,
+          "lon": -68.5
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "base-marambio": {
+      "id": "base-marambio",
+      "body": "earth",
+      "name": "Base Antártica Marambio (Antártida Argentina)",
+      "short_name": "Marambio",
+      "lat": -64.241769,
+      "lon": -56.623225,
+      "coord_source": "Catálogo COMNAP Antarctic Facilities (registro 10, 'Base Antártica Marambio', Argentina, permanente, 1969): 64.241769°S, 56.623225°W (64° 14.5061' S, 56° 37.3935' W), elevación 209,5 m MSL. https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities",
+      "summary": "Base argentina permanente sobre la meseta libre de hielo de isla Marambio, con permafrost y procesos periglaciales análogos a Marte. Análogo de: Marte: permafrost, suelo estructurado (patterned ground) y procesos periglaciales; también análogo operacional de hábitat aislado.",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": null,
+      "country_iso": null,
+      "country_name": null,
+      "country_source": "Natural Earth 50m admin-0: point not inside any polygon; left unassigned (not guessed). Nominatim did not yield an ISO present in Natural Earth.",
+      "country_found": false,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 195.0,
+          "relative_relief_m": 110.0,
+          "slope_deg": 1.7210061534334908,
+          "roughness_m": 29.543047687512995,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 2.4563945664087456,
+          "roughness_m": 3.898005187842166
+        },
+        {
+          "relative_relief_m": 11.0,
+          "slope_deg": 1.9239987509613452,
+          "roughness_m": 3.3458099833141217
+        },
+        {
+          "relative_relief_m": 40.0,
+          "slope_deg": 6.457954637909866,
+          "roughness_m": 13.77296062741938
+        },
+        {
+          "relative_relief_m": 73.0,
+          "slope_deg": 15.853273260842633,
+          "roughness_m": 26.998971173814095
+        },
+        {
+          "relative_relief_m": 88.0,
+          "slope_deg": 19.443685247106973,
+          "roughness_m": 31.885646370184254
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 1.9678637764222802,
+          "roughness_m": 2.63523138347365
+        },
+        {
+          "relative_relief_m": 9.0,
+          "slope_deg": 1.5095270002735288,
+          "roughness_m": 2.96273147243853
+        },
+        {
+          "relative_relief_m": 29.0,
+          "slope_deg": 3.471741285563965,
+          "roughness_m": 9.575721614815485
+        },
+        {
+          "relative_relief_m": 67.0,
+          "slope_deg": 9.241805730399237,
+          "roughness_m": 21.83524164688309
+        },
+        {
+          "relative_relief_m": 98.0,
+          "slope_deg": 15.503408837548553,
+          "roughness_m": 31.91829847873752
+        },
+        {
+          "relative_relief_m": 7.0,
+          "slope_deg": 0.7548944975654582,
+          "roughness_m": 2.260776661041756
+        },
+        {
+          "relative_relief_m": 10.0,
+          "slope_deg": 2.052775101535614,
+          "roughness_m": 3.100179206289712
+        },
+        {
+          "relative_relief_m": 21.0,
+          "slope_deg": 1.7210061534334908,
+          "roughness_m": 5.76868943329226
+        },
+        {
+          "relative_relief_m": 37.0,
+          "slope_deg": 7.804184683040922,
+          "roughness_m": 15.295242542844637
+        },
+        {
+          "relative_relief_m": 67.0,
+          "slope_deg": 15.155778842226816,
+          "roughness_m": 26.22551768369459
+        },
+        {
+          "relative_relief_m": 9.0,
+          "slope_deg": 1.391763426244203,
+          "roughness_m": 3.1797973380564852
+        },
+        {
+          "relative_relief_m": 8.0,
+          "slope_deg": 1.6876048941769748,
+          "roughness_m": 3.162277660168379
+        },
+        {
+          "relative_relief_m": 12.0,
+          "slope_deg": 3.0543699951638654,
+          "roughness_m": 4.743416490252569
+        },
+        {
+          "relative_relief_m": 42.0,
+          "slope_deg": 8.767251443500896,
+          "roughness_m": 16.217274740226856
+        },
+        {
+          "relative_relief_m": 66.0,
+          "slope_deg": 13.59376654330582,
+          "roughness_m": 25.65530051362573
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 2.2510381837492695,
+          "roughness_m": 4.612784167699349
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 3.10049144980778,
+          "roughness_m": 4.702245326555294
+        },
+        {
+          "relative_relief_m": 14.0,
+          "slope_deg": 2.433138796850444,
+          "roughness_m": 5.230784942158405
+        },
+        {
+          "relative_relief_m": 42.0,
+          "slope_deg": 8.776696077215501,
+          "roughness_m": 15.041608956491322
+        },
+        {
+          "relative_relief_m": 60.0,
+          "slope_deg": 13.202548211490393,
+          "roughness_m": 23.21098877687032
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": -7.68,
+        "mean_diurnal_range_C": 4.05,
+        "t2m_abs_max_C": 6.1,
+        "t2m_abs_min_C": -32.8,
+        "mean_annual_precipitation_mm": 410.1,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -64.25,
+          "lon": -56.5
+        },
+        "precip_cell": {
+          "lat": -64.25,
+          "lon": -56.5
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
+    },
+    "base-esperanza": {
+      "id": "base-esperanza",
+      "body": "earth",
+      "name": "Base Antártica Esperanza (Antártida Argentina)",
+      "short_name": "Esperanza",
+      "lat": -63.396959,
+      "lon": -56.998054,
+      "coord_source": "Catálogo COMNAP Antarctic Facilities (registro 8, 'Base Antártica Esperanza', Argentina, permanente, 1952): 63.396959°S, 56.998054°W (63° 23.8175' S, 56° 59.8832' W), elevación 25 m MSL. https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities",
+      "summary": "Base argentina permanente en Bahía Esperanza, con terreno periglacial costero y experiencia de habitabilidad prolongada en aislamiento. Análogo de: Marte/Luna: análogo operacional de hábitat aislado de larga duración; terreno periglacial con permafrost.",
+      "analog_types": [
+        "polar_periglacial"
+      ],
+      "known_level": "lesser-known",
+      "highlight_less_studied": true,
+      "featured": false,
+      "featured_label": null,
+      "featured_rank": null,
+      "featured_note": null,
+      "continent": null,
+      "country_iso": null,
+      "country_name": null,
+      "country_source": "Natural Earth 50m admin-0: point not inside any polygon; left unassigned (not guessed). Nominatim did not yield an ISO present in Natural Earth.",
+      "country_found": false,
+      "dem": {
+        "dataset": "aster30m",
+        "spacing_m": 120.0,
+        "grid_n": 7,
+        "center": {
+          "elevation_m": 1.0,
+          "relative_relief_m": 41.0,
+          "slope_deg": 5.02315655574251,
+          "roughness_m": 11.295203966864047,
+          "n_valid": 49
+        },
+        "n_subwindow_samples": 25,
+        "source": "OpenTopoData aster30m (ASTER GDEM v3) on a 7x7 grid at 120.0 m spacing, consulted 14 de noviembre de 2026 (America/Buenos_Aires). Centre slope from cardinal neighbours; relative relief = max-min of valid cells; roughness = sample std. dev. https://api.opentopodata.org/v1/aster30m"
+      },
+      "_cov_samples": [
+        {
+          "relative_relief_m": 30.0,
+          "slope_deg": 5.051152528017927,
+          "roughness_m": 10.848707040216564
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 2.8821812090202448,
+          "roughness_m": 8.717797887081348
+        },
+        {
+          "relative_relief_m": 30.0,
+          "slope_deg": 5.285674020635527,
+          "roughness_m": 9.909310997463166
+        },
+        {
+          "relative_relief_m": 41.0,
+          "slope_deg": 6.954432299203071,
+          "roughness_m": 13.76690879528799
+        },
+        {
+          "relative_relief_m": 41.0,
+          "slope_deg": 9.697272655464083,
+          "roughness_m": 14.157840387730202
+        },
+        {
+          "relative_relief_m": 29.0,
+          "slope_deg": 4.972358392400693,
+          "roughness_m": 9.987492177719089
+        },
+        {
+          "relative_relief_m": 28.0,
+          "slope_deg": 3.2436422170779267,
+          "roughness_m": 8.860022573334675
+        },
+        {
+          "relative_relief_m": 29.0,
+          "slope_deg": 6.091478002079769,
+          "roughness_m": 10.529060314724724
+        },
+        {
+          "relative_relief_m": 17.0,
+          "slope_deg": 4.822542232360713,
+          "roughness_m": 7.76387646590141
+        },
+        {
+          "relative_relief_m": 13.0,
+          "slope_deg": 3.10049144980778,
+          "roughness_m": 5.71790559946948
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 5.199672934291984,
+          "roughness_m": 10.195314828118082
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 2.792079047079408,
+          "roughness_m": 8.781293248212995
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 5.02315655574251,
+          "roughness_m": 10.397649306988148
+        },
+        {
+          "relative_relief_m": 17.0,
+          "slope_deg": 0.23873103309890856,
+          "roughness_m": 7.0178344238091
+        },
+        {
+          "relative_relief_m": 0.0,
+          "slope_deg": 0.0,
+          "roughness_m": 0.0
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 6.379370208442804,
+          "roughness_m": 10.36822067666386
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 3.646970455272818,
+          "roughness_m": 9.225568335398698
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 6.0172848640320336,
+          "roughness_m": 9.921917377424812
+        },
+        {
+          "relative_relief_m": 15.0,
+          "slope_deg": 3.576334374997351,
+          "roughness_m": 5.449260908090605
+        },
+        {
+          "relative_relief_m": 0.0,
+          "slope_deg": 0.0,
+          "roughness_m": 0.0
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 4.289153328819018,
+          "roughness_m": 9.38083151964686
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 6.096084195346844,
+          "roughness_m": 9.500000000000002
+        },
+        {
+          "relative_relief_m": 24.0,
+          "slope_deg": 5.576008651343274,
+          "roughness_m": 9.500000000000002
+        },
+        {
+          "relative_relief_m": 15.0,
+          "slope_deg": 2.147585428298503,
+          "roughness_m": 5.5
+        },
+        {
+          "relative_relief_m": 0.0,
+          "slope_deg": 0.0,
+          "roughness_m": 0.0
+        }
+      ],
+      "climate": {
+        "t2m_mean_C": -5.75,
+        "mean_diurnal_range_C": 4.51,
+        "t2m_abs_max_C": 11.1,
+        "t2m_abs_min_C": -32.1,
+        "mean_annual_precipitation_mm": 702.7,
+        "precip_complete_years": 30,
+        "period": "1991-01-01 to 2020-12-31",
+        "temp_model": "era5",
+        "precip_model": "era5",
+        "temp_cell": {
+          "lat": -63.5,
+          "lon": -57.0
+        },
+        "precip_cell": {
+          "lat": -63.5,
+          "lon": -57.0
+        },
+        "source_temperature": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31. A single ERA5 request is used for temperature and precipitation to respect the public rate limit (ERA5-Land often returns null precipitation). https://archive-api.open-meteo.com/v1/archive",
+        "source_precipitation": "Open-Meteo Historical Weather API (era5, 0.25°), daily 1991-01-01 to 2020-12-31, 30 complete calendar years used for the annual mean.",
+        "error": null
+      },
+      "water": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "OSM Overpass skipped after repeated failures in this ingest (not guessed).",
+        "elements": 0
+      },
+      "ndvi": {
+        "value": null,
+        "quality": "unavailable",
+        "is_real": false,
+        "source": "ORNL MOD13Q1 skipped after a previous timeout/error in this ingest (not guessed)."
+      }
     }
   },
   "ndvi_disabled": true,
