@@ -271,12 +271,12 @@ a.btn { text-decoration: none; }
 .easy-map-wrap-dest { border-color: color-mix(in srgb, var(--dest-color, var(--hx-luna)) 55%, var(--hx-linea)); }
 .easy-compare[data-body="mars"] { --dest-color: var(--hx-marte); }
 .easy-compare[data-body="moon"] { --dest-color: var(--hx-luna); }
-.easy-map-label { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs) var(--space-xs); padding: var(--space-2xs) var(--space-xs); background: var(--color-sheet); }
-.easy-map-label h3 { display: inline-flex; align-items: center; gap: var(--space-xs); font-size: var(--text-md); color: var(--color-ink); }
-.easy-map-label h3::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--hx-celeste); }
+.easy-map-label { min-height: 60px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-xs) var(--space-sm); padding: var(--space-xs) var(--space-md); background: var(--color-sheet); }
+.easy-map-label h3 { display: inline-flex; align-items: center; gap: var(--space-xs); font-size: var(--text-xl); color: var(--color-ink); }
+.easy-map-label h3::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--hx-celeste); }
 .easy-map-wrap-dest .easy-map-label h3::before { background: var(--dest-color, var(--hx-luna)); }
 .easy-map-tools { display: inline-flex; gap: 2px; padding: 2px; border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-pill); }
-.easy-map-btn { min-height: 28px; padding: 0 var(--space-xs); border: 0; border-radius: 6px; background: transparent; color: var(--color-muted); font-size: var(--text-xs); position: relative; }
+.easy-map-btn { min-height: 36px; padding: 0 var(--space-sm); border: 0; border-radius: 6px; background: transparent; color: var(--color-muted); font-size: var(--text-sm); position: relative; }
 .easy-map-btn::after { content: ""; position: absolute; inset: -6px 0; }
 .easy-map-btn.is-active { background: var(--color-accent); color: var(--color-accent-ink); }
 .easy-map-btn.is-active:hover { background: var(--color-accent-2); color: var(--color-accent-ink); }
@@ -358,8 +358,8 @@ a.btn { text-decoration: none; }
   .easy-pair-col + .easy-pair-col { padding-left: 0; padding-top: var(--space-xs); border-left: 0; border-top: var(--rule-hair) solid var(--color-rule); }
   .easy-result { grid-template-columns: 3.5rem minmax(0, 1fr); gap: var(--space-sm); }
   .easy-score-num { font-size: 1.5rem; }
-  .easy-map-label { padding: var(--space-2xs); }
-  .easy-map-label h3 { font-size: var(--text-sm); }
+  .easy-map-label { min-height: 52px; padding: var(--space-xs) var(--space-sm); }
+  .easy-map-label h3 { font-size: var(--text-lg); }
   .easy-pair { padding-inline: var(--space-sm); }
   /* Por debajo de 560 px los dos mapas se apilan, más anchos, y siguen visibles a la vez. */
   .easy-maps { grid-template-columns: minmax(0, 1fr); }
