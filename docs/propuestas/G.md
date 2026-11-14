@@ -72,7 +72,19 @@ Por qué:
 2. Encaja con la regla de «decir qué se parece y qué no»: el vector separa composición e impacto, y un nulo dice por qué falta.
 3. El espectral, con los destinos que tenemos (6 de 7 lunares polares), entrega poco y cuesta mucho antes de la entrega.
 
-Para la fase 2 propongo un eje composicional que llene justo lo que falta en los destinos, y que hay que evaluar antes de usarlo: un índice de sílice por la posición del rasgo de Christiansen en el infrarrojo térmico, con Diviner en la Luna (producto global en PDS), TES/THEMIS en Marte y ASTER GED en la Tierra (global, 100 m, por AppEEARS). Ojo: la posición del rasgo cambia entre el vacío y la atmósfera, y hay que documentar la corrección antes de comparar. Las referencias concretas de la fase 2 quedan **a verificar**.
+### Fase 2: hallazgo al investigarla (14 nov)
+
+El eje propuesto (posición del rasgo de Christiansen en el infrarrojo térmico como índice de sílice) **no es comparable entre los tres cuerpos**:
+
+- **Luna:** Diviner tiene tres canales cerca de 8 µm pensados para ubicar el rasgo, y el PDS publica su posición en los GDR de nivel 3 (`LRO-L-DLRE-5-GDR-V1.0`), también en proyección polar. Ahí sí sigue la composición de silicatos (Greenhagen et al. 2010, Science 329:1507).
+- **Marte:** en el mapa global de TES, la posición del rasgo depende sobre todo de la **cubierta de polvo** y no del contenido de sílice. Compararla con la Tierra mediría polvo, no roca. (Lo leí en un resumen secundario; si se retoma, hay que confirmarlo en el paper original.)
+- **Tierra:** ASTER GED tiene 5 bandas entre 8,3 y 11,3 µm, que no muestrean la zona del rasgo como Diviner, y la medición se hace a través de la atmósfera. Los índices usuales de ASTER (cuarzo, máfico) son cocientes de bandas, no la misma magnitud.
+
+**Alternativa que propongo (pendiente de OK):** usar el producto composicional oficial de cada cuerpo para **asignar una clase** de la tabla, en vez de comparar un número físico entre cuerpos. Es lo que ya hacemos con los mapas.
+
+- Luna, polos: hierro (FeO) y torio de Lunar Prospector GRS (PDS Geosciences; Lawrence et al. 1998, Science 281:1484). FeO bajo indica corteza feldespática (anortosítica); FeO alto, basalto de mare. Haría falta una clase nueva `g_lito_feldespatico` (en la Tierra, la palabra clave «anorthosite») y un umbral publicado de FeO (terrenos de Jolliff et al. 2000, **a verificar**). El resultado esperable es informativo: ningún sitio terrestre del catálogo es anortosita, así que la geología de los polos lunares no tendría análogo, y eso conviene decirlo.
+- Marte: Odyssey GRS (también en PDS Geosciences) tiene resolución de cientos de km; habría que ver si alcanza para Jezero o Meridiani o si conviene CRISM puntual.
+- Esfuerzo estimado: 1 a 2 días para la Luna (ubicar las tablas PDS4, validar contra un valor publicado de Apollo 16 y cargar); Marte, a evaluar aparte.
 
 ## 5. Carga completa (74 sitios, `g-mapas.jsonl`)
 
@@ -230,3 +242,4 @@ Hoy sólo Marius Hills tiene los dos bloques contra casi todos los sitios terres
 
 1. Opción de cobertura para S_G: (i), (ii) o (iii). Recomiendo (ii).
 2. Con eso aprobado, implementar el cableado en `tasi.py` / `vector.py` (otro PR).
+3. Fase 2: ¿seguimos con la alternativa (FeO de Lunar Prospector y clase feldespática para los polos lunares) en lugar del eje TIR?
