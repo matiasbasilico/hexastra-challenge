@@ -53,6 +53,7 @@ EARTH_KEYWORDS: Tuple[Tuple[str, str], ...] = (
     ("andesite", "g_lito_silicico"),
     ("dacite", "g_lito_silicico"),
     ("rhyolite", "g_lito_silicico"),
+    ("trachyte", "g_lito_silicico"),
     ("ignimbrite", "g_lito_silicico"),
     ("tuff", "g_lito_silicico"),
     ("felsic volcanic", "g_lito_silicico"),

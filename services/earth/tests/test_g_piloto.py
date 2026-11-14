@@ -36,6 +36,7 @@ def _by_site():
     ("basalt", {"g_lito_basaltico": 1.0}),
     ("volcanic: mafic rocks", {"g_lito_basaltico": 1.0}),
     ("Rhyolite", {"g_lito_silicico": 1.0}),
+    ("trachyte; volcanic", {"g_lito_silicico": 1.0}),
     ("sandstone; limestone", {"g_lito_clastico": 0.5, "g_lito_quimico": 0.5}),
 ])
 def test_earth_keywords_map_to_classes(liths, expected):
