@@ -76,6 +76,7 @@ def health() -> Dict[str, Any]:
         "ok": True,
         "service": "earth",
         "n_sites": len(cat.get("sites") or []),
+        "catalog_origin": (cat.get("meta") or {}).get("catalog_origin"),
         "covariance": bool(covariance()),
         "earthdata_cdse": earthdata.status(),
         "planetary_url_configured": bool(os.environ.get("PLANETARY_URL")),

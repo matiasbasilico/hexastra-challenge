@@ -33,9 +33,11 @@ Dimensiones del desafío y cómo las cubre la matriz V = [G, T, E, Vo, O] (`cont
 - **Puntaje: solo TASI** (`services/earth/tasi.py`). No implementar la fórmula S del documento impreso (Gauss + promedio geométrico).
 - **MVP: el mapa de puntos actual** (Leaflet). No grilla H3, no Cesium, no migrar a Next/MapLibre.
 - **No tocar** el monorepo `~/Desarrollo/nasa/nasa` (ni su Postgres en el puerto 5432) ni las carpetas viejas.
-- **Base de datos:** PostgreSQL + PostGIS propio del repo (contenedor `hexastra-db`, puerto 55432; en construcción en `db/`). Las APIs leen de ahí; los JSON de catálogo quedan como snapshot exportado.
-- **Publicación:** front en Cloudflare Pages (`scripts/deploy_pages.sh`); servicios en la Mac vía túnel `cloudflared` (`scripts/share.sh`). El sitio es público con link.
+- **Base de datos:** PostgreSQL + PostGIS propio del repo (contenedor `hexastra-db`, `127.0.0.1:55432`, `docker compose up -d db`). Se reconstruye entera desde archivos versionados con `db/load.py` (catálogos base + `data/measurements/*.jsonl`). Las APIs leen de ahí cuando `HEXASTRA_DATABASE_URL` está definida; si no, del snapshot `catalog.merged.json` (`db/export.py`) o del catálogo base. `/health` informa `catalog_origin`.
 - **Comparativa lado a lado, siempre:** el núcleo de la interfaz es la vista Tierra | destino (Marte o Luna) con los dos mapas a la vez. El punto del destino elegido y el del sitio terrestre seleccionado se ven marcados y resaltados en su mapa, sincronizados (elegir uno mueve y resalta el otro), con la ficha que explica qué se parece y qué no. Vale para el modo fácil y el avanzado; ningún rediseño puede sacarla ni esconderla.
+- **Componentes de similitud sin contraparte:** G y O sólo puntúan si hay un valor comparable en los dos lados (destino y sitio terrestre). Cargar datos de un solo lado está bien, pero cambiar fórmulas de `tasi.py` requiere propuesta y OK del usuario.
+- **Publicación:** front en Cloudflare Pages (`scripts/deploy_pages.sh`); servicios en la Mac vía túnel `cloudflared` (`scripts/share.sh`). El sitio es público con link.
+- **Identidad visual:** todo lo visual respeta [`docs/marca.md`](docs/marca.md) y sus tokens [`css/brand.css`](css/brand.css): fondo azul noche, acento cian, Montserrat + Open Sans, logo en `assets/brand/` sin modificar, puntaje de violeta a óxido y cuerpos con su color. Ninguna herramienta o tema de diseño (Hallmark incluido) reemplaza la paleta, la tipografía ni el logo; se puede tomar estructura, no identidad.
 
 ## 3. Reglas de datos (críticas)
 
@@ -67,7 +69,7 @@ Respetar las condiciones de uso de cada sitio no gubernamental.
 ## 5. Cómo trabajan los agentes
 
 - **Un agente, una tarea, un worktree, un PR.** Nada de commits en `main`, merges ni force-push. Commits chicos y descriptivos en español (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
-- **Datos nuevos:** cada agente escribe sus mediciones en `data/measurements/<agente>.jsonl` con su script de ingesta reproducible. No edita a mano los catálogos JSON ni escribe en la base de otro; la integración la hace el orquestador.
+- **Datos nuevos:** cada agente escribe sus mediciones en `data/measurements/<agente>.jsonl` con su script de ingesta reproducible (formato y reglas: [`data/measurements/README.md`](data/measurements/README.md)). No edita los catálogos base ni el archivo de otro agente, ni corre `db/export.py`; no corre `db/load.py` contra la base compartida (los tests usan una base temporal propia). La integración la hace el orquestador.
 - **Tests:** `./services/run_tests.sh` en verde, más tests nuevos que validen esquema, fuentes y nulos de lo que agregaste.
 - **Reporte final de cada agente:** qué cargó (tabla sitio × feature × valor × fuente), qué quedó `null` y por qué, validaciones hechas, dudas para el usuario.
 - **No apagar** la demo que corre en 8765/8766/8767; usar otros puertos para verificar.
@@ -75,6 +77,7 @@ Respetar las condiciones de uso de cada sitio no gubernamental.
 ## 6. Arranque rápido
 
 - Servicios + front: `./run_all.sh` (8765 front, 8766 planetary, 8767 earth).
-- Tests: `./services/run_tests.sh`.
+- Base: `docker compose up -d db && services/.venv/bin/python db/load.py`; servicios contra la base con `HEXASTRA_DATABASE_URL=postgresql://hexastra:hexastra-local@127.0.0.1:55432/hexastra ./run_all.sh`.
+- Tests: `./services/run_tests.sh` (planetary, earth y `db/tests`).
 - Link para compartir: `./scripts/deploy_pages.sh` y `./scripts/share.sh <url-de-pages>`.
 - Plan, decisiones y fuentes por sitio: `docs/unificacion.md` (§8) y `README.md`.

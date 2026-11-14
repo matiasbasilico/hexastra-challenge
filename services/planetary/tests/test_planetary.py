@@ -169,3 +169,9 @@ def test_jezero_and_gale_keep_mars24_points_and_cite_iau_centres():
     assert (gale["lat"], gale["lon"]) == (-4.59, 137.44)
     assert "Feature/14300" in jezero["coord_source"]
     assert "Feature/2071" in gale["coord_source"]
+
+
+def test_dbsource_is_identical_in_both_services():
+    here = (ROOT / "dbsource.py").read_text(encoding="utf-8")
+    other = (ROOT.parent / "earth" / "dbsource.py").read_text(encoding="utf-8")
+    assert here == other

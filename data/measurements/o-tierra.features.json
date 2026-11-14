@@ -1,0 +1,26 @@
+{
+  "dist_road_km": {
+    "service": "earth",
+    "unit": "km",
+    "name_es": "Distancia a la ruta más cercana",
+    "description": "Distancia geodésica en línea recta (WGS84) desde la coordenada del sitio al tramo de ruta más cercano de NASA SEDAC gROADS v1. No es distancia de viaje. Practicidad terrestre: no entra en TASI."
+  },
+  "dist_airport_km": {
+    "service": "earth",
+    "unit": "km",
+    "name_es": "Distancia al aeródromo más cercano",
+    "description": "Distancia geodésica en línea recta (WGS84) al aeródromo abierto con pista más cercano (OurAirports: small_airport, medium_airport o large_airport; sin helipuertos, hidroaeródromos ni cerrados). Practicidad terrestre: no entra en TASI."
+  },
+  "dist_airport_scheduled_km": {
+    "service": "earth",
+    "unit": "km",
+    "name_es": "Distancia al aeropuerto con vuelos regulares más cercano",
+    "description": "Igual que dist_airport_km, restringido a los aeródromos con scheduled_service = yes en OurAirports. Practicidad terrestre: no entra en TASI."
+  },
+  "population_50km": {
+    "service": "earth",
+    "unit": "persons",
+    "name_es": "Población en un radio de 50 km",
+    "description": "Suma de las celdas de 30 arcsec de NASA SEDAC GPWv4 r11 (población 2020) cuyo centro está a 50 km o menos (distancia geodésica) de la coordenada del sitio. Practicidad terrestre: no entra en TASI."
+  }
+}

@@ -1,0 +1,50 @@
+/* HexAstra — tokens de marca. Fuente de verdad: docs/marca.md.
+   Colores medidos en las piezas oficiales (portada y logo), no inventados.
+   Cargar antes que cualquier otra hoja; el resto del CSS solo usa estas variables. */
+
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap");
+
+:root {
+  /* Base (portada) */
+  --hx-noche: #070915;          /* fondo */
+  --hx-noche-2: #121830;        /* superficie elevada (derivado: noche + 6 % de luz) */
+  --hx-linea: #2A3250;          /* divisores y bordes */
+  --hx-texto: #F6F7FE;          /* titulares y texto principal */
+  --hx-texto-2: #A9B0CA;        /* texto secundario, pies */
+  --hx-cian: #65D0EA;           /* acento principal: subtítulos, enlaces, foco */
+
+  /* Imagen de la portada (red hexagonal sobre el terreno) */
+  --hx-marte: #D87E4E;          /* óxido marciano; también "muy parecido" */
+  --hx-violeta: #8651D3;        /* nodos de la red; también "poco parecido" — solo gráficos o texto grande */
+  --hx-cian-brillo: #56B2DE;    /* brillos y líneas de la red */
+
+  /* Logo (Argentina) */
+  --hx-azul-orbita: #2B77E1;    /* anillo del parche — gráficos, bordes, texto grande */
+  --hx-celeste: #729CD8;        /* bandera */
+  --hx-sol: #D4964E;            /* Sol de Mayo */
+  --hx-luna: #B6AEB7;           /* Luna */
+
+  /* Semántica de la app */
+  --hx-cuerpo-tierra: var(--hx-celeste);
+  --hx-cuerpo-marte: var(--hx-marte);
+  --hx-cuerpo-luna: var(--hx-luna);
+  --hx-puntaje-bajo: var(--hx-violeta);
+  --hx-puntaje-alto: var(--hx-marte);
+  --hx-dato-medido: var(--hx-cian);
+  --hx-dato-modelado: var(--hx-celeste);
+  --hx-dato-a-completar: var(--hx-sol);
+  --hx-menos-estudiado: var(--hx-cian-brillo);
+  --hx-foco: var(--hx-cian);
+
+  /* Tipografía */
+  --hx-font-titulo: "Montserrat", system-ui, sans-serif;
+  --hx-font-texto: "Open Sans", system-ui, sans-serif;
+  --hx-peso-titulo: 700;
+  --hx-peso-subtitulo: 500;
+  --hx-tracking-etiqueta: 0.14em;
+
+  /* Forma */
+  --hx-radio: 10px;
+  --hx-radio-chip: 999px;
+  --hx-borde: 1px solid var(--hx-linea);
+}

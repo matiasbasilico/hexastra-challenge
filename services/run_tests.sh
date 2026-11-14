@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 PY="${ROOT}/.venv/bin/python"
 "$PY" -m pytest -q "${ROOT}/planetary/tests"
 "$PY" -m pytest -q "${ROOT}/earth/tests"
+"$PY" -m pytest -q "${ROOT}/../db/tests"
 # Tests del front (js/explain.js y contrato de ids de index.html), si hay Node.
 if command -v node >/dev/null 2>&1; then
   node --test "${ROOT}"/../js/tests/*.test.mjs
