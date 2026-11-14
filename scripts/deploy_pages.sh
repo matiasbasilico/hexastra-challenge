@@ -13,7 +13,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROJECT="${HEXASTRA_PAGES_PROJECT:-hexastra-analogos}"
 BRANCH="${1:-$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)}"
 COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
-DIST="$(mktemp -d "${TMPDIR:-/tmp}/hexastra-pages.XXXXXX")"
+STAGE="$(mktemp -d "${TMPDIR:-/tmp}/hexastra-pages.XXXXXX")"
+DIST="$STAGE/dist"
+mkdir -p "$DIST"
 WRANGLER=(npx --yes wrangler@3)
 
 if ! git -C "$ROOT" diff --quiet -- index.html css js data; then
@@ -39,6 +41,11 @@ EOF
 if ! "${WRANGLER[@]}" pages project list 2>/dev/null | grep -q "\b${PROJECT}\b"; then
   "${WRANGLER[@]}" pages project create "$PROJECT" --production-branch main
 fi
+
+# Pages Functions (same-origin proxy to the tunnels) and their KV binding.
+cp -R "$ROOT/pages/functions" "$STAGE/functions"
+cp "$ROOT/pages/wrangler.toml" "$STAGE/wrangler.toml"
+cd "$STAGE"
 
 "${WRANGLER[@]}" pages deploy "$DIST" \
   --project-name "$PROJECT" \
