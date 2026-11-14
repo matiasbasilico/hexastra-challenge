@@ -57,8 +57,16 @@
     featured: null,
     featuredId: null,
     featuredOnly: false,
-    reverseResults: null
+    reverseResults: null,
+    destMap: null,
+    destLayers: {},
+    destBody: null,
+    destMarkers: {}
   };
+
+  // Mercator web no llega a los polos: el polo sur lunar queda comprimido en este borde.
+  const MERCATOR_MAX_LAT = 85.05;
+
 
   const $ = function (sel, root) { return (root || document).querySelector(sel); };
   const $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -191,16 +199,13 @@
     }
     const easyApp = $("#easy-app");
     if (easyApp) easyApp.hidden = !easy;
+    if (easy) invalidateEasyMap();
     requestAnimationFrame(function () {
-      if (easy && state.map) {
-        state.map.invalidateSize();
-      }
       if (!easy && window.HexastraApp && typeof window.HexastraApp.invalidateMaps === "function") {
         window.HexastraApp.invalidateMaps();
       }
     });
     setTimeout(function () {
-      if (easy && state.map) state.map.invalidateSize();
       if (!easy && window.HexastraApp && window.HexastraApp.invalidateMaps) {
         window.HexastraApp.invalidateMaps();
       }
@@ -212,6 +217,8 @@
     if (!root) return;
     root.innerHTML =
       '<div class="easy">' +
+        '<div class="easy-layout">' +
+          '<div class="easy-side">' +
         '<nav class="easy-steps" aria-label="Pasos del modo fácil">' +
           '<ol class="easy-stepper" id="easy-stepper"></ol>' +
         '</nav>' +
@@ -223,18 +230,31 @@
           '<div id="easy-featured-groups"></div>' +
           '<div id="easy-featured-panel" class="easy-feat-panel" hidden></div>' +
         '</section>' +
-        '<div class="easy-layout">' +
           '<section class="easy-main" id="easy-main" aria-live="polite"></section>' +
-          '<section class="easy-map-wrap" aria-label="Mapa mundial de la Tierra">' +
-            '<div class="easy-map-label">' +
-              '<h2>Tierra · vista mundial</h2>' +
-              '<div class="easy-map-tools">' +
-                '<button type="button" class="easy-map-btn is-active" id="easy-basemap-sat" aria-pressed="true">Satélite</button>' +
-                '<button type="button" class="easy-map-btn" id="easy-basemap-osm" aria-pressed="false">Mapa</button>' +
+          '</div>' +
+          '<section class="easy-compare" id="easy-compare" aria-labelledby="easy-compare-title">' +
+            '<h2 class="visually-hidden" id="easy-compare-title">Comparación lado a lado</h2>' +
+            '<div class="easy-maps">' +
+              '<div class="easy-map-wrap">' +
+                '<div class="easy-map-label">' +
+                  '<h3>Tierra</h3>' +
+                  '<div class="easy-map-tools">' +
+                    '<button type="button" class="easy-map-btn is-active" id="easy-basemap-sat" aria-pressed="true">Satélite</button>' +
+                    '<button type="button" class="easy-map-btn" id="easy-basemap-osm" aria-pressed="false">Mapa</button>' +
+                  '</div>' +
+                '</div>' +
+                '<div id="easy-map-earth" class="easy-map" role="application" aria-label="Mapa de la Tierra"></div>' +
+              '</div>' +
+              '<div class="easy-map-wrap easy-map-wrap-dest">' +
+                '<div class="easy-map-label">' +
+                  '<h3 id="easy-dest-label">Luna</h3>' +
+                '</div>' +
+                '<div id="easy-map-dest" class="easy-map easy-map-dest" role="application" aria-label="Mapa del destino"></div>' +
               '</div>' +
             '</div>' +
-            '<div id="easy-map-earth" class="easy-map" role="application" aria-label="Mapa mundial"></div>' +
             '<p class="easy-map-hint" id="easy-map-hint">El mapa muestra el mundo. Cuando haya resultados, tocá un número para ir a ese lugar.</p>' +
+            '<p class="easy-map-hint" id="easy-dest-note"></p>' +
+            '<div class="easy-pair" id="easy-pair" aria-live="polite"></div>' +
           '</section>' +
         '</div>' +
       '</div>' +
@@ -247,6 +267,8 @@
       '</div>';
     renderStepper();
     initMap();
+    initDestMap();
+    renderPair();
     $("#easy-basemap-sat").addEventListener("click", function () { setBasemap("sat"); });
     $("#easy-basemap-osm").addEventListener("click", function () { setBasemap("osm"); });
     $("#easy-calc-close").addEventListener("click", closeCalc);
@@ -259,9 +281,10 @@
   }
 
   function invalidateEasyMap() {
-    if (!state.map) return;
-    requestAnimationFrame(function () { state.map.invalidateSize(); });
-    setTimeout(function () { if (state.map) state.map.invalidateSize(); }, 200);
+    const maps = [state.map, state.destMap].filter(Boolean);
+    if (!maps.length) return;
+    requestAnimationFrame(function () { maps.forEach(function (m) { m.invalidateSize(); }); });
+    setTimeout(function () { maps.forEach(function (m) { m.invalidateSize(); }); }, 200);
   }
 
   function renderFeatured() {
@@ -324,9 +347,9 @@
           "<h3>" + escapeHtml(pl.name) + "</h3>" +
           '<button type="button" class="easy-link" id="easy-feat-close">Cerrar</button>' +
         "</div>" +
-        '<p class="easy-feat-meta">' + escapeHtml(place || "") +
-          (pl.classic ? ' · <span class="easy-chip">Análogo clásico</span>' : "") +
-          (pl.highlight_less_studied ? ' · <span class="easy-chip">Menos estudiado</span>' : "") +
+        '<p class="easy-feat-meta">' + (place ? "<span>" + escapeHtml(place) + "</span>" : "") +
+          (pl.classic ? ' <span class="easy-chip">Análogo clásico</span>' : "") +
+          (pl.highlight_less_studied ? ' <span class="easy-chip">Menos estudiado</span>' : "") +
         "</p>" +
         "<p>" + escapeHtml(pl.summary || "") + "</p>" +
         (pl.coord_source ? '<p class="easy-note">Coordenadas: ' + escapeHtml(pl.coord_source) + "</p>" : "") +
@@ -348,10 +371,32 @@
       state.reverseResults = null;
       clearFeaturedMarker();
       renderFeatured();
+      renderPair();
     });
     const cmp = $("#easy-feat-compare");
     if (cmp) cmp.addEventListener("click", function () { compareFeatured(pl); });
     if (state.reverseResults) renderReverseInto($("#easy-feat-reverse"));
+  }
+
+  // Leaflet no puede animar un mapa oculto (tamaño 0): en ese caso salta sin animación.
+  function hasSize(map) {
+    const size = map.getSize();
+    return size.x > 0 && size.y > 0;
+  }
+
+  function safeFly(map, latlng, zoom, opts) {
+    if (!hasSize(map) || (opts && opts.animate === false)) map.setView(latlng, zoom, { animate: false });
+    else map.flyTo(latlng, zoom, opts);
+  }
+
+  function safeFitBounds(map, bounds, opts) {
+    if (!hasSize(map)) return;
+    if (opts && opts.animate === false) map.fitBounds(bounds, opts);
+    else map.flyToBounds(bounds, opts);
+  }
+
+  function flyOpts() {
+    return prefersReducedMotion() ? { animate: false } : { duration: 0.8 };
   }
 
   function featuredIcon(active) {
@@ -376,6 +421,7 @@
     state.featuredId = pl.id;
     state.reverseResults = null;
     renderFeatured();
+    renderPair();
     if (pl.lat == null || pl.lon == null) return;
     if (state.map) {
       clearFeaturedMarker();
@@ -389,12 +435,12 @@
       marker.bindTooltip(pl.short_name || pl.name);
       state.featuredMarker = marker;
       const z = Math.abs(pl.lat) > 70 ? 5 : 7;
-      state.map.flyTo([pl.lat, pl.lon], z, { duration: 0.8 });
+      safeFly(state.map, [pl.lat, pl.lon], z, flyOpts());
       invalidateEasyMap();
     }
     const panel = $("#easy-featured-panel");
     if (panel && typeof panel.scrollIntoView === "function") {
-      panel.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      panel.scrollIntoView({ block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
     }
   }
 
@@ -420,11 +466,9 @@
           '<li><button type="button" class="easy-result" data-rev-id="' + escapeHtml(site.id) + '" data-body="' + escapeHtml(site.body || "") + '">' +
             '<div class="easy-score"><span class="easy-score-num">' + escapeHtml(String(score)) + '</span><span class="easy-score-den">/ 100</span></div>' +
             '<div class="easy-result-body">' +
-              '<p class="easy-result-rank">#' + (i + 1) + (body ? " · " + body : "") + "</p>" +
+              '<p class="easy-result-rank"><span class="num">' + (i + 1) + "</span>" + (body ? "<span>" + body + "</span>" : "") + "</p>" +
               "<h3>" + escapeHtml(site.name) + "</h3>" +
-              (m.why ? '<p class="easy-why"><strong>Por qué se parece.</strong> ' + escapeHtml(m.why) + "</p>" : "") +
-              (m.breaks ? '<p class="easy-breaks"><strong>En qué no.</strong> ' + escapeHtml(m.breaks) + "</p>" : "") +
-              missingBadges(m.missing) +
+              resultExplain(m) +
             "</div></button></li>"
         );
       }).join("") + "</ol>";
@@ -452,6 +496,10 @@
       await loadTargets(state.body);
     }
     state.targetId = id;
+    state.results = null;
+    state.selectedResultId = null;
+    focusDestination();
+    renderPair();
     try { state.targetVector = await callApi("getTargetVector", [id]); }
     catch (e) { state.targetVector = null; }
     goStep(1);
@@ -618,7 +666,6 @@
         return (
           '<button type="button" class="easy-card easy-card-dest' + sel + '" role="listitem" data-id="' +
           escapeHtml(t.id) + '" aria-pressed="' + (t.id === state.targetId ? "true" : "false") + '">' +
-            '<div class="easy-card-visual easy-visual-' + escapeHtml(t.body) + '" aria-hidden="true"></div>' +
             '<div class="easy-card-body">' +
               '<div class="easy-card-chips">' + tagList(t) + "</div>" +
               "<h3>" + escapeHtml(t.short_name || t.name) + "</h3>" +
@@ -632,7 +679,6 @@
 
     main.innerHTML =
       '<div class="easy-pane">' +
-        '<p class="easy-kicker">Paso 1 de 3</p>' +
         '<h2 class="easy-title" id="easy-step-title" tabindex="-1">Elegí destino</h2>' +
         '<p class="easy-lead">Primero el cuerpo, después un sitio. Mostramos solo lugares que están en el catálogo, con la descripción que figura en los datos.</p>' +
         '<div class="easy-body-toggle" role="tablist" aria-label="Cuerpo del destino">' +
@@ -666,16 +712,24 @@
     }
     renderStepper();
     renderMain();
+    setDestBody(body);
+    renderPair();
     if (!state.targets[body].length) {
       await loadTargets(body);
-      if (state.body === body) renderMain();
+      if (state.body === body) {
+        renderMain();
+        renderDestMarkers();
+      }
     }
   }
 
   async function chooseTarget(id) {
     state.targetId = id;
     state.results = null;
+    state.selectedResultId = null;
     renderMain();
+    focusDestination();
+    renderPair();
     try {
       state.targetVector = await api().getTargetVector(id);
     } catch (err) {
@@ -689,8 +743,8 @@
     const t = currentTarget();
     main.innerHTML =
       '<div class="easy-pane">' +
-        '<p class="easy-kicker">Paso 2 de 3' + (t ? " · " + escapeHtml(t.short_name || t.name) : "") + "</p>" +
         '<h2 class="easy-title" id="easy-step-title" tabindex="-1">¿Qué te importa?</h2>' +
+        recapLine(t, null) +
         '<p class="easy-lead">Elegí un enfoque. Por detrás armamos los pesos del índice TASI (geología, terreno, clima, volátiles y operación). En este modo no mostramos las fórmulas.</p>' +
         '<div class="easy-presets" role="list">' +
           PRESETS.map(function (p) {
@@ -700,6 +754,7 @@
               p.id + '" aria-pressed="' + (p.id === state.presetId ? "true" : "false") + '">' +
                 '<h3>' + escapeHtml(p.title) + "</h3>" +
                 "<p>" + escapeHtml(p.lead) + "</p>" +
+                weightsRow(p.weights) +
               "</button>"
             );
           }).join("") +
@@ -792,11 +847,8 @@
 
     main.innerHTML =
       '<div class="easy-pane">' +
-        '<p class="easy-kicker">Paso 3 de 3' +
-          (t ? " · " + escapeHtml(t.short_name || t.name) : "") +
-          " · " + escapeHtml(preset.title) +
-        "</p>" +
         '<h2 class="easy-title" id="easy-step-title" tabindex="-1">¿Dónde buscar?</h2>' +
+        recapLine(t, preset) +
         '<p class="easy-lead">Podés buscar en el mundo entero o filtrar por continente y, después, por país. El filtro usa las regiones que entrega el servicio (o el catálogo local).</p>' +
         '<div class="easy-scope" role="radiogroup" aria-label="Alcance de la búsqueda">' +
           '<label class="easy-scope-card' + (state.scope === "world" ? " is-selected" : "") + '" id="easy-scope-world">' +
@@ -901,6 +953,28 @@
     if (state.results) plotResults(state.results);
   }
 
+  function resultExplain(m) {
+    const ex = explainMatch(m);
+    return (ex.why ? '<p class="easy-why"><strong>Por qué se parece.</strong> ' + escapeHtml(ex.why) + "</p>" : "") +
+      (ex.breaks ? '<p class="easy-breaks"><strong>En qué no.</strong> ' + escapeHtml(ex.breaks) + "</p>" : "") +
+      missingBadges(ex.missing);
+  }
+
+  function recapLine(t, preset) {
+    const parts = [];
+    if (t) parts.push("<div><dt>Destino</dt><dd>" + escapeHtml(t.short_name || t.name) + "</dd></div>");
+    if (preset) parts.push("<div><dt>Enfoque</dt><dd>" + escapeHtml(preset.title) + "</dd></div>");
+    return parts.length ? '<dl class="easy-recap">' + parts.join("") + "</dl>" : "";
+  }
+
+  function weightsRow(w) {
+    return '<dl class="easy-weights" aria-label="Pesos del índice TASI">' +
+      ["G", "T", "E", "V", "O"].map(function (k) {
+        return "<div><dt>" + k + "</dt><dd class='num'>" + Math.round((w[k] || 0) * 100) + "</dd></div>";
+      }).join("") +
+      "</dl>";
+  }
+
   function missingBadges(list) {
     if (!list || !list.length) return "";
     const shown = list.slice(0, 4);
@@ -965,13 +1039,11 @@
                 '<span class="easy-score-den">/ 100</span>' +
               "</div>" +
               '<div class="easy-result-body">' +
-                '<p class="easy-result-rank">#' + (i + 1) + (place ? " · " + escapeHtml(place) : "") +
-                  (site.highlight_less_studied ? ' · <span class="easy-chip">Menos estudiado</span>' : "") +
+                '<p class="easy-result-rank"><span class="num">' + (i + 1) + "</span>" + (place ? "<span>" + escapeHtml(place) + "</span>" : "") +
+                  (site.highlight_less_studied || site.known_level === "lesser-known" ? ' <span class="easy-chip">Menos estudiado</span>' : "") +
                 "</p>" +
                 "<h3>" + escapeHtml(site.name) + "</h3>" +
-                '<p class="easy-why"><strong>Por qué se parece.</strong> ' + escapeHtml(m.why || "") + "</p>" +
-                '<p class="easy-breaks"><strong>En qué no.</strong> ' + escapeHtml(m.breaks || "") + "</p>" +
-                missingBadges(m.missing) +
+                resultExplain(m) +
               "</div>" +
             "</button>" +
           "</li>"
@@ -1043,9 +1115,10 @@
     } finally {
       state.searching = false;
       renderMain();
+      renderPair();
       const res = $("#easy-results");
       if (res && (state.results || state.error) && typeof res.scrollIntoView === "function") {
-        res.scrollIntoView({ block: "start", behavior: "smooth" });
+        res.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
       }
     }
   }
@@ -1099,6 +1172,178 @@
     }
   }
 
+  /* ---------- Mapa del destino (Luna o Marte), al lado del de la Tierra ---------- */
+
+  function initDestMap() {
+    const el = $("#easy-map-dest");
+    if (!el || typeof L === "undefined") return;
+    const map = L.map(el, { zoomControl: false, minZoom: 1, maxZoom: 8, worldCopyJump: true }).setView([0, 0], 1);
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+    state.destLayers = {
+      mars: L.tileLayer(
+        "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
+        { attribution: "OpenPlanetaryMap, OPM Mars Basemap v0.2", maxZoom: 8, maxNativeZoom: 9 }
+      ),
+      moon: L.tileLayer(
+        "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
+        { attribution: "OpenPlanetaryMap, OPM Moon Basemap v0.1", maxZoom: 8, maxNativeZoom: 9 }
+      )
+    };
+    state.destMap = map;
+    setDestBody(state.body || "moon");
+    setTimeout(function () { map.invalidateSize(); }, 200);
+  }
+
+  function clampLat(lat) {
+    return Math.max(-MERCATOR_MAX_LAT, Math.min(MERCATOR_MAX_LAT, Number(lat)));
+  }
+
+  function setDestBody(body) {
+    const map = state.destMap;
+    if (!map || !body) return;
+    const changed = state.destBody !== body;
+    state.destBody = body;
+    Object.keys(state.destLayers).forEach(function (k) {
+      const ly = state.destLayers[k];
+      if (k === body) { if (!map.hasLayer(ly)) ly.addTo(map); }
+      else if (map.hasLayer(ly)) map.removeLayer(ly);
+    });
+    const label = $("#easy-dest-label");
+    if (label) label.textContent = body === "mars" ? "Marte" : "Luna";
+    const note = $("#easy-dest-note");
+    if (note) {
+      note.textContent = body === "moon"
+        ? "Luna en proyección Mercator: el polo sur queda comprimido contra el borde inferior y los sitios polares se dibujan en el límite de 85° S. Las coordenadas de la ficha son las reales."
+        : "";
+      note.hidden = body !== "moon";
+    }
+    if (changed) map.setView([0, 0], 1);
+    renderDestMarkers();
+  }
+
+  function destIcon(active) {
+    return L.divIcon({
+      className: "",
+      html: '<div class="easy-pin easy-pin-dest' + (active ? " is-active" : "") + '"></div>',
+      iconSize: active ? [22, 22] : [12, 12],
+      iconAnchor: active ? [11, 11] : [6, 6]
+    });
+  }
+
+  function renderDestMarkers() {
+    const map = state.destMap;
+    if (!map) return;
+    Object.keys(state.destMarkers).forEach(function (id) { map.removeLayer(state.destMarkers[id]); });
+    state.destMarkers = {};
+    const list = state.targets[state.destBody] || [];
+    list.forEach(function (t) {
+      if (t.lat == null || t.lon == null) return;
+      const active = t.id === state.targetId;
+      const marker = L.marker([clampLat(t.lat), t.lon], {
+        icon: destIcon(active),
+        title: t.name,
+        alt: "Destino: " + t.name,
+        keyboard: true,
+        zIndexOffset: active ? 800 : 0
+      }).addTo(map);
+      marker.bindTooltip(t.short_name || t.name, { permanent: active, direction: "top", offset: [0, -10] });
+      marker.on("click", function () {
+        if (state.step !== 1) goStep(1);
+        chooseTarget(t.id);
+      });
+      state.destMarkers[t.id] = marker;
+    });
+  }
+
+  function focusDestination() {
+    const t = currentTarget();
+    if (state.body && state.body !== state.destBody) setDestBody(state.body);
+    else renderDestMarkers();
+    if (!t || !state.destMap || t.lat == null || t.lon == null) return;
+    safeFly(state.destMap, [clampLat(t.lat), t.lon], 4, flyOpts());
+  }
+
+  /* ---------- Ficha del par: destino | sitio terrestre ---------- */
+
+  function formatScore(score) {
+    return window.HexastraExplain.formatScore(score);
+  }
+
+  function explainMatch(m) {
+    return window.HexastraExplain.explainMatch(m, labelMissing);
+  }
+
+  function selectedMatch() {
+    const matches = (state.results && state.results.matches) || [];
+    return matches.find(function (m) { return m.site && m.site.id === state.selectedResultId; }) || null;
+  }
+
+  function renderPair() {
+    const box = $("#easy-pair");
+    if (!box) return;
+    const t = currentTarget();
+    const m = selectedMatch();
+    const feat = !m && state.featuredId ? featuredById(state.featuredId) : null;
+    const bodyName = t ? (t.body === "mars" ? "Marte" : "Luna") : "";
+    const dest = t
+      ? "<p class='easy-pair-side'>" + escapeHtml(bodyName) + "</p>" +
+        "<h3>" + escapeHtml(t.short_name || t.name) + "</h3>" +
+        "<p class='easy-pair-coord num'>" + coordText(t.lat, t.lon) + "</p>" +
+        (t.missing_features && t.missing_features.length
+          ? "<p class='easy-missing'>" + t.missing_features.slice(0, 3).map(function (f) {
+              return "<span class='easy-chip easy-chip-warn'>Dato a completar: " + escapeHtml(labelMissing(f)) + "</span>";
+            }).join(" ") + "</p>"
+          : "")
+      : "<p class='easy-pair-side'>Destino</p><p class='easy-pair-empty'>Elegí un sitio de la Luna o de Marte en el paso 1, o tocá un punto del mapa de la derecha.</p>";
+    let earth;
+    if (m) {
+      const site = m.site;
+      const place = [site.province, site.country_name || site.country].filter(Boolean).join(", ");
+      earth = "<p class='easy-pair-side'>Tierra</p>" +
+        "<h3>" + escapeHtml(site.name) + "</h3>" +
+        "<p class='easy-pair-coord num'>" + coordText(site.lat, site.lon) + "</p>" +
+        (place ? "<p class='easy-pair-place'>" + escapeHtml(place) + "</p>" : "") +
+        (site.highlight_less_studied || site.known_level === "lesser-known" ? "<p><span class='easy-chip'>Menos estudiado</span></p>" : "");
+    } else if (feat) {
+      earth = "<p class='easy-pair-side'>Tierra</p><h3>" + escapeHtml(feat.name) + "</h3>" +
+        (feat.lat != null ? "<p class='easy-pair-coord num'>" + coordText(feat.lat, feat.lon) + "</p>" : "") +
+        "<p class='easy-pair-empty'>Lugar destacado, sin puntaje frente a este destino todavía.</p>";
+    } else {
+      earth = "<p class='easy-pair-side'>Tierra</p><p class='easy-pair-empty'>" +
+        (t ? "Buscá análogos en el paso 3 y elegí uno de la lista o del mapa." : "Primero el destino; después buscamos en la Tierra.") +
+        "</p>";
+    }
+    let detail = "";
+    if (m) {
+      const ex = explainMatch(m);
+      detail =
+        "<div class='easy-pair-score'><span class='easy-score-num num'>" + escapeHtml(formatScore(m.score)) + "</span><span class='easy-score-den'>de 100, índice TASI</span></div>" +
+        "<dl class='easy-pair-why'>" +
+          "<div><dt>Por qué se parece</dt><dd>" + escapeHtml(ex.why || "Sin componentes con dato.") + "</dd></div>" +
+          "<div><dt>En qué no</dt><dd>" + escapeHtml(ex.breaks) + "</dd></div>" +
+        "</dl>" +
+        (ex.missing.length ? "<p class='easy-missing'>" + ex.missing.map(function (k) {
+          return "<span class='easy-chip easy-chip-warn'>Dato a completar: " + escapeHtml(k) + "</span>";
+        }).join(" ") + "</p>" : "") +
+        "<p><button type='button' class='easy-link' id='easy-pair-calc'>Ver cómo se calcula</button></p>";
+    }
+    box.innerHTML =
+      "<div class='easy-pair-grid'>" +
+        "<div class='easy-pair-col'>" + earth + "</div>" +
+        "<div class='easy-pair-col'>" + dest + "</div>" +
+      "</div>" + detail;
+    const calc = $("#easy-pair-calc");
+    if (calc) calc.addEventListener("click", openCalc);
+  }
+
+  function coordText(lat, lon) {
+    if (lat == null || lon == null) return "coordenadas a completar";
+    const la = Number(lat);
+    const lo = Number(lon);
+    const fmt = function (v) { return Math.abs(v).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    return fmt(la) + "° " + (la < 0 ? "S" : "N") + ", " + fmt(lo) + "° " + (lo < 0 ? "O" : "E");
+  }
+
   function rankIcon(n, active) {
     return L.divIcon({
       className: "",
@@ -1117,6 +1362,7 @@
     if (state.map && !state.results) {
       state.map.setView([20, 0], 2);
     }
+    renderPair();
   }
 
   function plotResults(data) {
@@ -1142,9 +1388,9 @@
       latlngs.push([site.lat, site.lon]);
     });
     if (latlngs.length === 1) {
-      state.map.flyTo(latlngs[0], 6, { duration: 0.8 });
+      safeFly(state.map, latlngs[0], 6, flyOpts());
     } else if (latlngs.length > 1) {
-      state.map.flyToBounds(L.latLngBounds(latlngs).pad(0.4), { duration: 0.8, maxZoom: 6 });
+      safeFitBounds(state.map, L.latLngBounds(latlngs).pad(0.4), Object.assign(flyOpts(), { maxZoom: 6 }));
     } else {
       state.map.setView([20, 0], 2);
     }
@@ -1172,12 +1418,19 @@
       }
     });
     if (hit && state.map) {
-      state.map.flyTo([hit.site.lat, hit.site.lon], 8, { duration: 0.8 });
+      safeFly(state.map, [hit.site.lat, hit.site.lon], 8, flyOpts());
     }
-    const selectedBtn = document.querySelector('.easy-result[data-id="' + id + '"]');
-    if (selectedBtn && typeof selectedBtn.scrollIntoView === "function") {
-      selectedBtn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    renderPair();
+    // En pantallas angostas la comparación queda arriba: la traemos a la vista para ver los dos puntos.
+    const narrow = window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+    const target = narrow ? $("#easy-compare") : document.querySelector('.easy-result[data-id="' + id + '"]');
+    if (target && typeof target.scrollIntoView === "function") {
+      target.scrollIntoView({ block: narrow ? "start" : "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
     }
+  }
+
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
 
   function openCalc() {
@@ -1219,7 +1472,7 @@
       compLine("O", "Operación (O)") +
       "</tbody></table>" +
       (selected && selected.qualitative_flags && selected.qualitative_flags.length
-        ? "<p class='easy-note'>" + escapeHtml(selected.qualitative_flags.join(" · ")) + "</p>"
+        ? "<p class='easy-note'>" + escapeHtml(selected.qualitative_flags.join("; ")) + "</p>"
         : "") +
       "<p>La elevación absoluta no entra en la comparación entre cuerpos: no se mide igual en la Tierra, la Luna y Marte.</p>" +
       '<p><button type="button" class="easy-btn" id="easy-go-advanced">Abrir modo avanzado</button></p>';
@@ -1315,10 +1568,14 @@
     renderMain();
     await loadTargets("moon");
     renderMain();
+    focusDestination();
+    renderPair();
     invalidateEasyMap();
     setTimeout(invalidateEasyMap, 400);
     // Precargar Marte en silencio para que el cambio de pestaña sea inmediato.
-    loadTargets("mars");
+    loadTargets("mars").then(function () {
+      if (state.destBody === "mars") renderDestMarkers();
+    });
   }
 
   if (document.readyState === "loading") {

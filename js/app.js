@@ -29,7 +29,46 @@
     regions: null,
     lastTasi: null,
     remoteEarth: {},
+    target: null,
+    targetMarker: null,
   };
+
+  // Mercator web no llega a los polos: los sitios del polo sur lunar se dibujan en este borde.
+  const MERCATOR_MAX_LAT = 85.05;
+
+  function css(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  // Leaflet no puede animar un mapa oculto (tamaño 0): en ese caso salta sin animación.
+  function hasSize(map) {
+    const size = map.getSize();
+    return size.x > 0 && size.y > 0;
+  }
+
+  function safeFly(map, latlng, zoom, opts) {
+    if (!hasSize(map) || (opts && opts.animate === false)) map.setView(latlng, zoom, { animate: false });
+    else map.flyTo(latlng, zoom, opts);
+  }
+
+  function safeFitBounds(map, bounds, opts) {
+    if (!hasSize(map)) return;
+    if (opts && opts.animate === false) map.fitBounds(bounds, opts);
+    else map.flyToBounds(bounds, opts);
+  }
+
+  function flyOpts(duration) {
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return reduce ? { animate: false } : { duration: duration };
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -229,10 +268,13 @@
     data.mars_sites.forEach((site) => {
       const m = L.marker([site.lat, site.lon], { icon: divIcon("mars", false), title: site.name }).addTo(state.marsMap);
       m.on("click", () => {
-        const earth = data.earth_sites.find((s) => s.paired_mars_ids.includes(site.id));
-        if (earth) selectSite(earth.id);
-        else {
-          state.marsMap.flyTo([site.lat, site.lon], 5, { duration: 0.8 });
+        const t = ((state.catalog && state.catalog.sites) || []).find((x) => x.id === site.id);
+        if (t) {
+          $("#finder-target").value = t.id;
+          state.lastTasi = null;
+          focusTarget(t);
+        } else {
+          safeFly(state.marsMap, [site.lat, site.lon], 5, flyOpts(0.8));
         }
       });
       m.bindTooltip(site.short_name);
@@ -254,17 +296,13 @@
         "</span>" +
         '<span class="meta">' +
         site.province +
-        " · índice ambiental " +
+        ", índice ambiental " +
         pct(scores.index) +
         "</span>" +
         (site.highlight_less_studied ? '<span class="badge menos">Menos estudiado</span>' : '<span class="badge">Candidato</span>');
       btn.addEventListener("click", () => selectSite(site.id));
       box.appendChild(btn);
     });
-  }
-
-  function marsById(id) {
-    return state.data.mars_sites.find((s) => s.id === id);
   }
 
   function selectSite(id) {
@@ -278,41 +316,15 @@
       const kind = s && s.highlight_less_studied ? "menos" : "earth";
       marker.setIcon(divIcon(kind, sid === id));
     });
-    const paired = site.paired_mars_ids.map(marsById).filter(Boolean);
-    Object.entries(state.marsMarkers).forEach(([mid, marker]) => {
-      marker.setIcon(divIcon("mars", site.paired_mars_ids.includes(mid)));
-    });
-
-    state.earthMap.flyTo([site.lat, site.lon], 8, { duration: 0.9 });
-    if (paired[0]) {
-      state.marsMap.flyTo([paired[0].lat, paired[0].lon], 5, { duration: 0.9 });
-    }
-    renderPanel(site, paired);
+    // El par sale del destino elegido en el buscador (y del ranking TASI), no de paired_mars_ids.
+    safeFly(state.earthMap, [site.lat, site.lon], 8, flyOpts(0.9));
+    keepTargetInView();
+    renderPanel(site);
   }
 
-  function renderPanel(site, paired) {
+  function renderPanel(site) {
     const scores = compute(site);
-    const marsLinks = paired
-      .map((m) => {
-        const elev =
-          m.elevation_m.status === "measured"
-            ? fmt(m.elevation_m.value, 0, "m") + " " + tag("measured")
-            : "elevación " + tag("example");
-        return (
-          "<li><strong>" +
-          m.name +
-          "</strong> — " +
-          m.lat +
-          "°, " +
-          (m.lon_east_0_360.toLocaleString("es-AR")) +
-          "°E (" +
-          elev +
-          ")<br><span class='muted'>" +
-          m.summary +
-          "</span></li>"
-        );
-      })
-      .join("");
+    const match = currentMatch(site.id);
 
     const q = site.qualitative_scores;
     $("#panel").innerHTML =
@@ -320,8 +332,8 @@
       '<div class="panel-body">' +
       "<p class='kicker'>" +
       site.province +
-      (site.highlight_less_studied ? " · destacado como menos estudiado" : "") +
       "</p>" +
+      (site.highlight_less_studied ? "<p><span class='badge menos'>Menos estudiado</span></p>" : "") +
       "<h3 style='margin-top:0.2rem'>" +
       site.name +
       "</h3>" +
@@ -344,9 +356,7 @@
       site.analogy_breaks +
       "</p>" +
       "<p class='muted'>Marte tiene 3,73 m/s² de gravedad media frente a 9,82 m/s² en la Tierra, y ~6,36 mbar de presión frente a ~1013 mbar a nivel del mar terrestre (NASA NSSDC Mars Fact Sheet). Esas diferencias no se pueden emular acá.</p>" +
-      "<h3>Sitio(s) de Marte apareados</h3><ul>" +
-      marsLinks +
-      "</ul>" +
+      pairBlock(match) +
       '<div class="score-hero"><div class="num">' +
       pct(scores.index) +
       "</div><p>Índice ambiental cuantitativo (temperatura, amplitud, aridez y proxy de altitud/UV). No incluye geología ni relieve. Es una fórmula transparente del prototipo, no una métrica validada.</p></div>" +
@@ -389,6 +399,33 @@
     drawCharts(scores, q);
   }
 
+  function currentMatch(id) {
+    return ((state.lastTasi && state.lastTasi.matches) || []).find((m) => m.site && m.site.id === id) || null;
+  }
+
+  // Ficha del par: destino elegido frente a este sitio, con lo que se parece, lo que no y lo que falta.
+  function pairBlock(match) {
+    const t = state.target;
+    if (!t) {
+      return "<h3>Destino</h3><p class='muted'>Elegí un destino en el buscador de arriba para ver el par en el mapa de la derecha.</p>";
+    }
+    const body = t.body === "moon" ? "Luna" : "Marte";
+    let html = "<h3>Comparado con " + escapeHtml(t.short_name || t.name) + " (" + body + ")</h3>";
+    if (!match) {
+      return html + "<p class='muted'>Este sitio no está en el último ranking TASI frente a ese destino. Corré «Buscar análogos en la Tierra» para puntuarlo.</p>";
+    }
+    const ex = window.HexastraExplain.explainMatch(match);
+    html +=
+      "<div class='score-hero'><div class='num'>" + escapeHtml(window.HexastraExplain.formatScore(match.score)) +
+      "</div><p>de 100, índice TASI frente a " + escapeHtml(t.short_name || t.name) + ".</p></div>" +
+      "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why || "Sin componentes con dato.") + "</p>" +
+      "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks) + "</p>" +
+      (ex.missing.length
+        ? "<p class='pair-missing'>" + ex.missing.map((k) => "<span class='tag warn'>Dato a completar: " + escapeHtml(k) + "</span>").join(" ") + "</p>"
+        : "");
+    return html;
+  }
+
   function fact(label, value, status) {
     return "<div class='fact'><dt>" + label + " " + tag(status) + "</dt><dd>" + value + "</dd></div>";
   }
@@ -419,16 +456,14 @@
       qualitative.sales.value,
       qualitative.vulcanismo.value,
     ].map((v) => Math.round(v * 1000) / 10);
-    const colors = [
-      "rgba(111,191,154,0.85)",
-      "rgba(111,191,154,0.85)",
-      "rgba(111,191,154,0.85)",
-      "rgba(111,191,154,0.85)",
-      "rgba(201,164,92,0.85)",
-      "rgba(201,164,92,0.85)",
-      "rgba(201,164,92,0.85)",
-      "rgba(201,164,92,0.85)",
-    ];
+    // Colores del sistema (css/tokens.css y css/style.css): dato medido vs. valor de ejemplo.
+    const ink = css("--color-ink");
+    const muted = css("--color-muted");
+    const rule = css("--color-rule");
+    const measured = css("--color-earth");
+    const example = css("--color-warn-ink");
+    const font = { family: css("--font-body") || "serif" };
+    const colors = [measured, measured, measured, measured, example, example, example, example];
 
     if (state.charts.bars) state.charts.bars.destroy();
     if (state.charts.radar) state.charts.radar.destroy();
@@ -452,7 +487,7 @@
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          title: { display: true, text: "Dimensiones (verde: dato; ámbar: ejemplo)", color: "#ece8e1", font: { size: 11 } },
+          title: { display: true, text: "Dimensiones (verde: dato; ámbar: ejemplo)", color: ink, font: Object.assign({ size: 12 }, font) },
           tooltip: {
             callbacks: {
               afterLabel: (ctx) => (ctx.dataIndex < 4 ? "Calculado con datos de esta corrida" : "Valor de ejemplo / a completar"),
@@ -460,8 +495,8 @@
           },
         },
         scales: {
-          x: { min: 0, max: 100, ticks: { color: "#9aa3ad" }, grid: { color: "rgba(255,255,255,0.06)" } },
-          y: { ticks: { color: "#ece8e1", font: { size: 10 } }, grid: { display: false } },
+          x: { min: 0, max: 100, ticks: { color: muted, font: font }, grid: { color: rule } },
+          y: { ticks: { color: ink, font: Object.assign({ size: 11 }, font) }, grid: { display: false } },
         },
       },
     });
@@ -474,8 +509,9 @@
           {
             label: "Sitio (mezcla dato + ejemplo)",
             data: values,
-            borderColor: "#e07a3d",
-            backgroundColor: "rgba(224,122,61,0.25)",
+            borderColor: css("--color-accent"),
+            backgroundColor: "transparent",
+            borderWidth: 2,
             pointBackgroundColor: colors,
           },
         ],
@@ -484,23 +520,64 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: "#ece8e1", font: { size: 10 } } },
-          title: { display: true, text: "Radar — las ramas ámbar son preliminares", color: "#ece8e1", font: { size: 11 } },
+          legend: { labels: { color: ink, font: font } },
+          title: { display: true, text: "Radar: las ramas ámbar son preliminares", color: ink, font: Object.assign({ size: 12 }, font) },
         },
         scales: {
           r: {
             min: 0,
             max: 100,
-            ticks: { color: "#9aa3ad", backdropColor: "transparent", stepSize: 25 },
-            grid: { color: "rgba(255,255,255,0.08)" },
-            angleLines: { color: "rgba(255,255,255,0.08)" },
-            pointLabels: { color: "#ece8e1", font: { size: 9 } },
+            ticks: { color: muted, backdropColor: "transparent", stepSize: 25 },
+            grid: { color: rule },
+            angleLines: { color: rule },
+            pointLabels: { color: ink, font: Object.assign({ size: 10 }, font) },
           },
         },
       },
     });
   }
 
+
+  function targetIcon() {
+    return L.divIcon({
+      className: "",
+      html: '<div class="pin target"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  }
+
+  function targetLatLng(t) {
+    return [Math.max(-MERCATOR_MAX_LAT, Math.min(MERCATOR_MAX_LAT, Number(t.lat))), Number(t.lon)];
+  }
+
+  // Marca y centra el destino elegido en el mapa derecho (Marte o Luna).
+  function focusTarget(t) {
+    if (!t || t.lat == null || t.lon == null || !state.marsMap) return;
+    state.target = t;
+    if (state.targetMarker) state.marsMap.removeLayer(state.targetMarker);
+    state.targetMarker = L.marker(targetLatLng(t), {
+      icon: targetIcon(),
+      title: t.name,
+      alt: "Destino elegido: " + t.name,
+      zIndexOffset: 1000,
+      keyboard: true,
+    });
+    state.targetMarker.bindTooltip(t.short_name || t.name, { permanent: true, direction: "top", offset: [0, -12] });
+    setRightBody(t.body, t);
+    if (state.selectedId) {
+      const local = state.data && (state.data.earth_sites || []).find((s) => s.id === state.selectedId);
+      if (local) renderPanel(local);
+      else if (state.remoteEarth[state.selectedId]) renderRemotePanel(state.remoteEarth[state.selectedId], currentMatch(state.selectedId));
+    }
+  }
+
+  function keepTargetInView() {
+    const t = state.target;
+    if (!t || !state.marsMap) return;
+    const ll = targetLatLng(t);
+    if (!state.marsMap.getBounds().contains(ll)) if (hasSize(state.marsMap)) state.marsMap.panTo(ll, flyOpts(0.6));
+  }
 
   function rankIcon(n, active) {
     return L.divIcon({
@@ -520,7 +597,7 @@
     if (body === "moon") {
       marsLayers.forEach((ly) => { if (map.hasLayer(ly)) map.removeLayer(ly); });
       if (Lrs.opmMoon && !map.hasLayer(Lrs.opmMoon)) Lrs.opmMoon.addTo(map);
-      if (label) label.textContent = "Luna (Web Mercator comprime el polo sur)";
+      if (label) label.textContent = "Luna (la proyección Mercator comprime el polo sur)";
       Object.values(state.marsMarkers).forEach((m) => { if (map.hasLayer(m)) map.removeLayer(m); });
       Object.values(state.moonMarkers).forEach((m) => m.addTo(map));
     } else {
@@ -532,9 +609,12 @@
       }
       if (label) label.textContent = "Marte";
     }
+    if (state.targetMarker) {
+      if (state.target && state.target.body === body) state.targetMarker.addTo(map);
+      else if (map.hasLayer(state.targetMarker)) map.removeLayer(state.targetMarker);
+    }
     if (targetSite) {
-      const lat = Math.max(-85.05, Math.min(85.05, targetSite.lat));
-      map.flyTo([lat, targetSite.lon], body === "moon" ? 4 : 5, { duration: 0.8 });
+      safeFly(map, targetLatLng(targetSite), body === "moon" ? 4 : 5, flyOpts(0.8));
     }
     setTimeout(() => map.invalidateSize(), 150);
   }
@@ -684,7 +764,7 @@
     const rows = ["G", "T", "E", "V", "O"].map((k) => {
       const c = comps[k] || {};
       const val = c.score == null ? "nulo" : c.score.toLocaleString("es-AR") + " / 100";
-      const why = c.available ? "" : " — " + (c.reason || "sin dato");
+      const why = c.available ? "" : ": " + (c.reason || "sin dato");
       return "<li><strong>" + k + "</strong>: " + val + (why ? "<span class='muted'>" + why + "</span>" : "") + "</li>";
     }).join("");
     const mask = (match && match.mask) || {};
@@ -692,21 +772,20 @@
       '<div class="panel-head"><h2>Sitio</h2></div>' +
       '<div class="panel-body">' +
       "<p class='kicker'>" +
-      (site.country_name || "") +
-      (site.country_iso ? " (" + site.country_iso + ")" : "") +
-      (site.continent ? " · " + site.continent : "") +
-      (site.highlight_less_studied ? " · menos estudiado" : "") +
+      escapeHtml([site.country_name ? site.country_name + (site.country_iso ? " (" + site.country_iso + ")" : "") : "", site.continent || ""].filter(Boolean).join(", ")) +
       "</p>" +
+      (site.highlight_less_studied ? "<p><span class='badge menos'>Menos estudiado</span></p>" : "") +
       "<h3 style='margin-top:0.2rem'>" + site.name + "</h3>" +
       (site.summary ? "<p class='lead'>" + site.summary + "</p>" : "") +
       "<p class='muted'>Candidato del catálogo mundial (earth-service). Las fichas narrativas largas de esta columna siguen disponibles para los sitios estáticos de la Argentina.</p>" +
       '<dl class="facts">' +
       fact("Coordenadas", Number(site.lat).toFixed(5) + "°, " + Number(site.lon).toFixed(5) + "°", "measured") +
-      fact("País", (site.country_name || "—") + (site.country_iso ? " · " + site.country_iso : ""), "measured") +
+      fact("País", (site.country_name || "—") + (site.country_iso ? " (" + site.country_iso + ")" : ""), "measured") +
       fact("Tipos", (site.analog_types || []).join(", ") || "—", "measured") +
       (match && match.score != null ? fact("TASI", match.score.toLocaleString("es-AR") + " / 100", "measured") : "") +
       "</dl>" +
       (mask.unknown_flags && mask.unknown_flags.length ? "<p class='caution'>Máscara incompleta: " + mask.unknown_flags.join(", ") + ". El sitio no se descartó.</p>" : "") +
+      pairBlock(match) +
       "<h3>Componentes TASI</h3><ul>" + rows + "</ul>" +
       "</div>";
   }
@@ -725,7 +804,7 @@
       const kind = s && s.highlight_less_studied ? "menos" : "earth";
       marker.setIcon(divIcon(kind, sid === id));
     });
-    state.earthMap.flyTo([site.lat, site.lon], 8, { duration: 0.9 });
+    safeFly(state.earthMap, [site.lat, site.lon], 8, flyOpts(0.9));
     const match = ((state.lastTasi && state.lastTasi.matches) || []).find((m) => m.site.id === id);
     renderRemotePanel(site, match);
   }
@@ -817,7 +896,8 @@
     out.innerHTML = "<p class='muted'>Buscando…</p>";
     try {
       const targetVector = await api.getTargetVector(targetId);
-      if (targetVector) setRightBody(targetVector.body, targetVector);
+      const chosen = ((state.catalog && state.catalog.sites) || []).find((x) => x.id === targetId) || targetVector;
+      if (chosen) focusTarget(chosen);
       const data = await api.rankAnalogs({
         targetVector: targetVector,
         weights: weights,
@@ -829,6 +909,7 @@
       });
       state.lastTasi = data;
       highlightRanks(data.matches || []);
+      if (state.selectedId) focusTarget(state.target);
       const items = (data.matches || []).map((m, i) => {
         const used = (m.coverage && m.coverage.available_components) || [];
         const skipped = (m.weights && m.weights.skipped) || [];
@@ -896,8 +977,11 @@
       $("#btn-buscar").addEventListener("click", runSearch);
       $("#finder-target").addEventListener("change", () => {
         const s = (state.catalog.sites || []).find((x) => x.id === $("#finder-target").value);
-        if (s) setRightBody(s.body, s);
+        state.lastTasi = null;
+        if (s) focusTarget(s);
       });
+      const first = targets.find((x) => x.id === $("#finder-target").value);
+      if (first) focusTarget(first);
     } catch (e) {
       const status = $("#api-status");
       if (status) {
@@ -947,6 +1031,10 @@
     invalidateMaps: function () {
       if (state.earthMap) state.earthMap.invalidateSize();
       if (state.marsMap) state.marsMap.invalidateSize();
+      // Al mostrar el modo avanzado, el destino elegido vuelve al centro del mapa derecho.
+      if (state.target && state.marsMap && hasSize(state.marsMap)) {
+        state.marsMap.setView(targetLatLng(state.target), state.target.body === "moon" ? 4 : 5, { animate: false });
+      }
     },
     showMethodModal: function () {
       const bg = $("#modal-bg");
