@@ -9,7 +9,7 @@ web
 ## Users
 
 - **Primario: el jurado de NASA Space Apps Challenge 2026 y el propio equipo HexAstra.** Tienen minutos, no horas: necesitan entender qué sitio de la Tierra se parece a un destino de la Luna o de Marte, cuánto, en qué no, y de dónde sale cada dato. Confirmado por el usuario el 14/11/2026.
-- El modo fácil (3 pasos) es la puerta de entrada; el modo avanzado (comparativa lado a lado) es la evidencia que el jurado revisa.
+- La variante inmersiva abre con la Tierra 3D a pantalla completa. Todos los sitios se pueden explorar desde el globo o la lista flotante; elegir uno revela la comparación. La vista clásica conserva sus modos fácil y avanzado.
 
 ## Product Purpose
 
@@ -25,15 +25,16 @@ Identificar y caracterizar análogos terrestres nuevos, poco estudiados, de las 
 
 - Demo en vivo y link público (Cloudflare Pages) con servicios en la Mac del equipo vía túnel o proxy del mismo origen.
 - Flujo principal: elegir destino (Luna o Marte), elegir un enfoque de misión, buscar en el mundo o por continente y país, y leer el par Tierra | destino con su ficha.
+- En `index.html` el globo es toda la interfaz: el destino se elige en Misión, los puntos abren la comparativa flotante y el resto de las herramientas aparece al presionar sus controles. Variante solicitada y autorizada por el usuario el 14/11/2026; la versión anterior se conserva en otro worktree y en `classic.html`.
 - Modo avanzado: arranca con los pares documentados en la literatura (`GET {earth}/examples`) y permite la búsqueda completa sobre los sitios del catálogo.
 
 ## Capabilities and Constraints
 
 - Front estático vanilla (HTML, CSS, JS): Tierra en globo Three.js inspirado en Earth3D, con alternativa Leaflet 2D; destinos en Leaflet. Puntos de la API, sin framework, sin Cesium, sin grilla H3 (`CLAUDE.md` §2). Cambio de vista terrestre autorizado por el usuario el 14/11/2026.
-- Al tocar un punto del globo se abre un modal con el sitio, su destino, el puntaje TASI, por qué se parece, en qué no y los componentes sin datos. Si el par no tiene puntaje, se indica; nunca hereda el de otro sitio. La ficha lateral y ambos puntos siguen sincronizados.
+- Al tocar un punto del globo se abre una ficha flotante con el sitio, el mapa de su destino, el puntaje TASI, por qué se parece, en qué no y los componentes sin datos. El globo permanece visible e interactivo. Si el par no tiene puntaje, se indica; nunca hereda el de otro sitio o misión. Los dos puntos permanecen sincronizados.
 - **Todo el contenido sale de la API** (planetary-service y earth-service sobre PostGIS): sitios, destinos, ranking TASI, why/breaks, método y presets (`/method`), valores físicos de referencia (`/bodies`), ejemplos (`/examples`). El front solo tiene textos de interfaz.
 - Sin servicios, la página avisa «servicio no disponible» y no muestra datos.
-- La comparativa lado a lado Tierra | destino, con los dos puntos marcados y sincronizados, es decisión de producto: ningún rediseño la saca ni la esconde.
+- La comparación Tierra | destino se revela al elegir un sitio, según el pedido explícito del usuario para esta variante. Una vez abierta se ven los dos puntos marcados y sincronizados; cerrar la ficha devuelve el planeta completo.
 - Contratos que no se rompen: `js/api.js`, `js/config.js` y los ids que lee el JS.
 - Radiación de referencia en `/bodies`: Tierra, promedio exterior modelado por UNSCEAR 2024; Luna, medición Chang'e-4/LND publicada por Zhang et al. (2020); Marte, RAD/MSL. La fuente explicita la conversión diaria, el contexto y la diferencia entre dosis efectiva y equivalente; no son mediciones del sitio elegido ni entran en TASI.
 
@@ -53,7 +54,7 @@ Identificar y caracterizar análogos terrestres nuevos, poco estudiados, de las 
 
 1. Nada inventado: todo valor lleva fuente; lo no verificado se muestra como «dato a completar».
 2. Decir qué se parece, cuánto y qué no, por dimensión, antes que dar un número solo.
-3. La comparación Tierra | destino siempre a la vista.
+3. Al seleccionar un sitio, Tierra y destino se ven simultáneamente, con la ficha flotante.
 4. Lo que la Tierra no puede imitar se ve, pero no entra al puntaje.
 5. Escala local (un cráter, un valle), no regiones enteras.
 

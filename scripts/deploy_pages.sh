@@ -23,6 +23,7 @@ if ! git -C "$ROOT" diff --quiet -- index.html css js data; then
 fi
 
 cp "$ROOT/index.html" "$DIST/"
+if [[ -f "$ROOT/classic.html" ]]; then cp "$ROOT/classic.html" "$DIST/"; fi
 # assets/ lleva el logo y los favicons de la marca (docs/marca.md).
 cp -R "$ROOT/css" "$ROOT/js" "$ROOT/data" "$ROOT/assets" "$DIST/"
 printf '%s\n' "${COMMIT}" > "$DIST/version.txt"

@@ -93,7 +93,7 @@ La fuente de verdad de la identidad es [`docs/marca.md`](docs/marca.md) y sus to
 
 ## Overview
 
-Una herramienta de evidencia, no una landing. El fondo azul noche de la portada sostiene dos mapas (la Tierra y el destino) que son los protagonistas, y una ficha que explica el par: qué se parece, cuánto, qué no y qué dato falta. La marca vive en detalles precisos (el cian del foco y la selección, los colores de cada cuerpo, el puntaje de violeta a óxido), no en ornamento. Modo: Operate en el avanzado; el fácil guía en tres pasos.
+Una herramienta de evidencia. En la variante inmersiva (`index.html`) la Tierra 3D completa es el lienzo y todos los sitios del catálogo están marcados. Los controles son piezas flotantes: elegir un punto abre la comparación, y misión, lista y explicación se revelan al presionarlas. El planeta conserva su volumen completo y se acomoda para que el sitio y el destino permanezcan visibles. La marca vive en el cian del foco y la selección, los colores de cada cuerpo y el puntaje de violeta a óxido. La variante clásica (`classic.html`) conserva el avanzado y el fácil de tres pasos.
 
 ## Colors
 
@@ -108,8 +108,9 @@ Montserrat 700 para titulares y la marca escrita; Montserrat 600 en mayúsculas 
 
 ## Layout
 
-- Contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
-- **Comparativa lado a lado siempre:** Tierra | destino con los dos mapas a la vez y los puntos marcados; bajo 560 px los mapas se apilan, más anchos, y siguen visibles a la vez.
+- **Inmersivo:** lienzo de 100dvw × 100dvh, sin scroll de página. Globo completo, sin corte por los bordes, piezas flotantes con margen de 32 px (20 px bajo 1100, 16 px en celular). Los puntos son círculos discretos; el seleccionado muestra su posición en el ranking y un anillo cian.
+- **Con un sitio seleccionado:** globo Tierra a la izquierda y ficha flotante del destino a la derecha, ambos puntos marcados. Bajo 760 px, globo arriba y ficha debajo, sin superposición; solo el detalle de la ficha se desplaza. Cerrar recupera el lienzo completo y devuelve el foco al punto.
+- **Clásico:** contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
 - Escritorio desde 960 × 640 px: cabecera compacta y espacio de trabajo ajustado al alto disponible, sin scroll de página; listas y fichas largas se desplazan dentro de sus paneles. En ventanas menores vuelve el flujo de documento.
 - Los límites físicos se abren desde «Límites de la Tierra» en un diálogo con foco contenido, cierre con Escape y retorno al botón. Los lugares destacados del modo fácil son desplegables.
 - Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con scroll interno; el resumen de búsqueda queda al pie.
@@ -132,7 +133,7 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - **Puntaje:** cifra Montserrat 700 coloreada en la escala violeta → óxido y barra de 4 px con el mismo degradado.
 - **Mapa:** marco `noche-2` con etiqueta del cuerpo y su punto de color; controles de Leaflet en `noche-2`.
 - **Globo terrestre:** textura ilustrativa de Earth3D con crédito visible, halo cian tenue y los mismos pines del mapa 2D. No rota automáticamente; la selección centra el sitio y mantiene su longitud sobre la textura. Flechas y controles de zoom accesibles, movimiento reducido respetado. Sin WebGL vuelve a Leaflet.
-- **Modal del punto:** cifra TASI grande a la izquierda, sitio y destino a la derecha, explicación de analogía y brecha, componentes sin datos en chips dorados. Se abre con clic o teclado; Escape y Cerrar devuelven el foco al punto. En celular se apila y permite desplazamiento interno.
+- **Ficha flotante del punto:** sitio, mapa del destino marcado, TASI grande, cobertura, explicación de analogía y brecha, componentes sin datos en chips dorados y datos/fuentes plegables. Se abre con clic o teclado, permite seguir girando la Tierra y se cierra con Escape o Cerrar. El clásico conserva el modal del punto.
 - **Texto de literatura:** bloque con borde punteado celeste, rotulado «Documentado en la literatura», separado del puntaje.
 
 ## Do's and Don'ts
@@ -141,4 +142,4 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - Do: foco visible cian inmediato, `prefers-reduced-motion` respetado, 320 px sin scroll horizontal.
 - Don't: colores fuera de `css/brand.css`, una tercera tipografía, el logo recoloreado o sobre fondos claros.
 - Don't: más de una etiqueta superior por pantalla, cajas dentro de cajas, sombras decorativas.
-- Don't: esconder la comparativa Tierra | destino ni mezclar el texto de literatura con el puntaje.
+- Don't: esconder un lado de la comparativa mientras hay un sitio seleccionado ni mezclar el texto de literatura con el puntaje. En el arranque inmersivo se muestra solo el globo, según el pedido del usuario.

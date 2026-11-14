@@ -93,8 +93,8 @@ export function attach(map, options = {}) {
       controls.rotateSpeed = 0.6;
       controls.addEventListener('change', schedule);
       controls.addEventListener('start', () => { tween = null; });
-      scene.add(new THREE.AmbientLight(0xffffff, 2.0));
-      const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+      scene.add(new THREE.AmbientLight(0xffffff, options.immersive ? 1.6 : 2.0));
+      const sun = new THREE.DirectionalLight(0xffffff, options.immersive ? 2.2 : 2.4);
       sun.position.set(-3, 4, 5);
       scene.add(sun);
       const material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 8 });
@@ -109,6 +109,14 @@ export function attach(map, options = {}) {
       material.map = texture;
       const geometry = new THREE.SphereGeometry(1, 64, 48);
       scene.add(new THREE.Mesh(geometry, material));
+      if (options.immersive) {
+        const clouds = new THREE.TextureLoader().load('assets/globe/earth-clouds.jpg', schedule);
+        const cloudLayer = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+          color: 0xffffff, alphaMap: clouds, transparent: true, opacity: 0.18, depthWrite: false,
+        }));
+        cloudLayer.scale.setScalar(1.003);
+        scene.add(cloudLayer);
+      }
       const accent = getComputedStyle(host).getPropertyValue('--hx-cian').trim();
       const atmosphere = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
         uniforms: { glow: { value: new THREE.Color(accent) } },
@@ -178,6 +186,7 @@ export function attach(map, options = {}) {
       entry.button.classList.toggle('is-selected', /(?:is-active|\bactive\b)/.test(html));
       entry.button.dataset.lat = ll.lat;
       entry.button.dataset.lon = ll.lng;
+      if (layer.hexastraSite?.id) entry.button.dataset.siteId = layer.hexastraSite.id;
     });
     remaining.forEach(layer => { entries.get(layer).button.remove(); entries.delete(layer); });
     schedule();
@@ -206,13 +215,17 @@ export function attach(map, options = {}) {
     }
     camera.aspect = host.clientWidth / host.clientHeight;
     const nextFit = 1.08 / Math.sin(Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect)));
-    camera.position.multiplyScalar(nextFit / fitDistance);
+    const scale = nextFit / fitDistance;
+    camera.position.multiplyScalar(scale);
+    if (tween) { tween.from.multiplyScalar(scale); tween.to.multiplyScalar(scale); }
     fitDistance = nextFit;
     controls.maxDistance = Math.max(5.5, fitDistance * 1.8);
-    tween = null;
     camera.updateProjectionMatrix();
     renderer.setSize(host.clientWidth, host.clientHeight, false);
-    schedule();
+    // setSize borra el canvas: dibujar en el mismo ciclo evita un planeta vacío al abrir una pieza flotante.
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    if (visible()) draw(performance.now());
   }
 
   function draw(now) {

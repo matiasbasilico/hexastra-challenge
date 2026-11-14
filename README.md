@@ -39,9 +39,11 @@ Los defaults también están en `js/config.js`. La capa de llamadas, pensada par
 
 ### Globo 3D e interfaz
 
-La Tierra se explora en un globo inspirado en [Earth3D](https://github.com/mitchcamza/Earth3D), con los puntos del catálogo y del ranking TASI. Tocar un punto abre el resumen del par; la ficha y el destino se mantienen sincronizados. Los botones permiten volver a satélite o mapa 2D. Si no hay WebGL, se conserva Leaflet. Los [créditos de la textura y las dependencias](assets/globe/CREDITS.md) explicitan que la imagen es ilustrativa y no interviene en el puntaje.
+Esta rama propone la variante inmersiva: `index.html` muestra la Tierra 3D completa con todos los sitios de la API. Misión, búsqueda, explicación y comparativa son piezas flotantes que se abren al presionarlas. Elegir un sitio centra y resalta su punto; el mapa del destino aparece al costado con su punto, el índice TASI, la analogía, la brecha, los datos comparados y sus fuentes. En celular el globo queda arriba y la ficha debajo, sin scroll de página. `classic.html` conserva la interfaz anterior, accesible desde El proyecto.
 
-En escritorio desde 960 × 640 px el espacio de trabajo ocupa una pantalla, con scroll interno en listas y fichas; en ventanas menores el documento mantiene el scroll. «Límites de la Tierra» abre las referencias físicas en un diálogo.
+La Tierra se explora en un globo inspirado en [Earth3D](https://github.com/mitchcamza/Earth3D), con los puntos del catálogo y del ranking TASI. Tocar un punto abre el resumen del par; la ficha y el destino se mantienen sincronizados. Desde El proyecto se puede volver al mapa 2D; la vista clásica conserva los botones Satélite y Mapa. Si no hay WebGL, se conserva Leaflet. Los [créditos de la textura y las dependencias](assets/globe/CREDITS.md) explicitan que la imagen es ilustrativa y no interviene en el puntaje.
+
+La vista inmersiva ocupa una pantalla en escritorio y celular, con scroll interno en sus piezas. El proyecto → «Lo que la Tierra no puede imitar» abre las referencias físicas en un diálogo. La vista clásica ajusta el escritorio desde 960 × 640 px y conserva el flujo de documento en ventanas menores.
 
 El bundle listo para servir está versionado; `run_all.sh` y la publicación estática no necesitan Node. Para cambiar el renderer:
 
@@ -65,7 +67,7 @@ cd hexastra-analogos
 python3 -m http.server 8765
 ```
 
-Si los servicios no están, el buscador se deshabilita y el mapa (fichas de la Argentina) sigue andando.
+Si los servicios no están, el globo ilustrativo sigue visible pero no se muestran puntos ni puntajes sin verificar; la página avisa que los catálogos no están disponibles.
 
 ### Tests
 
