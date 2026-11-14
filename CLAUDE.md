@@ -35,6 +35,7 @@ Dimensiones del desafío y cómo las cubre la matriz V = [G, T, E, Vo, O] (`cont
 - **No tocar** el monorepo `~/Desarrollo/nasa/nasa` (ni su Postgres en el puerto 5432) ni las carpetas viejas.
 - **Base de datos:** PostgreSQL + PostGIS propio del repo (contenedor `hexastra-db`, puerto 55432; en construcción en `db/`). Las APIs leen de ahí; los JSON de catálogo quedan como snapshot exportado.
 - **Publicación:** front en Cloudflare Pages (`scripts/deploy_pages.sh`); servicios en la Mac vía túnel `cloudflared` (`scripts/share.sh`). El sitio es público con link.
+- **Comparativa lado a lado, siempre:** el núcleo de la interfaz es la vista Tierra | destino (Marte o Luna) con los dos mapas a la vez. El punto del destino elegido y el del sitio terrestre seleccionado se ven marcados y resaltados en su mapa, sincronizados (elegir uno mueve y resalta el otro), con la ficha que explica qué se parece y qué no. Vale para el modo fácil y el avanzado; ningún rediseño puede sacarla ni esconderla.
 
 ## 3. Reglas de datos (críticas)
 
