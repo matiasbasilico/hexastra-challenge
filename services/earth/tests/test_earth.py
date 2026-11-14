@@ -364,3 +364,5 @@ def test_tasi_scores_document_sites_with_partial_coverage():
         assert match["score"] is not None and 0 <= match["score"] <= 100
         assert match["components"]["T"]["available"] is False
         assert match["components"]["G"]["available"] is False
+        expected = DOCUMENT_AR_SITES.get(site_id, True)
+        assert match["site"]["highlight_less_studied"] is expected, site_id
