@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from catalog import covariance, featured_sites, filter_sites, load_catalog, site_by_id, summary
 from geocode import regions_from_sites
 from tasi import DEFAULT_WEIGHTS, rank
+from explain import add_explanations
 from clients import earthdata
 
 app = FastAPI(
@@ -144,7 +145,7 @@ def tasi_post(body: TasiRequest) -> Dict[str, Any]:
         apply_mask=body.apply_mask,
     )
     result["filter"] = {"continent": body.continent, "country": body.country.upper() if body.country else None}
-    return result
+    return add_explanations(result)
 
 
 @app.get("/tasi")
@@ -175,4 +176,4 @@ def tasi_get(
         apply_mask=apply_mask,
     )
     result["filter"] = {"continent": continent, "country": country.upper() if country else None}
-    return result
+    return add_explanations(result)
