@@ -44,8 +44,13 @@ MOON_ZIP = "https://asc-astropedia.s3.us-west-2.amazonaws.com/Moon/Geology/Unifi
 MOON_PREFIX = "Unified_Geologic_Map_of_the_Moon_GIS/Lunar_GIS/Shapefiles/GeoUnits"
 MARS_ZIP = "https://pubs.usgs.gov/sim/3292/downloads/sim3292_database.zip"
 MARS_PREFIX = "SIM3292_MarsGlobalGeologicGIS_20M/SIM3292_Shapefiles/SIM3292_Global_Geology"
+LPGRS_TAB = ("https://pds-geosciences.wustl.edu/lunar/lp-l-grs-5-elem-abundance-v1/lp_9001/data/"
+             "lpgrs_high1_elem_abundance_2deg.tab")
 MOON_RADIUS_M = 1737400.0  # GeoUnits.prj: Moon2000 equidistant cylindrical, clon 0
 
+SRC_LPGRS = ("Lunar Prospector GRS elemental abundance LP-L-GRS-5-ELEM-ABUNDANCE-V1.0 (Prettyman et al. 2006), "
+             "píxeles de 2° de área igual, PDS Geosciences Node, consultado %s. %s; umbral FHT de Jolliff et al. 2000 "
+             "(JGR 105:4197), resumido en http://www.psrd.hawaii.edu/Aug00/newMoon.html" % (TODAY, LPGRS_TAB))
 SRC_MOON = ("USGS Unified Geologic Map of the Moon 1:5M v2 (Fortezzo, Spudis y Harrel 2020), GeoUnits + DOMU, "
             "consultado %s. %s" % (TODAY, MOON_ZIP))
 SRC_MARS = ("USGS SIM 3292 Geologic Map of Mars 1:20M (Tanaka et al. 2014, doi:10.3133/sim3292), "
@@ -159,15 +164,61 @@ def mars_reader() -> shapefile.Reader:
     return shapefile.Reader(str(paths[members[0]])[:-4])
 
 
-def moon_result(reader: shapefile.Reader, site: Dict[str, Any]) -> GResult:
+@dataclass(frozen=True)
+class LpPixel:
+    index: int
+    lat0: float
+    lat1: float
+    lon0: float
+    lon1: float
+    feo_wt: float  # % en peso
+    th_ppm: float
+
+
+def load_lpgrs() -> List[LpPixel]:
+    """Tabla de 2° de Lunar Prospector GRS (columnas: ver LPGRS_ELEM_ABUNDANCE.FMT)."""
+    path = CACHE / "lpgrs" / "lpgrs_high1_elem_abundance_2deg.tab"
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with httpx.Client(follow_redirects=True, timeout=300) as client:
+            resp = client.get(LPGRS_TAB)
+            resp.raise_for_status()
+            path.write_bytes(resp.content)
+    pixels = []
+    for line in path.read_text(encoding="ascii").splitlines():
+        f = line.split()
+        if len(f) < 16:
+            continue
+        # 0 índice, 1-4 límites, 5 AM, 6 densidad, 7 MgO, 8 Al2O3, 9 SiO2, 10 CaO, 11 TiO2, 12 FeO (g/g), 13 K, 14 Th (ppm)
+        pixels.append(LpPixel(int(f[0]), float(f[1]), float(f[2]), float(f[3]), float(f[4]),
+                              100.0 * float(f[12]), float(f[14])))
+    if len(pixels) < 10000:
+        raise RuntimeError("tabla LP GRS incompleta (%d píxeles)" % len(pixels))
+    return pixels
+
+
+def lp_pixel(pixels: List[LpPixel], lat: float, lon: float) -> LpPixel:
+    lon = lon if lon < 180 else lon - 360
+    for p in pixels:
+        if (p.lat0 <= lat < p.lat1 or (lat >= 90 and p.lat1 == 90)) and p.lon0 <= lon < p.lon1:
+            return p
+    raise LookupError("sin píxel LP GRS para %s,%s" % (lat, lon))
+
+
+def moon_result(reader: shapefile.Reader, site: Dict[str, Any], pixels: List[LpPixel]) -> GResult:
     x = MOON_RADIUS_M * math.radians(site["lon"])
     y = MOON_RADIUS_M * math.radians(site["lat"])
     unit = _polygon_unit(reader, x, y, "FIRST_Unit")
-    comp, impact, rule = eq.moon_vector(unit or "")
+    px = lp_pixel(pixels, site["lat"], site["lon"])
+    comp, impact, rule = eq.moon_vector(unit or "", px.feo_wt, px.th_ppm)
+    lp_text = "Lunar Prospector GRS píxel %d [%.0f°,%.0f°]×[%.1f°,%.1f°]: FeO %.2f %%, Th %.2f ppm." % (
+        px.index, px.lat0, px.lat1, px.lon0, px.lon1, px.feo_wt, px.th_ppm)
+    uses_lp = bool(comp and comp.get("g_lito_feldespatico"))
     return GResult(
         site_id=site["id"], composition=comp, impact=impact,
-        detail="Unidad mapeada: %s. Regla: %s." % (unit, rule), source=SRC_MOON,
-        composition_note=None if comp else "El mapa 1:5M define esta unidad por su origen, no por su composición; a completar con un producto composicional (p. ej. Diviner Christiansen Feature o FeO de Lunar Prospector).",
+        detail="Unidad mapeada: %s. Regla: %s. %s" % (unit, rule, lp_text),
+        source=SRC_MOON + ("; " + SRC_LPGRS if uses_lp else ""),
+        composition_note=None if comp else "Ni el mapa 1:5M ni FeO/Th de Lunar Prospector permiten asignar una clase; a completar.",
         impact_note=None if impact is not None else "Sin regla de impacto para la unidad; a completar.",
     )
 
@@ -231,11 +282,12 @@ def main() -> int:
             if site.get("body", "earth") == "earth":
                 results.append(earth_result(client, site))
     moon = moon_reader()
+    lp = load_lpgrs()
     mars = mars_reader()
     for site in sites.values():
         if site.get("body") not in ("moon", "mars"):
             continue
-        results.append(moon_result(moon, site) if site["body"] == "moon" else mars_result(mars, site))
+        results.append(moon_result(moon, site, lp) if site["body"] == "moon" else mars_result(mars, site))
     lines = [json.dumps(r, ensure_ascii=False) for res in results for r in rows_for(res)]
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     OUT_FEATURES.write_text(json.dumps(feature_defs(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

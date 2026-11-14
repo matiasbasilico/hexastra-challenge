@@ -71,6 +71,15 @@
     "name_es": "g_lito_sed_indiviso",
     "description": "Fracción sedimentaria sin tipo informado por el mapa («sedimentary» a secas). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
   },
+  "g_lito_feldespatico": {
+    "service": [
+      "earth",
+      "planetary"
+    ],
+    "unit": "fraction",
+    "name_es": "g_lito_feldespatico",
+    "description": "Fracción de corteza feldespática / anortosítica (tierras altas lunares por FeO y Th de Lunar Prospector; anortosita en la Tierra). Componente G (propuesta, docs/propuestas/G.md). Mismo id para Tierra, Luna y Marte."
+  },
   "g_impacto": {
     "service": [
       "earth",

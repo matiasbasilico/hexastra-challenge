@@ -173,3 +173,38 @@ def test_rows_for_builds_nulls_with_notes():
     for n, r in enumerate(rows):
         validate(r, "t:%d" % n)
         assert r["value"] is None
+
+
+# ---------------------------------------------------------------- fase 2: Luna con Lunar Prospector
+@pytest.mark.parametrize("feo, th, expected", [
+    (4.2, 0.8, True),    # FHT anortosítico (Jolliff et al. 2000): media publicada
+    (5.5, 1.5, True),    # FHT externo: media publicada, en el límite
+    (10.1, 1.9, False),  # SPAT interno: no es feldespático
+    (23.0, 3.3, False),  # basalto de mare
+    (None, 0.8, False),  # sin dato no se adivina
+])
+def test_feldspathic_rule_uses_published_fht_means(feo, th, expected):
+    assert eq.is_feldspathic(feo, th) is expected
+
+
+def test_moon_impact_units_get_composition_only_from_orbital_chemistry():
+    comp, impact, _ = eq.moon_vector("pNc", 4.8, 0.89)
+    assert comp["g_lito_feldespatico"] == 1.0 and impact == 1.0
+    comp, impact, _ = eq.moon_vector("pNc", 10.1, 1.9)
+    assert comp is None and impact == 1.0
+    comp, _, _ = eq.moon_vector("Im2", 4.0, 0.5)  # mare manda el mapa
+    assert comp["g_lito_basaltico"] == 1.0
+
+
+@pytest.mark.parametrize("site", ["shackleton-rim", "haworth", "malapert", "de-gerlache", "amundsen", "nobile"])
+def test_lunar_polar_sites_are_feldspathic_with_lp_values_in_the_note(site):
+    row = _by_site()[site]["g_lito_feldespatico"]
+    assert row["value"] == 1.0
+    assert "Lunar Prospector GRS píxel" in row["note"] and "pds-geosciences" in row["source"]
+
+
+def test_marius_hills_lp_feo_agrees_with_the_mare_map_unit():
+    import re
+    note = _by_site()["marius-hills"]["g_lito_basaltico"]["note"]
+    feo = float(re.search(r"FeO ([0-9.]+) %", note).group(1))
+    assert feo > 15.0  # basaltos de mare: FeO alto; el mapa también dice EIp volcánico
