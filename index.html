@@ -61,89 +61,84 @@
 
     <div id="easy-app"></div>
 
-    <div class="toolbar">
-      <fieldset>
-        <legend>Tierra</legend>
-        <label><input type="checkbox" id="layer-osm"> OpenStreetMap</label>
-        <label><input type="checkbox" id="layer-esri" checked> Imagen satelital (Esri)</label>
-        <label><input type="checkbox" id="layer-gibs-tc"> NASA GIBS color verdadero (MODIS)</label>
-        <label><input type="checkbox" id="layer-gibs-lst"> NASA GIBS temperatura de superficie (MODIS, día)</label>
-        <label>Fecha GIBS <input type="date" id="gibs-date" value="2026-11-10"></label>
-      </fieldset>
-      <fieldset>
-        <legend>Marte</legend>
-        <label><input type="radio" name="marsbase" id="layer-opm" checked> OpenPlanetary</label>
-        <label><input type="radio" name="marsbase" id="layer-mola"> MOLA (color)</label>
-        <label><input type="radio" name="marsbase" id="layer-shaded"> Relieve sombreado</label>
-      </fieldset>
-    </div>
-
-
-
-    <div class="workspace">
-      <aside class="sitelist">
-        <div class="sitelist-head">
-          <h2>Sitios en la Tierra</h2>
-        </div>
-        <div id="site-buttons"></div>
-        <p class="placeholder-msg" style="padding:0.2rem 0.9rem 1rem">Hacé clic en un sitio o en el mapa. El mapa derecho muestra el destino elegido en el buscador.</p>
-      </aside>
-
-      <section class="map-frame" aria-label="Mapa de la Tierra">
-        <div class="map-label"><h2>Tierra</h2></div>
-        <div id="map-earth" class="map"></div>
-      </section>
-
-      <section class="map-frame" aria-label="Mapa de Marte">
-        <div class="map-label"><h2 id="map-right-label">Marte</h2></div>
-        <div id="map-mars" class="map"></div>
-      </section>
-
-      <aside class="panel" id="panel">
-        <div class="panel-head"><h2>Ficha</h2></div>
-        <p class="placeholder-msg">Elegí un sitio a la izquierda o en el mapa de la Tierra. Vas a ver por qué se parece al destino elegido, en qué no, qué datos faltan y su puntaje TASI.</p>
-      </aside>
-    </div>
-
-    <section class="buscador" id="buscador" aria-label="Buscador de análogos">
-      <div class="buscador-head">
-        <h2>Búsqueda completa en los sitios del catálogo</h2>
-        <span class="api-status" id="api-status">Buscando la API…</span>
-      </div>
-      <div class="buscador-grid">
-        <div>
-          <p class="muted buscador-intro">Elegí un destino de la Luna o de Marte y ajustá los pesos de TASI (G, T, E, V, O). Los pesos iniciales, γ y el umbral de la máscara vienen del servicio. Un componente sin dato en los dos lados se omite y los pesos se renormalizan. El puntaje va de 0 a 100.</p>
-          <p>
-            <label for="finder-target">Objetivo</label><br>
-            <select id="finder-target" disabled></select>
-          </p>
-          <div id="finder-features"></div>
-          <p>
-            <label for="finder-continent">Continente</label><br>
-            <select id="finder-continent" disabled></select>
-          </p>
-          <p>
-            <label for="finder-country">País (ISO)</label><br>
-            <select id="finder-country" disabled></select>
-          </p>
-          <p>
-            <label for="finder-gamma">γ del terreno (S_T = exp(−γ·D<sub>M</sub>))</label><br>
-            <input type="range" id="finder-gamma" min="0.1" max="3" step="0.1" value="1">
-            <span id="finder-gamma-val"></span>
-          </p>
-          <p>
-            <label><input type="checkbox" id="finder-mask" checked> Aplicar la máscara M(x): descarta sitios con NDVI mayor que <span id="finder-mask-ndvi">el umbral del servicio</span> o con agua líquida continental</label>
-          </p>
-          <p>
-            <button type="button" id="btn-buscar" disabled>Buscar análogos en la Tierra</button>
-          </p>
-        </div>
-        <div>
-          <div id="finder-results">
-            <p class="muted">Los resultados van a aparecer acá.</p>
+    <section class="adv" aria-label="Comparativa Tierra y destino">
+      <div class="adv-bar" role="search" aria-label="Destino, región y misión">
+        <label class="adv-field">
+          <span>Destino</span>
+          <select id="finder-target" disabled></select>
+        </label>
+        <label class="adv-field">
+          <span>Región</span>
+          <select id="finder-region" disabled></select>
+        </label>
+        <label class="adv-field">
+          <span>Misión</span>
+          <select id="finder-mission" disabled></select>
+        </label>
+        <details class="adv-menu" id="weights-menu">
+          <summary>Ajustar pesos</summary>
+          <div class="adv-menu-panel">
+            <p class="adv-menu-note">Porcentaje efectivo después de renormalizar sobre los componentes con dato para este destino.</p>
+            <div id="finder-features"></div>
           </div>
-        </div>
+        </details>
+        <details class="adv-menu" id="options-menu">
+          <summary>Opciones avanzadas</summary>
+          <div class="adv-menu-panel">
+            <label class="adv-option" for="finder-gamma">
+              <span>γ del terreno <span id="finder-gamma-val"></span></span>
+              <input type="range" id="finder-gamma" min="0.1" max="3" step="0.1" value="1">
+            </label>
+            <label class="adv-check"><input type="checkbox" id="finder-mask" checked> Descartar sitios con vegetación (NDVI mayor que <span id="finder-mask-ndvi">el umbral del servicio</span>) o agua líquida</label>
+          </div>
+        </details>
+        <button type="button" id="btn-buscar" class="easy-btn-primary" disabled>Buscar</button>
+        <p class="api-status" id="api-status" role="status">Buscando la API…</p>
       </div>
+
+      <div class="workspace">
+        <aside class="sitelist" aria-label="Sitios en la Tierra">
+          <div class="sitelist-head">
+            <h2>Sitios en la Tierra</h2>
+          </div>
+          <div id="site-buttons"></div>
+        </aside>
+
+        <section class="map-frame" aria-label="Mapa de la Tierra">
+          <div class="map-label"><h2>Tierra</h2></div>
+          <details class="layers-menu">
+            <summary>Capas</summary>
+            <div class="layers-panel">
+              <label><input type="checkbox" id="layer-esri" checked> Satélite (Esri)</label>
+              <label><input type="checkbox" id="layer-osm"> Mapa (OpenStreetMap)</label>
+              <label><input type="checkbox" id="layer-gibs-tc"> NASA GIBS, color verdadero</label>
+              <label><input type="checkbox" id="layer-gibs-lst"> NASA GIBS, temperatura de superficie</label>
+              <label class="layers-date">Fecha de GIBS <input type="date" id="gibs-date" value="2026-11-10"></label>
+            </div>
+          </details>
+          <div id="map-earth" class="map"></div>
+        </section>
+
+        <section class="map-frame" aria-label="Mapa del destino">
+          <div class="map-label"><h2 id="map-right-label">Marte</h2></div>
+          <details class="layers-menu" id="layers-dest">
+            <summary>Capas</summary>
+            <div class="layers-panel">
+              <label><input type="radio" name="marsbase" id="layer-opm" checked> OpenPlanetary</label>
+              <label><input type="radio" name="marsbase" id="layer-mola"> MOLA (color)</label>
+              <label><input type="radio" name="marsbase" id="layer-shaded"> Relieve sombreado</label>
+              <p class="layers-note" id="layers-dest-note" hidden>La Luna tiene una sola capa base (OpenPlanetary).</p>
+            </div>
+          </details>
+          <div id="map-mars" class="map"></div>
+        </section>
+
+        <aside class="panel" id="panel" aria-label="Ficha del par">
+          <div class="panel-head"><h2>Ficha</h2></div>
+          <p class="placeholder-msg">Elegí un sitio de la lista o del mapa de la Tierra.</p>
+        </aside>
+      </div>
+      <div id="finder-results" class="adv-results" aria-live="polite"></div>
     </section>
   </div>
 

@@ -2,9 +2,7 @@
  * Identidad: docs/marca.md y css/brand.css. Estructura y piso de accesibilidad tomados de Hallmark. */
 
 /* ---------- Mode switching (wiring kept) ---------- */
-body.mode-easy .toolbar,
-body.mode-easy .buscador,
-body.mode-easy .workspace { display: none !important; }
+body.mode-easy .adv { display: none !important; }
 body.mode-advanced #easy-app { display: none !important; }
 
 .mode-switch {

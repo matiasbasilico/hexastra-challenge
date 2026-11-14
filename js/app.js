@@ -244,7 +244,7 @@
     if (body === "moon") {
       marsLayers.forEach((ly) => { if (map.hasLayer(ly)) map.removeLayer(ly); });
       if (!map.hasLayer(Lrs.opmMoon)) Lrs.opmMoon.addTo(map);
-      if (label) label.textContent = "Luna (la proyección Mercator comprime el polo sur)";
+      if (label) label.textContent = "Luna (Mercator comprime el polo sur)";
     } else {
       if (map.hasLayer(Lrs.opmMoon)) map.removeLayer(Lrs.opmMoon);
       if (!marsLayers.some((ly) => map.hasLayer(ly))) {
@@ -252,6 +252,9 @@
       }
       if (label) label.textContent = "Marte";
     }
+    const note = $("#layers-dest-note");
+    if (note) note.hidden = body !== "moon";
+    ["#layer-opm", "#layer-mola", "#layer-shaded"].forEach((sel) => { const el = $(sel); if (el) el.disabled = body === "moon"; });
     Object.entries(state.destMarkers).forEach(([id, m]) => {
       const t = state.targets.find((x) => x.id === id);
       if (t && t.body === body) m.addTo(map);
@@ -292,6 +295,16 @@
     state.targetMarker.bindTooltip(t.short_name || t.name, { permanent: true, direction: "top", offset: [0, -12] });
     setRightBody(t.body);
     safeFly(state.marsMap, clampLatLng(t.lat, t.lon), t.body === "moon" ? 4 : 5, flyOpts(0.8));
+    refreshWeightsFor(t);
+  }
+
+  // Al cambiar de destino, los pesos solo se habilitan para los componentes con dato de ese destino.
+  async function refreshWeightsFor(t) {
+    if (!state.api || !$("#finder-features").children.length) return;
+    try {
+      if (!state.vectors[t.id]) state.vectors[t.id] = await state.api.getTargetVector(t.id);
+    } catch (e) { return; }
+    if (state.target === t) renderWeights(currentWeightsSource());
   }
 
   function chooseTarget(t) {
@@ -328,10 +341,10 @@
       '<button type="button" class="site-btn' + (state.selectedId === site.id ? " active" : "") + '" data-id="' + escapeHtml(site.id) + '">' +
         '<span class="name">' + (rank !== -1 ? (rank + 1) + ". " : "") + escapeHtml(site.name) + "</span>" +
         (extra || "") +
-        '<span class="meta">' + escapeHtml(placeLine(site)) +
-          (match && match.score != null ? ", TASI " + escapeHtml(explain().formatScore(match.score)) + " de 100" : "") +
+        '<span class="meta">' + escapeHtml(site.country_name || placeLine(site)) +
+          (match && match.score != null ? ", TASI " + escapeHtml(explain().formatScore(match.score)) : "") +
+          (isLessStudied(site) ? '<span class="badge menos">Menos estudiado</span>' : "") +
         "</span>" +
-        (isLessStudied(site) ? '<span class="badge menos">Menos estudiado</span>' : "") +
       "</button>"
     );
   }
@@ -441,7 +454,7 @@
       "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why || "Sin componentes con dato.") + "</p>" +
       "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks) + "</p>" +
       (ex.missing.length
-        ? "<p class='pair-missing'>" + ex.missing.map((k) => "<span class='tag warn'>Dato a completar: " + escapeHtml(k) + "</span>").join(" ") + "</p>"
+        ? "<p class='pair-missing'><span class='tag warn'>A completar</span> " + escapeHtml(ex.missing.join(", ")) + "</p>"
         : "");
   }
 
@@ -453,15 +466,15 @@
       const label = explain().COMPONENT_LABELS[k];
       if (c.score == null || c.available === false) {
         return "<li class='comp-row'><span class='comp-name'>" + escapeHtml(label) + "</span><span class='tag warn'>sin dato</span>" +
-          (c.reason ? "<span class='comp-reason'>" + escapeHtml(c.reason) + "</span>" : "") + "</li>";
+          (c.reason ? "<span class='comp-reason' lang='en'>" + escapeHtml(c.reason) + "</span>" : "") + "</li>";
       }
       return "<li class='comp-row' style='--s:" + scoreFraction(c.score) + "'><span class='comp-name'>" + escapeHtml(label) + "</span>" +
         "<span class='comp-score'>" + escapeHtml(explain().formatScore(c.score)) + " de 100</span>" +
         "<span class='score-bar' aria-hidden='true'><span></span></span></li>";
     }).join("");
     const used = (match.coverage && match.coverage.available_components) || [];
-    return "<h3>Componentes TASI</h3><ul class='comp-list'>" + rows + "</ul>" +
-      "<p class='muted'>Cobertura: " + used.length + " de 5 componentes con dato en los dos lados. Los pesos se renormalizan sobre esos.</p>";
+    return "<details class='panel-more'><summary>Desglose por componente (" + used.length + " de 5 con dato)</summary>" +
+      "<ul class='comp-list'>" + rows + "</ul></details>";
   }
 
   // Convierte las URL de un texto de fuente en enlaces, escapando todo lo demás.
@@ -498,7 +511,7 @@
     return "<h3>Datos lado a lado</h3>" +
       "<table class='cmp-table'><thead><tr><th scope='col'>Métrica</th><th scope='col'>Sitio</th><th scope='col'>Destino</th></tr></thead>" +
       "<tbody>" + rows + "</tbody></table>" +
-      "<p class='muted'>Valores de la API (earth /candidates y planetary /sites/…/vector). Lo que no tiene dato queda «a completar».</p>";
+      "";
   }
 
   function literatureBlock(ex) {
@@ -562,6 +575,16 @@
     if (state.selectedId === id && state.target === target) paintSitePanel(id, false);
   }
 
+  // Códigos de la máscara (earth-service) en palabras.
+  const MASK_FLAG_LABELS = {
+    ndvi_unavailable: "NDVI sin dato",
+    water_unavailable: "agua superficial sin dato",
+  };
+
+  function maskFlags(flags) {
+    return flags.map((f) => MASK_FLAG_LABELS[f] || f).join(", ");
+  }
+
   function paintSitePanel(id, loading, error) {
     const site = state.sites[id];
     const target = state.target;
@@ -569,59 +592,116 @@
     const exOk = ex && target && (ex.target_ids || []).indexOf(target.id) !== -1;
     const found = matchFor(id);
     const mask = (found.match && found.match.mask) || {};
+    const coords = Number(site.lat).toFixed(4) + "°, " + Number(site.lon).toFixed(4) + "°";
     $("#panel").innerHTML =
-      '<div class="panel-head"><h2>Sitio</h2></div>' +
+      '<div class="panel-head"><h2>Ficha</h2></div>' +
       '<div class="panel-body">' +
-        "<p class='kicker'>" + escapeHtml(placeLine(site)) + "</p>" +
-        (isLessStudied(site) ? "<p><span class='badge menos'>Menos estudiado</span></p>" : "") +
         "<h3 class='site-title'>" + escapeHtml(site.name) + "</h3>" +
+        "<p class='site-meta'>" + escapeHtml(placeLine(site)) + "<span class='site-coords'>" + escapeHtml(coords) + "</span>" +
+          (isLessStudied(site) ? " <span class='badge menos'>Menos estudiado</span>" : "") + "</p>" +
         (site.summary ? "<p class='lead'>" + escapeHtml(site.summary) + "</p>" : "") +
-        '<dl class="facts">' +
-          fact("Coordenadas", Number(site.lat).toFixed(5) + "°, " + Number(site.lon).toFixed(5) + "°", site.coord_source ? "measured" : "placeholder") +
-          fact("País", escapeHtml(site.country_name || "a completar") + (site.country_iso ? " (" + escapeHtml(site.country_iso) + ")" : ""), "") +
-        "</dl>" +
-        (loading ? "<p class='muted' role='status'>Cargando datos del sitio, del destino y el puntaje TASI…</p>" : "") +
+        (loading ? "<p class='muted' role='status'>Cargando el par…</p>" : "") +
         (error ? "<p class='caution'>No pudimos cargar los datos del par: " + escapeHtml(error) + "</p>" : "") +
-        (mask.unknown_flags && mask.unknown_flags.length
-          ? "<p class='caution'>Máscara incompleta: " + escapeHtml(mask.unknown_flags.join(", ")) + ". El sitio no se descartó.</p>"
-          : "") +
-        (found.discarded ? "<p class='caution'>La máscara M(x) descarta este sitio frente a este destino, así que no tiene puntaje TASI.</p>" : "") +
         pairBlock(found.match, found.source) +
+        (found.discarded ? "<p class='quiet-note'>La máscara de vegetación y agua descarta este sitio frente a este destino: no tiene puntaje.</p>" : "") +
+        (mask.unknown_flags && mask.unknown_flags.length
+          ? "<p class='quiet-note'>Máscara incompleta (" + escapeHtml(maskFlags(mask.unknown_flags)) + "): el sitio no se descartó.</p>"
+          : "") +
         (!loading && target ? dataTable(state.details[id], state.vectors[target.id]) : "") +
         componentsBlock(found.match) +
         (exOk ? literatureBlock(ex) : "") +
-        "<h3>Fuente de las coordenadas</h3>" +
-        "<p class='sources'>" + linkify(site.coord_source || "A completar: el catálogo no trae la fuente de este punto.") + "</p>" +
+        "<details class='panel-more'><summary>Fuente de las coordenadas</summary>" +
+          "<p class='sources'>" + linkify(site.coord_source || "A completar: el catálogo no trae la fuente de este punto.") + "</p>" +
+        "</details>" +
       "</div>";
   }
 
   /* ---------- Buscador (TASI) ---------- */
 
+  // Componentes con dato del lado del destino (vector de planetary). Sin vector todavía: se habilitan todos.
+  function componentAvailable(k) {
+    const v = state.target && state.vectors[state.target.id];
+    if (!v) return true;
+    const comps = v.components || {};
+    const c = comps[k] || (k === "V" ? comps.Vo : null) || {};
+    return !!c.available;
+  }
+
   function tasiWeightsFromUI() {
     const weights = {};
     document.querySelectorAll("#finder-features input[data-w]").forEach((rng) => {
-      const on = document.querySelector('#finder-features input[data-feat="' + rng.dataset.w + '"]');
-      weights[rng.dataset.w] = on && !on.checked ? 0 : (Number(rng.value) || 0) / 100;
+      weights[rng.dataset.w] = rng.disabled ? 0 : (Number(rng.value) || 0) / 100;
     });
     return weights;
   }
 
-  function fillCountrySelect(continentName) {
-    const sel = $("#finder-country");
-    if (!sel || !state.regions) return;
-    const current = sel.value;
-    sel.innerHTML = "<option value=''>Todos los países</option>";
-    const continents = state.regions.continents || [];
-    (continentName ? continents.filter((c) => c.name === continentName) : continents).forEach((cont) => {
-      (cont.countries || []).forEach((c) => {
-        const opt = document.createElement("option");
-        opt.value = c.iso;
-        opt.textContent = c.name + " (" + c.iso + ")";
-        sel.appendChild(opt);
+  // Porcentaje efectivo de cada peso después de renormalizar sobre los componentes habilitados.
+  function refreshEffectiveWeights() {
+    const w = tasiWeightsFromUI();
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
+    document.querySelectorAll("#finder-features [data-wv]").forEach((el) => {
+      const k = el.dataset.wv;
+      const rng = document.querySelector('#finder-features input[data-w="' + k + '"]');
+      if (rng && rng.disabled) { el.textContent = "sin datos todavía"; return; }
+      el.textContent = total > 0 ? Math.round((w[k] / total) * 100) + " %" : "0 %";
+    });
+  }
+
+  function renderWeights(weights) {
+    const box = $("#finder-features");
+    box.innerHTML = COMPONENT_KEYS.map((k) => {
+      const label = escapeHtml(explain().COMPONENT_LABELS[k]);
+      const ok = componentAvailable(k);
+      const w = Number((weights || {})[k]) || 0;
+      return (
+        '<div class="feat-row' + (ok ? "" : " is-off") + '">' +
+          '<label for="w-' + k + '">' + label + "</label>" +
+          '<input type="range" id="w-' + k + '" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '"' + (ok ? "" : " disabled") + ">" +
+          '<span data-wv="' + k + '"></span>' +
+        "</div>"
+      );
+    }).join("");
+    box.querySelectorAll("input[type=range]").forEach((rng) => {
+      rng.addEventListener("input", () => {
+        const mission = $("#finder-mission");
+        if (mission) mission.value = "";
+        refreshEffectiveWeights();
       });
     });
-    sel.value = current && Array.from(sel.options).some((o) => o.value === current) ? current : "";
+    refreshEffectiveWeights();
+  }
+
+  function presetWeights(id) {
+    const p = ((state.method && state.method.presets) || []).find((x) => x.id === id);
+    return (p && p.weights) || (state.method && state.method.default_weights) || {};
+  }
+
+  function currentWeightsSource() {
+    const mission = $("#finder-mission");
+    return mission && mission.value ? presetWeights(mission.value) : tasiWeightsFromUI();
+  }
+
+  // Región: un solo control con «Todo el mundo», cada continente y sus países (de /regions).
+  function populateRegion() {
+    const sel = $("#finder-region");
+    const parts = ["<option value=''>Todo el mundo</option>"];
+    ((state.regions && state.regions.continents) || []).forEach((c) => {
+      parts.push("<optgroup label='" + escapeHtml(c.name) + "'>");
+      parts.push("<option value='c:" + escapeHtml(c.name) + "'>Todo " + escapeHtml(c.name) + "</option>");
+      (c.countries || []).forEach((co) => {
+        parts.push("<option value='p:" + escapeHtml(co.iso) + "'>" + escapeHtml(co.name) + "</option>");
+      });
+      parts.push("</optgroup>");
+    });
+    sel.innerHTML = parts.join("");
     sel.disabled = false;
+  }
+
+  function regionFilter() {
+    const v = $("#finder-region").value || "";
+    if (v.indexOf("c:") === 0) return { continent: v.slice(2), country: undefined };
+    if (v.indexOf("p:") === 0) return { continent: undefined, country: v.slice(2) };
+    return { continent: undefined, country: undefined };
   }
 
   function populateFinder() {
@@ -635,51 +715,23 @@
       list.forEach((s) => {
         const opt = document.createElement("option");
         opt.value = s.id;
-        opt.textContent = s.name;
+        opt.textContent = s.short_name || s.name;
         optg.appendChild(opt);
       });
       sel.appendChild(optg);
     });
     sel.disabled = !state.targets.length;
 
-    // Pesos iniciales, γ y umbral de NDVI salen de GET {earth}/method.
-    const defaults = (state.method && state.method.default_weights) || {};
-    const box = $("#finder-features");
-    box.innerHTML = COMPONENT_KEYS.map((k) => {
-      const w = Number(defaults[k]) || 0;
-      const label = escapeHtml(explain().COMPONENT_LABELS[k]);
-      return (
-        '<div class="feat-row">' +
-          '<label><input type="checkbox" data-feat="' + k + '"' + (w > 0 ? " checked" : "") + "> " + label + "</label>" +
-          '<input type="range" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '" aria-label="Peso de ' + label + '">' +
-          '<span data-wv="' + k + '">' + w.toFixed(2).replace(".", ",") + "</span>" +
-        "</div>"
-      );
-    }).join("");
-    box.querySelectorAll("input[type=checkbox]").forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const w = box.querySelector('input[data-w="' + cb.dataset.feat + '"]');
-        if (w) w.disabled = !cb.checked;
-      });
-    });
-    box.querySelectorAll("input[type=range]").forEach((rng) => {
-      rng.addEventListener("input", () => {
-        const sp = box.querySelector('[data-wv="' + rng.dataset.w + '"]');
-        if (sp) sp.textContent = (Number(rng.value) / 100).toFixed(2).replace(".", ",");
-      });
-    });
+    // Misión: los presets de GET {earth}/method; «Pesos propios» cuando se mueven a mano.
+    const mission = $("#finder-mission");
+    const presets = (state.method && state.method.presets) || [];
+    mission.innerHTML = presets.map((p) => "<option value='" + escapeHtml(p.id) + "'>" + escapeHtml(p.title_es || p.id) + "</option>").join("") +
+      "<option value=''>Pesos propios</option>";
+    mission.disabled = !presets.length;
+    mission.addEventListener("change", () => { if (mission.value) renderWeights(presetWeights(mission.value)); });
+    renderWeights(presets.length ? presetWeights(presets[0].id) : (state.method && state.method.default_weights));
 
-    const csel = $("#finder-continent");
-    csel.innerHTML = "<option value=''>Todos los continentes</option>";
-    ((state.regions && state.regions.continents) || []).forEach((c) => {
-      const opt = document.createElement("option");
-      opt.value = c.name;
-      opt.textContent = c.name;
-      csel.appendChild(opt);
-    });
-    csel.disabled = false;
-    csel.addEventListener("change", () => fillCountrySelect(csel.value));
-    fillCountrySelect("");
+    populateRegion();
 
     const gamma = $("#finder-gamma");
     const gval = $("#finder-gamma-val");
@@ -717,8 +769,8 @@
         weights: weights,
         gamma: Number($("#finder-gamma").value),
         top: 8,
-        continent: $("#finder-continent").value || undefined,
-        country: $("#finder-country").value || undefined,
+        continent: regionFilter().continent,
+        country: regionFilter().country,
         applyMask: $("#finder-mask").checked,
       });
       state.lastTasi = data;
@@ -731,39 +783,22 @@
         state.earthMap.fitBounds(scored.map((m) => [m.site.lat, m.site.lon]), { padding: [28, 28], maxZoom: 6 });
       }
       out.innerHTML = renderRanking(data, targetId);
-      out.querySelectorAll(".rank-item").forEach((btn) => {
-        btn.addEventListener("click", () => selectSite(btn.dataset.id));
-      });
-      if (state.selectedId) renderSitePanel(state.selectedId);
+      const best = scored[0];
+      if (best) selectSite(best.site.id);
+      else if (state.selectedId) renderSitePanel(state.selectedId);
     } catch (e) {
       out.innerHTML = "<p class='caution'>Falló la consulta a los servicios: " + escapeHtml(e.message) + "</p>";
     }
   }
 
+  // Resumen corto del ranking: la lista ordenada queda en «Sitios en la Tierra» y en los pines numerados.
   function renderRanking(data, targetId) {
-    const items = (data.matches || []).map((m, i) => {
-      const used = (m.coverage && m.coverage.available_components) || [];
-      const skipped = (m.weights && m.weights.skipped) || [];
-      const flags = (m.mask && m.mask.unknown_flags) || [];
-      return (
-        '<li><button type="button" class="rank-item" data-id="' + escapeHtml(m.site.id) + '">' +
-          "<strong>" + (i + 1) + ". " + escapeHtml(m.site.name) + "</strong> <span class='score'>" +
-          (m.score == null ? "sin puntaje" : escapeHtml(explain().formatScore(m.score)) + " de 100") +
-          "</span><span class='score-bar' style='--s:" + scoreFraction(m.score) + "' aria-hidden='true'><span></span></span>" +
-          "<span class='muted'>" + escapeHtml(placeLine(m.site)) +
-          ". Usó: " + escapeHtml(used.join(", ") || "ninguno") +
-          (skipped.length ? ". Omitió: " + escapeHtml(skipped.join(", ")) : "") + ".</span>" +
-          (flags.length ? "<p class='rank-flags'>Máscara incompleta: " + escapeHtml(flags.join(", ")) + ".</p>" : "") +
-        "</button></li>"
-      );
-    }).join("");
     const discarded = data.n_discarded_by_mask || 0;
-    return (
-      "<p class='muted'>Destino: <strong>" + escapeHtml((data.target && data.target.name) || targetId) + "</strong>. " +
-      "TASI con γ = " + escapeHtml(String(data.gamma).replace(".", ",")) + ", " + escapeHtml(String(data.n_scored)) + " candidatos puntuados" +
-      (discarded ? ", " + discarded + " descartados por la máscara" : "") + ".</p>" +
-      (items ? "<ol class='rank-list'>" + items + "</ol>" : "<p class='muted'>No hay análogos con estos filtros.</p>")
-    );
+    const n = (data.matches || []).filter((m) => m.score != null).length;
+    return "<p class='muted'>" + (n
+      ? n + " sitios en el ranking TASI frente a <strong>" + escapeHtml((data.target && data.target.name) || targetId) + "</strong>, ordenados en la lista de la izquierda"
+      : "No hay análogos con estos filtros") +
+      (discarded ? ". La máscara descartó " + discarded : "") + ".</p>";
   }
 
   /* ---------- Conexión ---------- */
@@ -789,7 +824,8 @@
       const h = await api.health();
       if (!h.ok) return markDown(status);
       state.apiOk = true;
-      status.textContent = "Servicios conectados: planetary " + h.urls.planetary + ", earth " + h.urls.earth + ".";
+      status.textContent = "Servicios conectados.";
+      status.title = "planetary " + h.urls.planetary + ", earth " + h.urls.earth;
       status.className = "api-status ok";
       return true;
     } catch (e) {
@@ -883,7 +919,28 @@
     renderMethod();
   }
 
+  // Menús plegables (pesos, opciones, capas): se cierran con Escape o al tocar afuera; uno abierto a la vez.
+  function bindMenus() {
+    const menus = () => Array.from(document.querySelectorAll(".adv-menu, .layers-menu"));
+    menus().forEach((d) => d.addEventListener("toggle", () => {
+      if (d.open) menus().forEach((o) => { if (o !== d) o.open = false; });
+    }));
+    document.addEventListener("click", (e) => {
+      menus().forEach((d) => { if (d.open && !d.contains(e.target)) d.open = false; });
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      menus().forEach((d) => {
+        if (!d.open) return;
+        d.open = false;
+        const sum = d.querySelector("summary");
+        if (sum && d.contains(document.activeElement)) sum.focus();
+      });
+    });
+  }
+
   function bindModal() {
+    bindMenus();
     const bg = $("#modal-bg");
     $("#btn-metodo").addEventListener("click", openMethod);
     $("#btn-fuentes").addEventListener("click", () => {

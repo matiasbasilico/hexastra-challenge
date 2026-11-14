@@ -78,7 +78,7 @@ test("index.html conserva los ids que leen app.js y easy.js", () => {
     "mode-easy", "mode-advanced", "btn-metodo", "btn-fuentes", "easy-app",
     "layer-osm", "layer-esri", "layer-gibs-tc", "layer-gibs-lst", "gibs-date",
     "layer-opm", "layer-mola", "layer-shaded", "api-status", "finder-target",
-    "finder-features", "finder-continent", "finder-country", "finder-gamma",
+    "finder-features", "finder-region", "finder-mission", "finder-gamma",
     "finder-gamma-val", "finder-mask", "btn-buscar", "finder-results",
     "site-buttons", "map-earth", "map-mars", "map-right-label", "panel",
     "modal-bg", "fuentes-anchor", "limits-rows", "limits-notes", "method-body", "finder-mask-ndvi",
@@ -144,7 +144,20 @@ test("el avanzado arranca con los pares documentados de /examples, con su texto 
   assert.match(app, /getTargetVector\(target\.id\)/);
   assert.match(app, /why_es/);
   const html = readFileSync(join(ROOT, "index.html"), "utf8");
-  assert.ok(html.indexOf('class="workspace"') < html.indexOf('class="buscador"'), "la búsqueda completa va debajo de la comparativa");
+  assert.ok(html.indexOf('id="finder-target"') < html.indexOf('class="workspace"'), "la barra de controles va arriba de los mapas");
+});
+
+test("avanzado minimalista: tres desplegables, pesos y opciones plegados, capas en un menú por mapa", () => {
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  for (const id of ["finder-target", "finder-region", "finder-mission"]) assert.match(html, new RegExp('<select id="' + id + '"'));
+  assert.match(html, /<details class="adv-menu" id="weights-menu">\s*<summary>Ajustar pesos<\/summary>/);
+  assert.match(html, /<details class="adv-menu" id="options-menu">\s*<summary>Opciones avanzadas<\/summary>/);
+  assert.ok(!/<details class="adv-menu"[^>]*open/.test(html), "los menús arrancan cerrados");
+  assert.equal((html.match(/<details class="layers-menu"/g) || []).length, 2, "un menú Capas por mapa");
+  const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
+  assert.match(app, /sin datos todavía/);
+  assert.match(app, /function refreshEffectiveWeights\(/);
+  assert.match(app, /function componentAvailable\(/);
 });
 
 test("los archivos del prototipo viejo ya no están en data/", () => {
