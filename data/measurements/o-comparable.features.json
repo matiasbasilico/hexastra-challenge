@@ -1,0 +1,7 @@
+{
+  "slope_frac_gt_10deg": {"service": "planetary", "unit": "fraction", "name_es": "Área con pendiente > 10°", "description": "Fracción de las 25 celdas interiores de la grilla 7×7 a 120 m de T (≈600 m × 600 m) con pendiente mayor a 10° (base 240 m). 10° = requisito de aterrizaje de Artemis III/HLS sobre 100 m. Misma definición en la Luna, Marte y la Tierra; la fila de la Tierra usa el mismo id.", "numeric": true},
+  "slope_frac_gt_15deg": {"service": "planetary", "unit": "fraction", "name_es": "Área con pendiente > 15°", "description": "Igual que slope_frac_gt_10deg con umbral 15° (manejo habitual del rover VIPER; aterrizaje de InSight).", "numeric": true},
+  "slope_frac_gt_30deg": {"service": "planetary", "unit": "fraction", "name_es": "Área con pendiente > 30°", "description": "Igual que slope_frac_gt_10deg con umbral 30° (inclinación que evitan los operadores de Perseverance).", "numeric": true},
+  "rock_abundance_pct": {"service": "planetary", "unit": "percent", "name_es": "Abundancia de rocas", "description": "Porcentaje del área cubierto por rocas según separación térmica: Luna = LRO Diviner (Bandfield et al. 2011, rocas ≳1 m), Marte = MGS TES (Nowicki y Christensen 2007). Sin equivalente terrestre: en la Tierra queda null.", "numeric": true},
+  "rock_abundance_irtm_pct": {"service": "planetary", "unit": "percent", "name_es": "Abundancia de rocas (Viking IRTM)", "description": "Abundancia de rocas de Viking IRTM (Christensen 1986), grilla de 1°, solo Marte; cubre los sitios donde TES no tiene dato.", "numeric": true}
+}
