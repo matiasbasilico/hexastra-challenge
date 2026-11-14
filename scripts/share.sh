@@ -65,8 +65,8 @@ start_tunnel earth "$EARTH_PORT"
 P_URL="$(tunnel_url planetary)" || { echo "No obtuve la URL del túnel de planetary; ver ${LOGDIR}" >&2; exit 1; }
 E_URL="$(tunnel_url earth)" || { echo "No obtuve la URL del túnel de earth; ver ${LOGDIR}" >&2; exit 1; }
 
-wait_for "${P_URL}/health" 60 || echo "Aviso: ${P_URL}/health todavía no responde (el DNS del túnel puede tardar)." >&2
-wait_for "${E_URL}/health" 60 || echo "Aviso: ${E_URL}/health todavía no responde (el DNS del túnel puede tardar)." >&2
+wait_for "${P_URL}/health" 60 || echo "Aviso: ${P_URL}/health todavía no responde desde esta Mac (suele ser la caché DNS local; desde afuera normalmente ya anda)." >&2
+wait_for "${E_URL}/health" 60 || echo "Aviso: ${E_URL}/health todavía no responde desde esta Mac (suele ser la caché DNS local; desde afuera normalmente ya anda)." >&2
 
 echo
 echo "planetary-service  ${P_URL}"

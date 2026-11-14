@@ -163,7 +163,15 @@ Destinos y candidatos argentinos del documento impreso (§3 y §8) que faltaban.
 | Base Esperanza | Tierra (sin país en NE 50m) | 63.3970°S, 56.9981°O | COMNAP Antarctic Facilities |
 
 - Jezero y Gale **mantienen** el punto de aterrizaje de Mars24. El documento usa el centro IAU del cráter (Jezero 18.41°N 77.69°E, USGS 14300; Gale 5.37°S 137.81°E, USGS 2071), que queda a ≈14 km y ≈51 km respectivamente; ahora se cita en `coord_source`.
-- Los tres destinos nuevos no tienen DEM ni térmica verificados: su vector solo trae `Vo` (convención de precipitación 0). TASI los puntúa con cobertura 1/5, así que hoy su ranking solo mide aridez y es el mismo para los tres.
+- T y E de los tres destinos nuevos se midieron con productos públicos y el mismo método que la Tierra (scripts en `services/planetary/scripts/`, dependencias en `requirements-ingest.txt`):
+
+| Destino | Relieve / pendiente / rugosidad | Temp. media / amplitud diurna | Fuente T | Fuente E |
+| --- | --- | --- | --- | --- |
+| Marius Hills | 47,09 m / 1,10° / 11,43 m | −54,53 °C / 295,38 K | LOLA LDEM 118 m (USGS) | Diviner GCP, Tbol de **superficie** (Williams et al. 2017) |
+| Utopia Planitia | 1,39 m / 0,00° / 0,32 m | −80,27 °C / 36,77 K | HRSC-MOLA 200 m (USGS) | Mars Climate Database v6.2, aire a 2 m (modelo) |
+| Arsia Mons | 46,31 m / 3,59° / 13,51 m | −72,71 °C / 65,73 K | HRSC-MOLA 200 m (USGS) | Mars Climate Database v6.2, aire a 2 m (modelo) |
+
+  Grilla 7×7 a 120 m con valores bilineales, como en la Tierra. Validaciones: Bradbury Landing da −4.504,7 m (publicado: −4.501 m), y la MCD en Jezero da medias diarias de 207–222 K (MEDA midió 209–225 K). Iluminación e hielo siguen en `null`.
 - Las bases antárticas no caen dentro de ningún polígono de Natural Earth 50m y Nominatim no devuelve ISO: quedan sin país/continente (no se adivina) y aparecen solo en la búsqueda «Mundo entero».
 - La ingesta midió DEM ASTER y clima ERA5 para los 8 sitios terrestres nuevos; la covarianza Ledoit-Wolf pasó de n=1300 a n=1500, así que los puntajes T de todos los sitios se mueven levemente.
 
@@ -192,6 +200,22 @@ Valores verificados el **14 de noviembre de 2026** (America/Buenos_Aires), con `
 
 Los puntajes cualitativos de geología/relieve/sales/vulcanismo del mapa original siguen siendo juicios preliminares del primer prototipo y **no entran** al TASI.
 
+
+## Compartir un link (Cloudflare Pages + túnel a esta Mac)
+
+El front estático se publica en Cloudflare Pages (gratis, una URL por rama y una por deploy). Los servicios Python siguen corriendo en la Mac y se exponen con túneles rápidos de `cloudflared`.
+
+```bash
+npx wrangler@3 login                 # una sola vez
+./scripts/deploy_pages.sh            # publica la rama actual → https://<rama>.hexastra-analogos.pages.dev
+./scripts/share.sh https://<rama>.hexastra-analogos.pages.dev
+# imprime: https://<rama>.hexastra-analogos.pages.dev/?planetary=https://….trycloudflare.com&earth=https://….trycloudflare.com
+```
+
+- El link funciona **solo mientras `share.sh` corre y la Mac está prendida**. Las URLs de los túneles cambian en cada corrida: compartí el link nuevo.
+- `js/config.js` acepta `?planetary=` y `?earth=` solo para `https://*.trycloudflare.com` o la máquina local, y los recuerda en el navegador.
+- Sin túnel, la página publicada no llega a los servicios y cae al cliente local (`js/api-stub.js`).
+- El sitio en `*.pages.dev` es público para quien tenga el link.
 
 ## Capa `js/api.js` (contrato para el front)
 
