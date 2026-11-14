@@ -2,6 +2,12 @@
  * nav: kept · signature: Earth and destination maps side by side, both points marked, over the pair ledger (why it resembles, where it breaks, data to complete) · states: loading, empty, error, full
  * axes: mid/grotesk-sans/chromatic-magenta · posture: restrained · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, the shell is kept; the two maps and the pair ledger carry the screen */
+/* Hallmark · waive 39b · button.easy-card is a whole ruled row (destination or approach) acting as one selectable option · the row carries the site name, its IAU name and its catalogue summary, so it cannot stand 40px */
+/* Hallmark · dropped http://openplanetarymap.org/basemaps/mars/opm-mars-basemap-v0-2/, "Marte" · at load the advanced right map now opens on the chosen target (Shackleton, lunar), so it shows the Moon basemap and its credit; both return when a Mars target is chosen */
+/* Hallmark · reworded "Tierra · vista mundial" to "Tierra" · 63 names the middle-dot join; the destination map sits beside it with its own head */
+/* Hallmark · reworded "1991–2020" to "de 1991 a 2020" in the method dialog · 19 names the dash */
+/* Hallmark · dismissed F4 · the filled ink fills are the selected state of tabs and toggles (mode, body, basemap, chosen row), not primary buttons; the one primary is the magenta action */
+/* Hallmark · answered F7 · the shared recipe is the ruled row of the ledger (steps, destinations, results, links), the theme's one surface by design */
 
 /* ---------- Mode switching (wiring kept) ---------- */
 body.mode-easy .toolbar,
@@ -52,7 +58,7 @@ a.btn { text-decoration: none; }
 }
 .easy-step-btn:hover:not(:disabled) { background: transparent; color: var(--color-ink); }
 .easy-step-btn:active:not(:disabled) { background: transparent; color: var(--color-accent-2); }
-.easy-step-btn:disabled { background: transparent; border-color: transparent; color: var(--color-muted); opacity: 0.75; }
+.easy-step-btn:disabled { background: transparent; border-color: transparent; color: var(--color-muted); opacity: 0.75; cursor: not-allowed; }
 .easy-step-num { font: 500 var(--text-sm)/1 var(--font-outlier); }
 .easy-step.is-current .easy-step-btn { color: var(--color-ink); border-bottom-color: var(--color-accent); }
 .easy-step.is-done .easy-step-btn { color: var(--color-ink-2); }
@@ -307,7 +313,7 @@ a.btn { text-decoration: none; }
 .easy-pair-place { font-size: var(--text-sm); }
 .easy-pair-empty { font-size: var(--text-sm); color: var(--color-muted); max-width: 40ch; }
 .easy-pair-score { display: flex; align-items: baseline; gap: var(--space-xs); margin-top: var(--space-sm); padding-top: var(--space-xs); border-top: var(--rule-hair) solid var(--color-rule); }
-.easy-pair-score .easy-score-num { font-size: var(--text-3xl); color: var(--color-accent); }
+.easy-pair-score .easy-score-num { font-size: var(--text-3xl); font-variant-numeric: tabular-nums; color: var(--color-accent); }
 .easy-pair-why { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-md); margin: var(--space-xs) 0 0; }
 .easy-pair-why dt { font: 600 var(--text-sm)/1.3 var(--font-display); color: var(--color-ink); }
 .easy-pair-why div + div dt { color: var(--color-accent-2); }
@@ -348,4 +354,8 @@ a.btn { text-decoration: none; }
   .easy-map-label { padding: var(--space-2xs); }
   .easy-map-label h3 { font-size: var(--text-sm); }
   .easy-pair { padding-inline: var(--space-sm); }
+  /* En el celular los dos mapas se angostan: zoom por gesto y atribución compacta (sigue visible). */
+  .easy-map .leaflet-control-zoom { display: none; }
+  .easy-map .leaflet-control-attribution { max-width: 100%; padding: 0 var(--space-3xs); font-size: 0.5625rem; line-height: 1.25; }
+  .easy-map .leaflet-attribution-flag { display: none !important; }
 }

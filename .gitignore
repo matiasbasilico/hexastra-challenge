@@ -9,3 +9,6 @@ __pycache__/
 .env
 *.zip
 .pytest_cache/
+
+# Hallmark: registro local del rediseño (capturas y hallazgos)
+.hallmark/
