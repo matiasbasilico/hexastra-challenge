@@ -5,7 +5,8 @@ under this acronym (as verified on 2026-11-14). The formula is intentional and
 transparent.
 
 V = [G, T, E, Vo, O]
-  G  geology / mineralogy (spectral cosine). Only if real spectra exist.
+  G  geology / materials. Categorical map classes + impact origin (geology.py);
+     the spectral cosine is kept only for real spectra on both sides.
   T  topography + roughness (Mahalanobis on relative relief, slope, roughness).
   E  thermal regime + illumination.
   Vo volatiles / ice / precipitation.
@@ -19,7 +20,9 @@ Step A — boolean mask M(x):
 Step B — S_T = exp(-gamma * D_M), D_M = sqrt((Tx-Ty)^T Sigma^{-1} (Tx-Ty))
   Sigma is a Ledoit-Wolf covariance estimated on Earth terrain cells.
 
-Step C — S_G spectral cosine, only with real spectra (otherwise null).
+Step C — S_G (geology.py, approved 2026-11-14): blocks composition and impact,
+  only those with data on both sides; S_G = mean(blocks) * (blocks / 2).
+  Falls back to the spectral cosine only if both sides carry real spectra.
 
 Step D — TASI = sum w_k S_k over components that are available on both sides.
   Weights are renormalized to sum 1. Coverage is reported.
@@ -33,6 +36,7 @@ import numpy as np
 
 from covariance import LABELS as T_LABELS
 from covariance import submatrix
+from geology import s_geology, values_from_component, values_from_features
 
 DEFAULT_WEIGHTS = {"G": 0.2, "T": 0.2, "E": 0.2, "V": 0.2, "O": 0.2}
 NDVI_THRESHOLD = 0.15
@@ -288,6 +292,15 @@ def s_operational(target_o: Dict[str, Any], cand_feats: Dict[str, Any]) -> Dict[
     }
 
 
+def s_geology_component(target_g: Dict[str, Any], cand_feats: Dict[str, Any]) -> Dict[str, Any]:
+    """S_G for a target G component and an Earth candidate's features."""
+    target_vals = values_from_component(target_g or {})
+    if any(v is not None for v in target_vals.values()):
+        return s_geology(target_vals, values_from_features(cand_feats or {}))
+    # No categorical geology on the target: only real spectra could be compared.
+    return s_spectral(target_g or {}, {"score_ready": False})
+
+
 def normalize_weights(weights: Optional[Dict[str, float]], available: Dict[str, bool]) -> Dict[str, Any]:
     src = dict(DEFAULT_WEIGHTS)
     if weights:
@@ -344,7 +357,7 @@ def rank(
         st = s_topography(site_T_vector(cand), target_T, cov or {}, gamma)
         se = s_thermal(comps.get("E") or {}, cand.get("features") or {}, scales)
         sv = s_volatiles(comps.get("Vo") or comps.get("V") or {}, cand.get("features") or {}, scales)
-        sg = s_spectral(comps.get("G") or {}, {"score_ready": False})  # Earth spectra also unavailable in this catalog
+        sg = s_geology_component(comps.get("G") or {}, cand.get("features") or {})
         so = s_operational(comps.get("O") or {}, cand.get("features") or {})
         parts = {"G": sg, "T": st, "E": se, "V": sv, "O": so}
         available = {k: bool(parts[k].get("available") and parts[k].get("score") is not None) for k in COMPONENT_KEYS}
@@ -392,7 +405,7 @@ def rank(
     top_n = max(1, int(top or 5))
     return {
         "index": "TASI",
-        "formula": "TASI = sum w_k S_k over available components; reported as 0-100 (= 100 * TASI). S_T = exp(-gamma * Mahalanobis). S_G and S_O are null unless real comparable data exist.",
+        "formula": "TASI = sum w_k S_k over available components; reported as 0-100 (= 100 * TASI). S_T = exp(-gamma * Mahalanobis). S_G = mean(geology blocks) * (blocks / 2) from map classes and impact origin. S_G and S_O are null unless comparable data exist on both sides.",
         "gamma": gamma,
         "apply_mask": apply_mask,
         "target": {

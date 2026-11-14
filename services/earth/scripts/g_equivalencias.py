@@ -20,31 +20,17 @@ Reglas de honestidad:
 from __future__ import annotations
 
 import re
+import sys
+from pathlib import Path
 from typing import Dict, Optional, Tuple
 
-COMPOSITION = (
-    "g_lito_basaltico",
-    "g_lito_silicico",
-    "g_lito_clastico",
-    "g_lito_quimico",
-    "g_lito_cristalino",
-    "g_lito_hielo",
-    "g_lito_volc_indiviso",
-    "g_lito_sed_indiviso",
-)
-# Familias: permiten crédito parcial entre una clase indivisa y sus clases finas
-# (p. ej. «sedimentary» a secas frente a «sandstone»). Ver S_G en docs/propuestas/G.md.
-FAMILY = {
-    "g_lito_basaltico": "volcanica",
-    "g_lito_silicico": "volcanica",
-    "g_lito_volc_indiviso": "volcanica",
-    "g_lito_clastico": "sedimentaria",
-    "g_lito_quimico": "sedimentaria",
-    "g_lito_sed_indiviso": "sedimentaria",
-    "g_lito_cristalino": "cristalina",
-    "g_lito_hielo": "hielo",
-}
-IMPACT = "g_impacto"
+# Clases, familias y la etiqueta de impacto viven en services/earth/geology.py
+# (las usa también TASI); acá sólo están las reglas de asignación.
+_EARTH = str(Path(__file__).resolve().parents[1])
+if _EARTH not in sys.path:
+    sys.path.insert(0, _EARTH)
+from geology import COMPOSITION, FAMILY, IMPACT  # noqa: E402
+
 FEATURES = COMPOSITION + (IMPACT,)
 
 FEATURE_DEFS = {
