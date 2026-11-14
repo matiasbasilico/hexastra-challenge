@@ -1,0 +1,43 @@
+/* HexAstra — tokens de la app, todos derivados del manual de marca (docs/marca.md, css/brand.css).
+   El resto del CSS usa solo estas variables. No hay colores ni familias fuera de brand.css. */
+:root {
+  color-scheme: dark;
+
+  /* Escala de espacio y tipo (estructura tomada de Hallmark; no es identidad) */
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.25rem;
+  --text-display-s: 1.44rem; --text-display: 1.728rem; --text-section: 1.2rem; --text-title: 1rem; --text-lead: 1rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --container: 1520px; --gutter: 40px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+
+  /* Color: alias de la app hacia la marca */
+  --color-paper: var(--hx-noche);            /* fondo de todo */
+  --color-paper-2: var(--hx-noche-2);        /* paneles, pozos */
+  --color-paper-3: var(--hx-linea);          /* presionado */
+  --color-sheet: var(--hx-noche-2);          /* fichas y tarjetas */
+  --color-ink: var(--hx-texto);              /* titulares */
+  --color-ink-2: var(--hx-texto);            /* texto principal */
+  --color-muted: var(--hx-texto-2);          /* secundario, pies */
+  --color-rule: var(--hx-linea);
+  --color-rule-2: var(--hx-linea);
+  --color-accent: var(--hx-cian);            /* único acento de interfaz */
+  --color-accent-2: var(--hx-cian-brillo);
+  --color-accent-ink: var(--hx-noche);       /* texto sobre cian (11,1:1) */
+  --color-focus: var(--hx-foco);
+  --color-error: var(--hx-marte);
+  --color-success: var(--hx-cian);
+
+  /* Tipografía de la marca: Montserrat para titulares, Open Sans para texto y datos */
+  --font-display: var(--hx-font-titulo);
+  --font-body: var(--hx-font-texto);
+  --font-outlier: var(--hx-font-texto);      /* cifras: Open Sans 600 tabular, sin tercera familia */
+
+  /* Forma */
+  --radius-card: var(--hx-radio);
+  --radius-pill: 8px;
+  --radius-chip: var(--hx-radio-chip);
+  --rule-hair: 1px; --rule-bar: 2px; --shadow-card: none;
+  --tracking-display: 0; --display-weight: var(--hx-peso-titulo);
+}

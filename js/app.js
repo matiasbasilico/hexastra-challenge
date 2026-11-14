@@ -1,506 +1,113 @@
-/* Hexastra — Análogos argentinos (NASA Space Apps 2026) */
+/* HexAstra — modo avanzado: comparativa lado a lado Tierra | destino (Luna o Marte).
+ *
+ * Todo el contenido sale de la API (js/api.js):
+ *   - sitios terrestres:  GET {earth}/candidates
+ *   - destinos:           GET {planetary}/sites?body=moon|mars
+ *   - ranking y par:      POST {earth}/tasi  (el par es el destino elegido + el resultado TASI)
+ *   - método y presets:   GET {earth}/method
+ * El front no tiene cifras, sitios ni fórmulas propias. Sin servicios, muestra que no están disponibles.
+ */
 (function () {
   "use strict";
 
-  const SCORING = {
-    tMars: -59,
-    tScale: 80,
-    diurnalRef: 58,
-    precipScale: 500,
-    elevScale: 4000,
-    weights: { temperatura: 0.2, amplitud_termica: 0.2, aridez: 0.35, altitud_uv_proxy: 0.25 },
-  };
+  const COMPONENT_KEYS = ["G", "T", "E", "V", "O"];
+  // Mercator web no llega a los polos: los sitios del polo sur lunar se dibujan en este borde.
+  const MERCATOR_MAX_LAT = 85.05;
 
   const state = {
-    data: null,
-    selectedId: null,
-    charts: { bars: null, radar: null },
-    layers: {},
+    api: null,
+    apiOk: false,
     earthMap: null,
     marsMap: null,
+    layers: {},
+    sites: {},            // sitios terrestres de /candidates, por id
     earthMarkers: {},
-    marsMarkers: {},
-    moonMarkers: {},
+    targets: [],          // destinos de /sites (Luna y Marte)
+    destMarkers: {},      // puntos de los destinos en el mapa derecho
+    target: null,         // destino elegido
+    targetMarker: null,
     rightBody: "mars",
-    apiBase: null,
-    apiOk: false,
-    catalog: null,
+    selectedId: null,
     rankIds: [],
-    regions: null,
     lastTasi: null,
-    remoteEarth: {},
+    regions: null,
+    method: null,
+    examples: [],         // pares documentados en la literatura (GET {earth}/examples)
+    details: {},          // ficha completa del sitio (GET {earth}/candidates/{id}), con features
+    vectors: {},          // vector del destino (GET {planetary}/sites/{id}/vector)
+    tasiByTarget: {},     // POST /tasi por destino con los pesos y γ por defecto del servicio
+  };
+
+  // Métricas que se comparan lado a lado: clave en el sitio terrestre (features) y en el destino
+  // (vector), con la etiqueta de interfaz. Los valores y unidades vienen de la API.
+  const METRIC_ROWS = [
+    { label: "Relieve relativo", earth: "relative_relief", comp: "T", target: "relative_relief_m" },
+    { label: "Pendiente", earth: "slope", comp: "T", target: "slope_deg" },
+    { label: "Rugosidad", earth: "roughness", comp: "T", target: "roughness_m" },
+    { label: "Temperatura media", earth: "temp_mean", comp: "E", target: "temp_mean" },
+    { label: "Amplitud térmica diaria", earth: "temp_diurnal_range", comp: "E", target: "temp_diurnal_range" },
+    { label: "Iluminación", earth: "illumination_pct", comp: "E", target: "illumination_pct" },
+    { label: "Precipitación anual", earth: "precip_mm", comp: "Vo", target: "precip_mm" },
+    { label: "Indicador de hielo", earth: "water_ice_indicator", comp: "Vo", target: "water_ice_indicator" },
+  ];
+  const UNIT_LABELS = { degC: "°C", deg: "°", percent: "%", "mm/year": "mm/año", mm: "mm", m: "m", index_0_1: "", unitless: "" };
+  const QUALITY_LABELS = {
+    measured: ["dato medido", "ok"],
+    derived: ["derivado", "ok"],
+    modeled: ["modelado", "model"],
+    convention: ["convención", "model"],
+    derived_from_published_range: ["de rango publicado", "model"],
   };
 
   const $ = (sel) => document.querySelector(sel);
 
-  function clamp01(x) {
-    return Math.max(0, Math.min(1, x));
-  }
-  function scoreTemp(t) {
-    return clamp01(1 - Math.abs(t - SCORING.tMars) / SCORING.tScale);
-  }
-  function scoreDiurnal(dt) {
-    return clamp01(1 - Math.abs(dt - SCORING.diurnalRef) / SCORING.diurnalRef);
-  }
-  function scoreAridity(p) {
-    return clamp01(1 - p / SCORING.precipScale);
-  }
-  function scoreElev(z) {
-    return clamp01(z / SCORING.elevScale);
-  }
-  function pct(x) {
-    return (x * 100).toFixed(0) + " %";
-  }
-  function fmt(n, digits, unit) {
-    if (n === null || n === undefined || Number.isNaN(n)) return "—";
-    const s = Number(n).toLocaleString("es-AR", {
-      minimumFractionDigits: digits,
-      maximumFractionDigits: digits,
-    });
-    return unit ? s + " " + unit : s;
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
-  function compute(site) {
-    const t = scoreTemp(site.climate.t2m_mean_C);
-    const d = scoreDiurnal(site.climate.mean_diurnal_range_C);
-    const a = scoreAridity(site.climate.mean_annual_precipitation_mm);
-    const h = scoreElev(site.elevation_m.value);
-    const w = SCORING.weights;
-    return {
-      temperatura: t,
-      amplitud_termica: d,
-      aridez: a,
-      altitud_uv_proxy: h,
-      index: w.temperatura * t + w.amplitud_termica * d + w.aridez * a + w.altitud_uv_proxy * h,
-    };
+  function explain() {
+    return window.HexastraExplain;
   }
 
-  function tag(status) {
-    if (status === "measured") {
-      return '<span class="tag ok">dato medido</span>';
-    }
-    return '<span class="tag warn">valor de ejemplo / a completar</span>';
+  /* ---------- Movimiento de los mapas ---------- */
+
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
+
+  function flyOpts(duration) {
+    return reducedMotion() ? { animate: false } : { duration: duration };
+  }
+
+  // Leaflet no puede animar un mapa oculto (tamaño 0): en ese caso salta sin animación.
+  function hasSize(map) {
+    const size = map.getSize();
+    return size.x > 0 && size.y > 0;
+  }
+
+  function safeFly(map, latlng, zoom, opts) {
+    if (!hasSize(map) || (opts && opts.animate === false)) map.setView(latlng, zoom, { animate: false });
+    else map.flyTo(latlng, zoom, opts);
+  }
+
+  function clampLatLng(lat, lon) {
+    return [Math.max(-MERCATOR_MAX_LAT, Math.min(MERCATOR_MAX_LAT, Number(lat))), Number(lon)];
+  }
+
+  /* ---------- Íconos ---------- */
 
   function divIcon(kind, active) {
-    const cls = "pin " + kind + (active ? " active" : "");
     return L.divIcon({
       className: "",
-      html: '<div class="' + cls + '"></div>',
+      html: '<div class="pin ' + kind + (active ? " active" : "") + '"></div>',
       iconSize: [16, 16],
       iconAnchor: [8, 8],
     });
   }
-
-  function initMaps() {
-    const earth = L.map("map-earth", { zoomControl: true, minZoom: 2, maxZoom: 12, worldCopyJump: true }).setView([20, 0], 2);
-    const mars = L.map("map-mars", { zoomControl: true, minZoom: 2, maxZoom: 8, worldCopyJump: true }).setView([5, -20], 3);
-
-    const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 18,
-    });
-    const esri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-      attribution: "Teselas: Esri, Maxar, Earthstar Geographics",
-      maxZoom: 18,
-    });
-    osm.addTo(earth);
-
-    const gibsDate = $("#gibs-date").value || "2026-11-10";
-    const gibsTrueColor = L.tileLayer(
-      "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/{date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
-      {
-        date: gibsDate,
-        attribution: "NASA GIBS / EOSDIS — MODIS Terra True Color",
-        maxZoom: 12,
-        maxNativeZoom: 9,
-        opacity: 0.95,
-      }
-    );
-    const gibsLst = L.tileLayer(
-      "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Land_Surface_Temp_Day/default/{date}/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png",
-      {
-        date: gibsDate,
-        attribution: "NASA GIBS / EOSDIS — MODIS Terra LST (día)",
-        maxZoom: 12,
-        maxNativeZoom: 7,
-        opacity: 0.7,
-      }
-    );
-
-    const opm = L.tileLayer(
-      "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
-      {
-        attribution: 'OpenPlanetaryMap — <a href="http://openplanetarymap.org/basemaps/mars/opm-mars-basemap-v0-2/">OPM Mars Basemap v0.2</a>',
-        maxZoom: 8,
-        maxNativeZoom: 9,
-      }
-    );
-    const mola = L.tileLayer("https://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/mola-color/{z}/{x}/{y}.png", {
-      attribution: "WhereOnMars / Carto — MOLA color (shaded relief)",
-      maxZoom: 8,
-      maxNativeZoom: 6,
-      tms: true,
-    });
-    const marsShaded = L.tileLayer(
-      "https://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{x}/{y}.png",
-      {
-        attribution: "WhereOnMars / Carto — Celestia Mars shaded",
-        maxZoom: 8,
-        maxNativeZoom: 5,
-        tms: true,
-      }
-    );
-    const opmMoon = L.tileLayer(
-      "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
-      {
-        attribution: 'OpenPlanetaryMap — OPM Moon Basemap v0.1',
-        maxZoom: 8,
-        maxNativeZoom: 9,
-      }
-    );
-    opm.addTo(mars);
-
-    state.earthMap = earth;
-    state.marsMap = mars;
-    state.layers = { osm, esri, gibsTrueColor, gibsLst, opm, mola, marsShaded, opmMoon };
-    state.setRightBase = setMarsBase;
-    const resizeMaps = () => { earth.invalidateSize(); mars.invalidateSize(); };
-    window.addEventListener("resize", resizeMaps);
-    setTimeout(resizeMaps, 200);
-
-    $("#layer-osm").addEventListener("change", () => toggleBaseEarth());
-    $("#layer-esri").addEventListener("change", () => toggleBaseEarth());
-    $("#layer-gibs-tc").addEventListener("change", () => toggleOverlay(gibsTrueColor, $("#layer-gibs-tc").checked, earth));
-    $("#layer-gibs-lst").addEventListener("change", () => toggleOverlay(gibsLst, $("#layer-gibs-lst").checked, earth));
-    $("#gibs-date").addEventListener("change", () => {
-      const d = $("#gibs-date").value;
-      gibsTrueColor.options.date = d;
-      gibsLst.options.date = d;
-      if (earth.hasLayer(gibsTrueColor)) {
-        earth.removeLayer(gibsTrueColor);
-        gibsTrueColor.addTo(earth);
-      }
-      if (earth.hasLayer(gibsLst)) {
-        earth.removeLayer(gibsLst);
-        gibsLst.addTo(earth);
-      }
-    });
-    $("#layer-opm").addEventListener("change", () => setMarsBase("opm"));
-    $("#layer-mola").addEventListener("change", () => setMarsBase("mola"));
-    $("#layer-shaded").addEventListener("change", () => setMarsBase("shaded"));
-
-    function toggleBaseEarth() {
-      const useEsri = $("#layer-esri").checked;
-      if (useEsri) {
-        if (!earth.hasLayer(esri)) esri.addTo(earth);
-        if (earth.hasLayer(osm)) earth.removeLayer(osm);
-        $("#layer-osm").checked = false;
-      } else {
-        if (!earth.hasLayer(osm)) osm.addTo(earth);
-        if (earth.hasLayer(esri)) earth.removeLayer(esri);
-        $("#layer-osm").checked = true;
-      }
-    }
-    function setMarsBase(which) {
-      [opm, mola, marsShaded].forEach((ly) => {
-        if (mars.hasLayer(ly)) mars.removeLayer(ly);
-      });
-      $("#layer-opm").checked = which === "opm";
-      $("#layer-mola").checked = which === "mola";
-      $("#layer-shaded").checked = which === "shaded";
-      (which === "mola" ? mola : which === "shaded" ? marsShaded : opm).addTo(mars);
-    }
-  }
-
-  function toggleOverlay(layer, on, map) {
-    if (on && !map.hasLayer(layer)) layer.addTo(map);
-    if (!on && map.hasLayer(layer)) map.removeLayer(layer);
-  }
-
-  function addMarkers(data) {
-    data.earth_sites.forEach((site) => {
-      const kind = site.highlight_less_studied ? "menos" : "earth";
-      const m = L.marker([site.lat, site.lon], { icon: divIcon(kind, false), title: site.name }).addTo(state.earthMap);
-      m.on("click", () => selectSite(site.id));
-      m.bindTooltip(site.short_name);
-      state.earthMarkers[site.id] = m;
-    });
-    data.mars_sites.forEach((site) => {
-      const m = L.marker([site.lat, site.lon], { icon: divIcon("mars", false), title: site.name }).addTo(state.marsMap);
-      m.on("click", () => {
-        const earth = data.earth_sites.find((s) => s.paired_mars_ids.includes(site.id));
-        if (earth) selectSite(earth.id);
-        else {
-          state.marsMap.flyTo([site.lat, site.lon], 5, { duration: 0.8 });
-        }
-      });
-      m.bindTooltip(site.short_name);
-      state.marsMarkers[site.id] = m;
-    });
-  }
-
-  function renderList(data) {
-    const box = $("#site-buttons");
-    box.innerHTML = "";
-    data.earth_sites.forEach((site) => {
-      const scores = compute(site);
-      const btn = document.createElement("button");
-      btn.className = "site-btn" + (state.selectedId === site.id ? " active" : "");
-      btn.type = "button";
-      btn.innerHTML =
-        '<span class="name">' +
-        site.name +
-        "</span>" +
-        '<span class="meta">' +
-        site.province +
-        " · índice ambiental " +
-        pct(scores.index) +
-        "</span>" +
-        (site.highlight_less_studied ? '<span class="badge menos">Menos estudiado</span>' : '<span class="badge">Candidato</span>');
-      btn.addEventListener("click", () => selectSite(site.id));
-      box.appendChild(btn);
-    });
-  }
-
-  function marsById(id) {
-    return state.data.mars_sites.find((s) => s.id === id);
-  }
-
-  function selectSite(id) {
-    state.selectedId = id;
-    const site = state.data.earth_sites.find((s) => s.id === id);
-    if (!site) return;
-    renderList(state.data);
-
-    Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
-      const s = (state.data.earth_sites || []).find((x) => x.id === sid) || state.remoteEarth[sid];
-      const kind = s && s.highlight_less_studied ? "menos" : "earth";
-      marker.setIcon(divIcon(kind, sid === id));
-    });
-    const paired = site.paired_mars_ids.map(marsById).filter(Boolean);
-    Object.entries(state.marsMarkers).forEach(([mid, marker]) => {
-      marker.setIcon(divIcon("mars", site.paired_mars_ids.includes(mid)));
-    });
-
-    state.earthMap.flyTo([site.lat, site.lon], 8, { duration: 0.9 });
-    if (paired[0]) {
-      state.marsMap.flyTo([paired[0].lat, paired[0].lon], 5, { duration: 0.9 });
-    }
-    renderPanel(site, paired);
-  }
-
-  function renderPanel(site, paired) {
-    const scores = compute(site);
-    const marsLinks = paired
-      .map((m) => {
-        const elev =
-          m.elevation_m.status === "measured"
-            ? fmt(m.elevation_m.value, 0, "m") + " " + tag("measured")
-            : "elevación " + tag("example");
-        return (
-          "<li><strong>" +
-          m.name +
-          "</strong> — " +
-          m.lat +
-          "°, " +
-          (m.lon_east_0_360.toLocaleString("es-AR")) +
-          "°E (" +
-          elev +
-          ")<br><span class='muted'>" +
-          m.summary +
-          "</span></li>"
-        );
-      })
-      .join("");
-
-    const q = site.qualitative_scores;
-    $("#panel").innerHTML =
-      '<div class="panel-head"><h2>Sitio</h2></div>' +
-      '<div class="panel-body">' +
-      "<p class='kicker'>" +
-      site.province +
-      (site.highlight_less_studied ? " · destacado como menos estudiado" : "") +
-      "</p>" +
-      "<h3 style='margin-top:0.2rem'>" +
-      site.name +
-      "</h3>" +
-      "<p class='lead'>" +
-      site.summary +
-      "</p>" +
-      '<dl class="facts">' +
-      fact("Coordenadas", site.lat.toFixed(5) + "°, " + site.lon.toFixed(5) + "°", "measured") +
-      fact("Elevación (SRTM 30 m)", fmt(site.elevation_m.value, 0, "m s.n.m."), site.elevation_m.status) +
-      fact("Temp. media 1991–2020", fmt(site.climate.t2m_mean_C, 2, "°C"), "measured") +
-      fact("Amplitud diaria media", fmt(site.climate.mean_diurnal_range_C, 2, "°C"), "measured") +
-      fact("Mín. / máx. absolutos", fmt(site.climate.t2m_abs_min_C, 1, "°C") + " / " + fmt(site.climate.t2m_abs_max_C, 1, "°C"), "measured") +
-      fact("Precipitación media anual", fmt(site.climate.mean_annual_precipitation_mm, 1, "mm"), "measured") +
-      "</dl>" +
-      (site.climate.precip_caution ? '<p class="caution">' + site.climate.precip_caution + "</p>" : "") +
-      "<h3>Por qué se parece</h3><p>" +
-      site.why_analogous +
-      "</p>" +
-      "<h3>Dónde se corta la analogía</h3><p>" +
-      site.analogy_breaks +
-      "</p>" +
-      "<p class='muted'>Marte tiene 3,73 m/s² de gravedad media frente a 9,82 m/s² en la Tierra, y ~6,36 mbar de presión frente a ~1013 mbar a nivel del mar terrestre (NASA NSSDC Mars Fact Sheet). Esas diferencias no se pueden emular acá.</p>" +
-      "<h3>Sitio(s) de Marte apareados</h3><ul>" +
-      marsLinks +
-      "</ul>" +
-      '<div class="score-hero"><div class="num">' +
-      pct(scores.index) +
-      "</div><p>Índice ambiental cuantitativo (temperatura, amplitud, aridez y proxy de altitud/UV). No incluye geología ni relieve. Es una fórmula transparente del prototipo, no una métrica validada.</p></div>" +
-      '<div class="charts"><div class="chart-box"><canvas id="chart-bars"></canvas></div><div class="chart-box"><canvas id="chart-radar"></canvas></div></div>' +
-      "<h3>Cómo se calcula el puntaje</h3>" +
-      "<p>Las cuatro barras verdes se calculan con datos de esta corrida. Las cuatro ámbar son juicios cualitativos del equipo y están marcadas como <em>valor de ejemplo / a completar</em>.</p>" +
-      '<div class="formula">' +
-      "temperatura = max(0, 1 − |T_media − (−59 °C)| / 80)<br>" +
-      "amplitud = max(0, 1 − |amplitud_diaria − 58 °C| / 58)<br>" +
-      "aridez = max(0, 1 − P_anual_mm / 500)<br>" +
-      "altitud/UV (proxy) = min(1, elevación_m / 4000)<br>" +
-      "índice = 0,20·temp + 0,20·amplitud + 0,35·aridez + 0,25·altitud<br>" +
-      "Valores de referencia de Marte: promedio global −59 °C y rango diurno de Viking 1 = 58 °C (NASA NSSDC). La precipitación líquida de Marte se toma como 0 mm/año." +
-      "</div>" +
-      "<p>En este sitio: temp " +
-      pct(scores.temperatura) +
-      ", amplitud " +
-      pct(scores.amplitud_termica) +
-      ", aridez " +
-      pct(scores.aridez) +
-      ", altitud/UV " +
-      pct(scores.altitud_uv_proxy) +
-      ".</p>" +
-      "<h3>Descripción</h3><p>" +
-      site.description +
-      "</p>" +
-      "<h3>Fuentes</h3><div class='sources'><ul>" +
-      sourceItems(site) +
-      "</ul><p class='muted'>" +
-      site.coord_source +
-      "</p><p class='muted'>" +
-      site.elevation_m.source +
-      "</p><p class='muted'>" +
-      site.climate.source_temperature +
-      " " +
-      site.climate.source_precipitation +
-      "</p></div>" +
-      "</div>";
-
-    drawCharts(scores, q);
-  }
-
-  function fact(label, value, status) {
-    return "<div class='fact'><dt>" + label + " " + tag(status) + "</dt><dd>" + value + "</dd></div>";
-  }
-  function sourceItems(site) {
-    return site.sources
-      .map((s) => '<li><a href="' + s.url + '" target="_blank" rel="noopener">' + s.label + "</a></li>")
-      .join("");
-  }
-
-  function drawCharts(scores, qualitative) {
-    const labels = [
-      "Temperatura",
-      "Amplitud térmica",
-      "Aridez",
-      "Altitud / UV (proxy)",
-      "Geología *",
-      "Relieve *",
-      "Sales *",
-      "Vulcanismo *",
-    ];
-    const values = [
-      scores.temperatura,
-      scores.amplitud_termica,
-      scores.aridez,
-      scores.altitud_uv_proxy,
-      qualitative.geologia.value,
-      qualitative.relieve.value,
-      qualitative.sales.value,
-      qualitative.vulcanismo.value,
-    ].map((v) => Math.round(v * 1000) / 10);
-    const colors = [
-      "rgba(111,191,154,0.85)",
-      "rgba(111,191,154,0.85)",
-      "rgba(111,191,154,0.85)",
-      "rgba(111,191,154,0.85)",
-      "rgba(201,164,92,0.85)",
-      "rgba(201,164,92,0.85)",
-      "rgba(201,164,92,0.85)",
-      "rgba(201,164,92,0.85)",
-    ];
-
-    if (state.charts.bars) state.charts.bars.destroy();
-    if (state.charts.radar) state.charts.radar.destroy();
-
-    state.charts.bars = new Chart($("#chart-bars"), {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "Puntaje (0–100)",
-            data: values,
-            backgroundColor: colors,
-            borderWidth: 0,
-          },
-        ],
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: { display: true, text: "Dimensiones (verde: dato; ámbar: ejemplo)", color: "#ece8e1", font: { size: 11 } },
-          tooltip: {
-            callbacks: {
-              afterLabel: (ctx) => (ctx.dataIndex < 4 ? "Calculado con datos de esta corrida" : "Valor de ejemplo / a completar"),
-            },
-          },
-        },
-        scales: {
-          x: { min: 0, max: 100, ticks: { color: "#9aa3ad" }, grid: { color: "rgba(255,255,255,0.06)" } },
-          y: { ticks: { color: "#ece8e1", font: { size: 10 } }, grid: { display: false } },
-        },
-      },
-    });
-
-    state.charts.radar = new Chart($("#chart-radar"), {
-      type: "radar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "Sitio (mezcla dato + ejemplo)",
-            data: values,
-            borderColor: "#e07a3d",
-            backgroundColor: "rgba(224,122,61,0.25)",
-            pointBackgroundColor: colors,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { labels: { color: "#ece8e1", font: { size: 10 } } },
-          title: { display: true, text: "Radar — las ramas ámbar son preliminares", color: "#ece8e1", font: { size: 11 } },
-        },
-        scales: {
-          r: {
-            min: 0,
-            max: 100,
-            ticks: { color: "#9aa3ad", backdropColor: "transparent", stepSize: 25 },
-            grid: { color: "rgba(255,255,255,0.08)" },
-            angleLines: { color: "rgba(255,255,255,0.08)" },
-            pointLabels: { color: "#ece8e1", font: { size: 9 } },
-          },
-        },
-      },
-    });
-  }
-
 
   function rankIcon(n, active) {
     return L.divIcon({
@@ -511,297 +118,639 @@
     });
   }
 
-  function setRightBody(body, targetSite) {
+  function targetIcon(body) {
+    return L.divIcon({
+      className: "",
+      html: '<div class="pin target ' + (body === "moon" ? "moon" : "mars") + '"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+  }
+
+  function isLessStudied(site) {
+    return site.known_level === "lesser-known" || !!site.highlight_less_studied;
+  }
+
+  // Un solo lugar decide el ícono de cada sitio terrestre: los puntuados conservan su número
+  // de ranking y solo el seleccionado se resalta (anillo cian), sin perder el número.
+  function earthIconFor(sid) {
+    const active = sid === state.selectedId;
+    const rank = state.rankIds.indexOf(sid);
+    if (rank !== -1) return rankIcon(rank + 1, active);
+    const s = state.sites[sid];
+    return divIcon(s && isLessStudied(s) ? "menos" : "earth", active);
+  }
+
+  function refreshEarthIcons() {
+    Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
+      marker.setIcon(earthIconFor(sid));
+      marker.setZIndexOffset(sid === state.selectedId ? 1000 : 0);
+    });
+  }
+
+  /* ---------- Mapas ---------- */
+
+  function initMaps() {
+    const earth = L.map("map-earth", { zoomControl: true, minZoom: 2, maxZoom: 12, worldCopyJump: true }).setView([20, 0], 2);
+    const mars = L.map("map-mars", { zoomControl: true, minZoom: 1, maxZoom: 8, worldCopyJump: true }).setView([0, 0], 2);
+
+    const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 18,
+    });
+    const esri = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      attribution: "Teselas: Esri, Maxar, Earthstar Geographics",
+      maxZoom: 18,
+    });
+    // Mapa base según el control (por defecto satelital, que convive con el fondo noche de la marca).
+    ($("#layer-esri") && $("#layer-esri").checked ? esri : osm).addTo(earth);
+
+    const gibsDate = $("#gibs-date").value;
+    const gibsTrueColor = L.tileLayer(
+      "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/{date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+      { date: gibsDate, attribution: "NASA GIBS / EOSDIS, MODIS Terra True Color", maxZoom: 12, maxNativeZoom: 9, opacity: 0.95 }
+    );
+    const gibsLst = L.tileLayer(
+      "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Land_Surface_Temp_Day/default/{date}/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png",
+      { date: gibsDate, attribution: "NASA GIBS / EOSDIS, MODIS Terra LST (día)", maxZoom: 12, maxNativeZoom: 7, opacity: 0.7 }
+    );
+    const opm = L.tileLayer(
+      "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png",
+      { attribution: 'OpenPlanetaryMap, <a href="http://openplanetarymap.org/basemaps/mars/opm-mars-basemap-v0-2/">OPM Mars Basemap v0.2</a>', maxZoom: 8, maxNativeZoom: 9 }
+    );
+    const mola = L.tileLayer("https://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/mola-color/{z}/{x}/{y}.png", {
+      attribution: "WhereOnMars / Carto, MOLA color (relieve sombreado)", maxZoom: 8, maxNativeZoom: 6, tms: true,
+    });
+    const marsShaded = L.tileLayer(
+      "https://s3-eu-west-1.amazonaws.com/whereonmars.cartodb.net/celestia_mars-shaded-16k_global/{z}/{x}/{y}.png",
+      { attribution: "WhereOnMars / Carto, Celestia Mars shaded", maxZoom: 8, maxNativeZoom: 5, tms: true }
+    );
+    const opmMoon = L.tileLayer(
+      "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png",
+      { attribution: "OpenPlanetaryMap, OPM Moon Basemap v0.1", maxZoom: 8, maxNativeZoom: 9 }
+    );
+    opm.addTo(mars);
+
+    state.earthMap = earth;
+    state.marsMap = mars;
+    state.layers = { osm, esri, gibsTrueColor, gibsLst, opm, mola, marsShaded, opmMoon };
+    const resizeMaps = () => { earth.invalidateSize(); mars.invalidateSize(); };
+    window.addEventListener("resize", resizeMaps);
+    setTimeout(resizeMaps, 200);
+
+    $("#layer-osm").addEventListener("change", () => setEarthBase($("#layer-osm").checked ? "osm" : "esri"));
+    $("#layer-esri").addEventListener("change", () => setEarthBase($("#layer-esri").checked ? "esri" : "osm"));
+    $("#layer-gibs-tc").addEventListener("change", () => toggleOverlay(gibsTrueColor, $("#layer-gibs-tc").checked, earth));
+    $("#layer-gibs-lst").addEventListener("change", () => toggleOverlay(gibsLst, $("#layer-gibs-lst").checked, earth));
+    $("#gibs-date").addEventListener("change", () => {
+      const d = $("#gibs-date").value;
+      [gibsTrueColor, gibsLst].forEach((ly) => {
+        ly.options.date = d;
+        if (earth.hasLayer(ly)) { earth.removeLayer(ly); ly.addTo(earth); }
+      });
+    });
+    $("#layer-opm").addEventListener("change", () => setMarsBase("opm"));
+    $("#layer-mola").addEventListener("change", () => setMarsBase("mola"));
+    $("#layer-shaded").addEventListener("change", () => setMarsBase("shaded"));
+
+    function setEarthBase(which) {
+      const useEsri = which === "esri";
+      if (!earth.hasLayer(useEsri ? esri : osm)) (useEsri ? esri : osm).addTo(earth);
+      if (earth.hasLayer(useEsri ? osm : esri)) earth.removeLayer(useEsri ? osm : esri);
+      $("#layer-esri").checked = useEsri;
+      $("#layer-osm").checked = !useEsri;
+    }
+    function setMarsBase(which) {
+      [opm, mola, marsShaded].forEach((ly) => { if (mars.hasLayer(ly)) mars.removeLayer(ly); });
+      $("#layer-opm").checked = which === "opm";
+      $("#layer-mola").checked = which === "mola";
+      $("#layer-shaded").checked = which === "shaded";
+      if (state.rightBody === "mars") (which === "mola" ? mola : which === "shaded" ? marsShaded : opm).addTo(mars);
+    }
+  }
+
+  function toggleOverlay(layer, on, map) {
+    if (on && !map.hasLayer(layer)) layer.addTo(map);
+    if (!on && map.hasLayer(layer)) map.removeLayer(layer);
+  }
+
+  // Mapa derecho: Marte o Luna según el destino, con sus puntos y el destino elegido resaltado.
+  function setRightBody(body) {
     const map = state.marsMap;
     const Lrs = state.layers;
     const marsLayers = [Lrs.opm, Lrs.mola, Lrs.marsShaded];
-    const label = $("#map-right-label");
     state.rightBody = body;
+    const label = $("#map-right-label");
     if (body === "moon") {
       marsLayers.forEach((ly) => { if (map.hasLayer(ly)) map.removeLayer(ly); });
-      if (Lrs.opmMoon && !map.hasLayer(Lrs.opmMoon)) Lrs.opmMoon.addTo(map);
-      if (label) label.textContent = "Luna (Web Mercator comprime el polo sur)";
-      Object.values(state.marsMarkers).forEach((m) => { if (map.hasLayer(m)) map.removeLayer(m); });
-      Object.values(state.moonMarkers).forEach((m) => m.addTo(map));
+      if (!map.hasLayer(Lrs.opmMoon)) Lrs.opmMoon.addTo(map);
+      if (label) label.textContent = "Luna (Mercator comprime el polo sur)";
     } else {
-      if (Lrs.opmMoon && map.hasLayer(Lrs.opmMoon)) map.removeLayer(Lrs.opmMoon);
-      Object.values(state.moonMarkers).forEach((m) => { if (map.hasLayer(m)) map.removeLayer(m); });
-      Object.values(state.marsMarkers).forEach((m) => m.addTo(map));
-      if (!map.hasLayer(Lrs.opm) && !map.hasLayer(Lrs.mola) && !map.hasLayer(Lrs.marsShaded)) {
-        Lrs.opm.addTo(map);
+      if (map.hasLayer(Lrs.opmMoon)) map.removeLayer(Lrs.opmMoon);
+      if (!marsLayers.some((ly) => map.hasLayer(ly))) {
+        ($("#layer-mola").checked ? Lrs.mola : $("#layer-shaded").checked ? Lrs.marsShaded : Lrs.opm).addTo(map);
       }
       if (label) label.textContent = "Marte";
     }
-    if (targetSite) {
-      const lat = Math.max(-85.05, Math.min(85.05, targetSite.lat));
-      map.flyTo([lat, targetSite.lon], body === "moon" ? 4 : 5, { duration: 0.8 });
+    const note = $("#layers-dest-note");
+    if (note) note.hidden = body !== "moon";
+    ["#layer-opm", "#layer-mola", "#layer-shaded"].forEach((sel) => { const el = $(sel); if (el) el.disabled = body === "moon"; });
+    Object.entries(state.destMarkers).forEach(([id, m]) => {
+      const t = state.targets.find((x) => x.id === id);
+      if (t && t.body === body) m.addTo(map);
+      else if (map.hasLayer(m)) map.removeLayer(m);
+    });
+    if (state.targetMarker) {
+      if (state.target && state.target.body === body) state.targetMarker.addTo(map);
+      else if (map.hasLayer(state.targetMarker)) map.removeLayer(state.targetMarker);
     }
     setTimeout(() => map.invalidateSize(), 150);
   }
 
-  function tasiWeightsFromUI() {
-    const weights = { G: 0.2, T: 0.2, E: 0.2, V: 0.2, O: 0.2 };
-    document.querySelectorAll("#finder-features input[data-w]").forEach((rng) => {
-      const on = document.querySelector('#finder-features input[data-feat="' + rng.dataset.w + '"]');
-      weights[rng.dataset.w] = on && !on.checked ? 0 : (Number(rng.value) || 0) / 10;
+  function addDestMarkers() {
+    state.targets.forEach((t) => {
+      if (t.lat == null || t.lon == null) return;
+      const m = L.marker(clampLatLng(t.lat, t.lon), { icon: divIcon(t.body === "moon" ? "moon" : "mars", false), title: t.name });
+      m.bindTooltip(t.short_name || t.name);
+      m.on("click", () => {
+        $("#finder-target").value = t.id;
+        chooseTarget(t);
+      });
+      state.destMarkers[t.id] = m;
     });
-    return weights;
   }
 
-  function fillCountrySelect(continentName) {
-    const sel = $("#finder-country");
-    if (!sel || !state.regions) return;
-    const current = sel.value;
-    sel.innerHTML = "";
-    const all = document.createElement("option");
-    all.value = "";
-    all.textContent = "Todos los países";
-    sel.appendChild(all);
-    const continents = state.regions.continents || [];
-    const list = continentName
-      ? continents.filter((c) => c.name === continentName)
-      : continents;
-    list.forEach((cont) => {
-      (cont.countries || []).forEach((c) => {
-        const opt = document.createElement("option");
-        opt.value = c.iso;
-        opt.textContent = c.name + " (" + c.iso + ")";
-        sel.appendChild(opt);
-      });
+  // Marca y centra el destino elegido en el mapa derecho, sin tocar el sitio terrestre elegido.
+  function focusTarget(t) {
+    if (!t || t.lat == null || t.lon == null || !state.marsMap) return;
+    state.target = t;
+    if (state.targetMarker) state.marsMap.removeLayer(state.targetMarker);
+    state.targetMarker = L.marker(clampLatLng(t.lat, t.lon), {
+      icon: targetIcon(t.body),
+      title: t.name,
+      alt: "Destino elegido: " + t.name,
+      zIndexOffset: 1000,
+      keyboard: true,
     });
-    if (current && Array.from(sel.options).some((o) => o.value === current)) {
-      sel.value = current;
-    } else {
-      sel.value = "";
-    }
-    sel.disabled = false;
+    state.targetMarker.bindTooltip(t.short_name || t.name, { permanent: true, direction: "top", offset: [0, -12] });
+    setRightBody(t.body);
+    safeFly(state.marsMap, clampLatLng(t.lat, t.lon), t.body === "moon" ? 4 : 5, flyOpts(0.8));
+    refreshWeightsFor(t);
   }
 
-  function populateFinder(targets, regions) {
-    const sel = $("#finder-target");
-    sel.innerHTML = "";
-    const groups = { moon: "Luna", mars: "Marte" };
-    Object.keys(groups).forEach((body) => {
-      const optg = document.createElement("optgroup");
-      optg.label = groups[body];
-      targets.filter((s) => s.body === body).forEach((s) => {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        opt.textContent = s.name;
-        optg.appendChild(opt);
-      });
-      sel.appendChild(optg);
-    });
-    if (targets.some((s) => s.id === "shackleton-rim")) sel.value = "shackleton-rim";
-    sel.disabled = false;
-
-    const box = $("#finder-features");
-    box.innerHTML = "";
-    const comps = [
-      { id: "G", name: "G · geología / espectro", def: 2, hint: "solo si hay espectros reales" },
-      { id: "T", name: "T · topografía (Mahalanobis)", def: 2, hint: "relieve relativo, pendiente, rugosidad" },
-      { id: "E", name: "E · régimen térmico", def: 2, hint: "temperatura y amplitud" },
-      { id: "V", name: "V · volátiles / aridez", def: 2, hint: "precipitación u hielo" },
-      { id: "O", name: "O · operacional", def: 2, hint: "solo con métrica comparable" },
-    ];
-    comps.forEach((c) => {
-      const row = document.createElement("div");
-      row.className = "feat-row";
-      row.innerHTML =
-        '<label><input type="checkbox" data-feat="' + c.id + '" checked> ' +
-        c.name + " <span class='muted'>(" + c.hint + ")</span></label>" +
-        '<input type="range" min="0" max="40" step="1" value="' + Math.round(c.def * 10) + '" data-w="' + c.id + '">' +
-        '<span data-wv="' + c.id + '">' + c.def.toFixed(1) + "</span>";
-      box.appendChild(row);
-    });
-    box.querySelectorAll("input[type=checkbox]").forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const w = box.querySelector('input[data-w="' + cb.dataset.feat + '"]');
-        if (w) w.disabled = !cb.checked;
-      });
-    });
-    box.querySelectorAll("input[type=range]").forEach((rng) => {
-      rng.addEventListener("input", () => {
-        const sp = box.querySelector('[data-wv="' + rng.dataset.w + '"]');
-        if (sp) sp.textContent = (Number(rng.value) / 10).toFixed(1);
-      });
-    });
-
-    const csel = $("#finder-continent");
-    if (csel) {
-      csel.innerHTML = "";
-      const optAll = document.createElement("option");
-      optAll.value = "";
-      optAll.textContent = "Todos los continentes";
-      csel.appendChild(optAll);
-      (regions && regions.continents ? regions.continents : []).forEach((c) => {
-        const opt = document.createElement("option");
-        opt.value = c.name;
-        opt.textContent = c.name;
-        csel.appendChild(opt);
-      });
-      csel.disabled = false;
-      csel.addEventListener("change", () => fillCountrySelect(csel.value));
-    }
-    fillCountrySelect("");
-    const gamma = $("#finder-gamma");
-    const gval = $("#finder-gamma-val");
-    if (gamma && gval) {
-      const sync = () => { gval.textContent = Number(gamma.value).toFixed(1); };
-      gamma.addEventListener("input", sync);
-      sync();
-    }
-    $("#btn-buscar").disabled = false;
+  // Al cambiar de destino, los pesos solo se habilitan para los componentes con dato de ese destino.
+  async function refreshWeightsFor(t) {
+    if (!state.api || !$("#finder-features").children.length) return;
+    try {
+      if (!state.vectors[t.id]) state.vectors[t.id] = await state.api.getTargetVector(t.id);
+    } catch (e) { return; }
+    if (state.target === t) renderWeights(currentWeightsSource());
   }
 
-  function ensureEarthMarker(site) {
-    if (!site || !site.id || !state.earthMap) return;
-    if (state.earthMarkers[site.id]) return;
-    const remote = {
-      id: site.id,
-      name: site.name,
-      short_name: site.short_name || site.name,
-      lat: site.lat,
-      lon: site.lon,
-      highlight_less_studied: site.known_level === "lesser-known" || site.highlight_less_studied,
-      continent: site.continent,
-      country_iso: site.country_iso,
-      country_name: site.country_name,
-      analog_types: site.analog_types,
-      summary: site.summary,
-    };
-    state.remoteEarth[site.id] = remote;
-    const kind = remote.highlight_less_studied ? "menos" : "earth";
-    const m = L.marker([site.lat, site.lon], { icon: divIcon(kind, false), title: site.name });
-    m.on("click", () => selectSiteOrRemote(site.id));
-    m.bindTooltip(remote.short_name);
+  function chooseTarget(t) {
+    state.lastTasi = null;
+    state.rankIds = [];
+    refreshEarthIcons();
+    renderSiteList();
+    focusTarget(t);
+    if (state.selectedId) renderSitePanel(state.selectedId);
+  }
+
+  /* ---------- Sitios terrestres (de /candidates) ---------- */
+
+  function placeLine(site) {
+    const country = site.country_name ? site.country_name + (site.country_iso ? " (" + site.country_iso + ")" : "") : "";
+    return [country, site.continent || ""].filter(Boolean).join(", ");
+  }
+
+  function addSite(site) {
+    if (!site || !site.id) return;
+    state.sites[site.id] = Object.assign({}, state.sites[site.id] || {}, site);
+    if (state.earthMarkers[site.id] || site.lat == null || site.lon == null || !state.earthMap) return;
+    const m = L.marker([site.lat, site.lon], { icon: earthIconFor(site.id), title: site.name });
+    m.on("click", () => selectSite(site.id));
+    m.bindTooltip(site.short_name || site.name);
     m.addTo(state.earthMap);
     state.earthMarkers[site.id] = m;
   }
 
-  function renderRemotePanel(site, match) {
-    const comps = (match && match.components) || {};
-    const rows = ["G", "T", "E", "V", "O"].map((k) => {
+  function siteButton(site, extra) {
+    const rank = state.rankIds.indexOf(site.id);
+    const match = currentMatch(site.id);
+    return (
+      '<button type="button" class="site-btn' + (state.selectedId === site.id ? " active" : "") + '" data-id="' + escapeHtml(site.id) + '">' +
+        '<span class="name">' + (rank !== -1 ? (rank + 1) + ". " : "") + escapeHtml(site.name) + "</span>" +
+        (extra || "") +
+        '<span class="meta">' + escapeHtml(site.country_name || placeLine(site)) +
+          (match && match.score != null ? ", TASI " + escapeHtml(explain().formatScore(match.score)) : "") +
+          (isLessStudied(site) ? '<span class="badge menos">Menos estudiado</span>' : "") +
+        "</span>" +
+      "</button>"
+    );
+  }
+
+  function exampleFor(siteId) {
+    return state.examples.find((e) => e.earth_id === siteId) || null;
+  }
+
+  function targetName(id) {
+    const t = state.targets.find((x) => x.id === id);
+    return t ? (t.short_name || t.name) : id;
+  }
+
+  function renderSiteList() {
+    const box = $("#site-buttons");
+    const sites = Object.values(state.sites);
+    if (!sites.length) {
+      box.innerHTML = "<p class='placeholder-msg'>No hay sitios terrestres en el catálogo de la API.</p>";
+      return;
+    }
+    const examples = state.examples
+      .filter((e) => state.sites[e.earth_id])
+      .map((e) => siteButton(state.sites[e.earth_id],
+        '<span class="pair-line">con ' + escapeHtml((e.target_ids || []).map(targetName).join(" y ")) + "</span>"))
+      .join("");
+    // Después el ranking vigente (en su orden) y el resto del catálogo, por nombre.
+    const ranked = state.rankIds.map((id) => state.sites[id]).filter(Boolean);
+    const rest = sites.filter((s) => state.rankIds.indexOf(s.id) === -1)
+      .sort((a, b) => String(a.name).localeCompare(String(b.name), "es"));
+    box.innerHTML =
+      (examples ? "<h3 class='sitelist-group'>Pares documentados en la literatura</h3>" + examples : "") +
+      "<h3 class='sitelist-group'>" + (ranked.length ? "Ranking TASI y resto del catálogo" : "Todo el catálogo") +
+        " (" + sites.length + " sitios)</h3>" +
+      ranked.concat(rest).map((site) => siteButton(site)).join("");
+    box.querySelectorAll(".site-btn").forEach((btn) => {
+      btn.addEventListener("click", () => selectSite(btn.getAttribute("data-id"), true));
+    });
+  }
+
+  // Al elegir un sitio de los pares documentados, el destino pasa a ser el de su par.
+  function selectSite(id, fromList) {
+    const site = state.sites[id];
+    if (!site) return;
+    const ex = exampleFor(id);
+    if (fromList && ex && ex.target_ids && ex.target_ids.length && (!state.target || ex.target_ids.indexOf(state.target.id) === -1)) {
+      const t = state.targets.find((x) => x.id === ex.target_ids[0]);
+      if (t) {
+        $("#finder-target").value = t.id;
+        state.lastTasi = null;
+        state.rankIds = [];
+        focusTarget(t);
+      }
+    }
+    state.selectedId = id;
+    refreshEarthIcons();
+    renderSiteList();
+    if (site.lat != null && site.lon != null) safeFly(state.earthMap, [site.lat, site.lon], 8, flyOpts(0.9));
+    keepTargetInView();
+    renderSitePanel(id);
+  }
+
+  function keepTargetInView() {
+    const t = state.target;
+    if (!t || !state.marsMap || !hasSize(state.marsMap)) return;
+    const ll = clampLatLng(t.lat, t.lon);
+    if (!state.marsMap.getBounds().contains(ll)) state.marsMap.panTo(ll, flyOpts(0.6));
+  }
+
+  /* ---------- Ficha del sitio y del par ---------- */
+
+  function currentMatch(id) {
+    return ((state.lastTasi && state.lastTasi.matches) || []).find((m) => m.site && m.site.id === id) || null;
+  }
+
+  // Fracción 0–1 del puntaje para la escala de color violeta → óxido del manual.
+  function scoreFraction(score) {
+    const n = Number(score);
+    if (score == null || Number.isNaN(n)) return "0";
+    return Math.max(0, Math.min(1, n / 100)).toFixed(3);
+  }
+
+  function fact(label, value, status) {
+    const tag = status === "measured"
+      ? "<span class='tag ok'>dato medido</span>"
+      : status === "placeholder"
+        ? "<span class='tag warn'>dato a completar</span>"
+        : "";
+    return "<div class='fact'><dt>" + escapeHtml(label) + " " + tag + "</dt><dd>" + value + "</dd></div>";
+  }
+
+  function pairBlock(match, source) {
+    const t = state.target;
+    if (!t) {
+      return "<h3>Destino</h3><p class='muted'>Elegí un destino en el buscador de arriba para ver el par en el mapa de la derecha.</p>";
+    }
+    const body = t.body === "moon" ? "Luna" : "Marte";
+    const html = "<h3>Comparado con " + escapeHtml(t.short_name || t.name) + " (" + body + ")</h3>";
+    if (!match) {
+      return html + "<p class='muted'>Todavía no hay puntaje TASI de este sitio frente a ese destino.</p>";
+    }
+    const ex = explain().explainMatch(match);
+    return html +
+      "<div class='score-hero' style='--s:" + scoreFraction(match.score) + "'><div class='num score-color'>" + escapeHtml(explain().formatScore(match.score)) +
+      "</div><p>de 100, índice TASI frente a " + escapeHtml(t.short_name || t.name) +
+      (source === "por defecto" ? ", con los pesos y γ por defecto del servicio" : ", con los pesos de tu búsqueda") + ".</p>" +
+      "<span class='score-bar' aria-hidden='true'><span></span></span></div>" +
+      "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why || "Sin componentes con dato.") + "</p>" +
+      "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks) + "</p>" +
+      (ex.missing.length
+        ? "<p class='pair-missing'><span class='tag warn'>A completar</span> " + escapeHtml(ex.missing.join(", ")) + "</p>"
+        : "");
+  }
+
+  function componentsBlock(match) {
+    if (!match) return "";
+    const comps = match.components || {};
+    const rows = COMPONENT_KEYS.map((k) => {
       const c = comps[k] || {};
-      const val = c.score == null ? "nulo" : c.score.toLocaleString("es-AR") + " / 100";
-      const why = c.available ? "" : " — " + (c.reason || "sin dato");
-      return "<li><strong>" + k + "</strong>: " + val + (why ? "<span class='muted'>" + why + "</span>" : "") + "</li>";
+      const label = explain().COMPONENT_LABELS[k];
+      if (c.score == null || c.available === false) {
+        return "<li class='comp-row'><span class='comp-name'>" + escapeHtml(label) + "</span><span class='tag warn'>sin dato</span>" +
+          (c.reason ? "<span class='comp-reason' lang='en'>" + escapeHtml(c.reason) + "</span>" : "") + "</li>";
+      }
+      return "<li class='comp-row' style='--s:" + scoreFraction(c.score) + "'><span class='comp-name'>" + escapeHtml(label) + "</span>" +
+        "<span class='comp-score'>" + escapeHtml(explain().formatScore(c.score)) + " de 100</span>" +
+        "<span class='score-bar' aria-hidden='true'><span></span></span></li>";
     }).join("");
-    const mask = (match && match.mask) || {};
+    const used = (match.coverage && match.coverage.available_components) || [];
+    return "<details class='panel-more'><summary>Desglose por componente (" + used.length + " de 5 con dato)</summary>" +
+      "<ul class='comp-list'>" + rows + "</ul></details>";
+  }
+
+  // Convierte las URL de un texto de fuente en enlaces, escapando todo lo demás.
+  function linkify(text) {
+    const parts = String(text).split(/(https?:\/\/[^\s)]+)/g);
+    return parts.map((p, i) => i % 2
+      ? '<a href="' + escapeHtml(p) + '" target="_blank" rel="noopener">' + escapeHtml(p.replace(/^https?:\/\//, "").slice(0, 60)) + "</a>"
+      : escapeHtml(p)).join("");
+  }
+
+  function unitText(unit) {
+    if (unit == null) return "";
+    return UNIT_LABELS[unit] != null ? UNIT_LABELS[unit] : unit;
+  }
+
+  function valueCell(item) {
+    if (!item || item.value == null) return "<td><span class='tag warn'>a completar</span></td>";
+    const unit = unitText(item.unit);
+    const q = QUALITY_LABELS[item.quality];
+    const n = Number(item.value);
+    const shown = Number.isNaN(n) ? escapeHtml(item.value) : escapeHtml(n.toLocaleString("es-AR", { maximumFractionDigits: 2 }));
+    return "<td><span class='cmp-value'>" + shown + (unit ? (unit === "%" || unit === "°" ? "" : " ") + escapeHtml(unit) : "") + "</span>" +
+      (q ? " <span class='tag " + q[1] + "'>" + escapeHtml(q[0]) + "</span>" : "") + "</td>";
+  }
+
+  // Tabla lado a lado: datos del sitio (features de /candidates/{id}) y del destino (vector de /sites/{id}/vector).
+  function dataTable(detail, vector) {
+    const feats = (detail && detail.features) || {};
+    const comps = (vector && vector.components) || {};
+    const rows = METRIC_ROWS.map((r) => {
+      const t = ((comps[r.comp] || (r.comp === "Vo" ? comps.V : null) || {}).metrics || {})[r.target];
+      return "<tr><th scope='row'>" + escapeHtml(r.label) + "</th>" + valueCell(feats[r.earth]) + valueCell(t) + "</tr>";
+    }).join("");
+    return "<h3>Datos lado a lado</h3>" +
+      "<table class='cmp-table'><thead><tr><th scope='col'>Métrica</th><th scope='col'>Sitio</th><th scope='col'>Destino</th></tr></thead>" +
+      "<tbody>" + rows + "</tbody></table>" +
+      "";
+  }
+
+  function literatureBlock(ex) {
+    if (!ex) return "";
+    const sources = (ex.sources || []).map((src) =>
+      "<li><a href='" + escapeHtml(src.url) + "' target='_blank' rel='noopener'>" + escapeHtml(src.label || src.url) + "</a></li>").join("");
+    return "<section class='literature' aria-label='Documentado en la literatura'>" +
+      "<h3>Documentado en la literatura</h3>" +
+      "<p class='muted'>Texto de la fuente del par, sin puntaje: no sale de TASI.</p>" +
+      (ex.why_es ? "<p><strong>Por qué se parece.</strong> " + escapeHtml(ex.why_es) + "</p>" : "") +
+      (ex.breaks_es ? "<p><strong>En qué no.</strong> " + escapeHtml(ex.breaks_es) + "</p>" : "") +
+      (sources ? "<p class='muted'>Fuentes:</p><ul class='literature-sources'>" + sources + "</ul>" : "") +
+      (ex.wikipedia_only ? "<p><span class='tag warn'>Solo Wikipedia: fuente de último recurso</span></p>" : "") +
+      "</section>";
+  }
+
+  async function ensureDetails(siteId, target) {
+    const api = state.api;
+    const jobs = [];
+    if (!state.details[siteId]) jobs.push(api.getCandidate(siteId).then((d) => { state.details[siteId] = d; }));
+    if (target && !state.vectors[target.id]) jobs.push(api.getTargetVector(target.id).then((v) => { state.vectors[target.id] = v; }));
+    if (target && !state.tasiByTarget[target.id]) {
+      jobs.push((async () => {
+        const vector = state.vectors[target.id] || (await api.getTargetVector(target.id));
+        state.vectors[target.id] = vector;
+        state.tasiByTarget[target.id] = await api.rankAnalogs({
+          targetVector: vector,
+          weights: (state.method && state.method.default_weights) || undefined,
+          gamma: state.method ? state.method.default_gamma : undefined,
+          top: Object.keys(state.sites).length || 100,
+          applyMask: true,
+        });
+      })());
+    }
+    await Promise.all(jobs);
+  }
+
+  // El puntaje del par: el del último ranking si incluye el sitio; si no, el de /tasi con los
+  // pesos y γ por defecto del servicio para ese destino.
+  function matchFor(siteId) {
+    const fromSearch = currentMatch(siteId);
+    if (fromSearch) return { match: fromSearch, discarded: null, source: "búsqueda" };
+    const data = state.target && state.tasiByTarget[state.target.id];
+    if (!data) return { match: null, discarded: null, source: null };
+    const match = (data.matches || []).find((m) => m.site && m.site.id === siteId) || null;
+    const discarded = (data.discarded || []).find((d) => d.id === siteId) || null;
+    return { match: match, discarded: discarded, source: "por defecto" };
+  }
+
+  async function renderSitePanel(id) {
+    const site = state.sites[id];
+    if (!site) return;
+    const target = state.target;
+    paintSitePanel(id, true);
+    try {
+      await ensureDetails(id, target);
+    } catch (e) {
+      if (state.selectedId === id) paintSitePanel(id, false, e.message);
+      return;
+    }
+    if (state.selectedId === id && state.target === target) paintSitePanel(id, false);
+  }
+
+  // Códigos de la máscara (earth-service) en palabras.
+  const MASK_FLAG_LABELS = {
+    ndvi_unavailable: "NDVI sin dato",
+    water_unavailable: "agua superficial sin dato",
+  };
+
+  function maskFlags(flags) {
+    return flags.map((f) => MASK_FLAG_LABELS[f] || f).join(", ");
+  }
+
+  function paintSitePanel(id, loading, error) {
+    const site = state.sites[id];
+    const target = state.target;
+    const ex = exampleFor(id);
+    const exOk = ex && target && (ex.target_ids || []).indexOf(target.id) !== -1;
+    const found = matchFor(id);
+    const mask = (found.match && found.match.mask) || {};
+    const coords = Number(site.lat).toFixed(4) + "°, " + Number(site.lon).toFixed(4) + "°";
     $("#panel").innerHTML =
-      '<div class="panel-head"><h2>Sitio</h2></div>' +
+      '<div class="panel-head"><h2>Ficha</h2></div>' +
       '<div class="panel-body">' +
-      "<p class='kicker'>" +
-      (site.country_name || "") +
-      (site.country_iso ? " (" + site.country_iso + ")" : "") +
-      (site.continent ? " · " + site.continent : "") +
-      (site.highlight_less_studied ? " · menos estudiado" : "") +
-      "</p>" +
-      "<h3 style='margin-top:0.2rem'>" + site.name + "</h3>" +
-      (site.summary ? "<p class='lead'>" + site.summary + "</p>" : "") +
-      "<p class='muted'>Candidato del catálogo mundial (earth-service). Las fichas narrativas largas de esta columna siguen disponibles para los sitios estáticos de la Argentina.</p>" +
-      '<dl class="facts">' +
-      fact("Coordenadas", Number(site.lat).toFixed(5) + "°, " + Number(site.lon).toFixed(5) + "°", "measured") +
-      fact("País", (site.country_name || "—") + (site.country_iso ? " · " + site.country_iso : ""), "measured") +
-      fact("Tipos", (site.analog_types || []).join(", ") || "—", "measured") +
-      (match && match.score != null ? fact("TASI", match.score.toLocaleString("es-AR") + " / 100", "measured") : "") +
-      "</dl>" +
-      (mask.unknown_flags && mask.unknown_flags.length ? "<p class='caution'>Máscara incompleta: " + mask.unknown_flags.join(", ") + ". El sitio no se descartó.</p>" : "") +
-      "<h3>Componentes TASI</h3><ul>" + rows + "</ul>" +
+        "<h3 class='site-title'>" + escapeHtml(site.name) + "</h3>" +
+        "<p class='site-meta'>" + escapeHtml(placeLine(site)) + "<span class='site-coords'>" + escapeHtml(coords) + "</span>" +
+          (isLessStudied(site) ? " <span class='badge menos'>Menos estudiado</span>" : "") + "</p>" +
+        (site.summary ? "<p class='lead'>" + escapeHtml(site.summary) + "</p>" : "") +
+        (loading ? "<p class='muted' role='status'>Cargando el par…</p>" : "") +
+        (error ? "<p class='caution'>No pudimos cargar los datos del par: " + escapeHtml(error) + "</p>" : "") +
+        pairBlock(found.match, found.source) +
+        (found.discarded ? "<p class='quiet-note'>La máscara de vegetación y agua descarta este sitio frente a este destino: no tiene puntaje.</p>" : "") +
+        (mask.unknown_flags && mask.unknown_flags.length
+          ? "<p class='quiet-note'>Máscara incompleta (" + escapeHtml(maskFlags(mask.unknown_flags)) + "): el sitio no se descartó.</p>"
+          : "") +
+        (!loading && target ? dataTable(state.details[id], state.vectors[target.id]) : "") +
+        componentsBlock(found.match) +
+        (exOk ? literatureBlock(ex) : "") +
+        "<details class='panel-more'><summary>Fuente de las coordenadas</summary>" +
+          "<p class='sources'>" + linkify(site.coord_source || "A completar: el catálogo no trae la fuente de este punto.") + "</p>" +
+        "</details>" +
       "</div>";
   }
 
-  function selectSiteOrRemote(id) {
-    const local = state.data && (state.data.earth_sites || []).find((s) => s.id === id);
-    if (local) {
-      selectSite(id);
-      return;
-    }
-    const site = state.remoteEarth[id];
-    if (!site) return;
-    state.selectedId = id;
-    Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
-      const s = (state.data.earth_sites || []).find((x) => x.id === sid) || state.remoteEarth[sid];
-      const kind = s && s.highlight_less_studied ? "menos" : "earth";
-      marker.setIcon(divIcon(kind, sid === id));
-    });
-    state.earthMap.flyTo([site.lat, site.lon], 8, { duration: 0.9 });
-    const match = ((state.lastTasi && state.lastTasi.matches) || []).find((m) => m.site.id === id);
-    renderRemotePanel(site, match);
+  /* ---------- Buscador (TASI) ---------- */
+
+  // Componentes con dato del lado del destino (vector de planetary). Sin vector todavía: se habilitan todos.
+  function componentAvailable(k) {
+    const v = state.target && state.vectors[state.target.id];
+    if (!v) return true;
+    const comps = v.components || {};
+    const c = comps[k] || (k === "V" ? comps.Vo : null) || {};
+    return !!c.available;
   }
 
-  function resetEarthIcons() {
-    if (!state.data && !Object.keys(state.remoteEarth).length) return;
-    state.rankIds = [];
-    Object.entries(state.earthMarkers).forEach(([sid, marker]) => {
-      const s = ((state.data && state.data.earth_sites) || []).find((x) => x.id === sid) || state.remoteEarth[sid];
-      const kind = s && s.highlight_less_studied ? "menos" : "earth";
-      marker.setIcon(divIcon(kind, sid === state.selectedId));
+  function tasiWeightsFromUI() {
+    const weights = {};
+    document.querySelectorAll("#finder-features input[data-w]").forEach((rng) => {
+      weights[rng.dataset.w] = rng.disabled ? 0 : (Number(rng.value) || 0) / 100;
+    });
+    return weights;
+  }
+
+  // Porcentaje efectivo de cada peso después de renormalizar sobre los componentes habilitados.
+  function refreshEffectiveWeights() {
+    const w = tasiWeightsFromUI();
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
+    document.querySelectorAll("#finder-features [data-wv]").forEach((el) => {
+      const k = el.dataset.wv;
+      const rng = document.querySelector('#finder-features input[data-w="' + k + '"]');
+      if (rng && rng.disabled) { el.textContent = "sin datos todavía"; return; }
+      el.textContent = total > 0 ? Math.round((w[k] / total) * 100) + " %" : "0 %";
     });
   }
 
-  function highlightRanks(matches) {
-    resetEarthIcons();
-    const scored = matches.filter((m) => m.score != null);
-    state.rankIds = scored.map((m) => m.site.id);
-    scored.forEach((m, i) => {
-      ensureEarthMarker(m.site);
-      const marker = state.earthMarkers[m.site.id];
-      if (marker) marker.setIcon(rankIcon(i + 1, true));
+  function renderWeights(weights) {
+    const box = $("#finder-features");
+    box.innerHTML = COMPONENT_KEYS.map((k) => {
+      const label = escapeHtml(explain().COMPONENT_LABELS[k]);
+      const ok = componentAvailable(k);
+      const w = Number((weights || {})[k]) || 0;
+      return (
+        '<div class="feat-row' + (ok ? "" : " is-off") + '">' +
+          '<label for="w-' + k + '">' + label + "</label>" +
+          '<input type="range" id="w-' + k + '" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '"' + (ok ? "" : " disabled") + ">" +
+          '<span data-wv="' + k + '"></span>' +
+        "</div>"
+      );
+    }).join("");
+    box.querySelectorAll("input[type=range]").forEach((rng) => {
+      rng.addEventListener("input", () => {
+        const mission = $("#finder-mission");
+        if (mission) mission.value = "";
+        refreshEffectiveWeights();
+      });
     });
-    if (scored.length && state.earthMap) {
-      const pts = scored.map((m) => [m.site.lat, m.site.lon]);
-      try {
-        state.earthMap.fitBounds(pts, { padding: [28, 28], maxZoom: 6 });
-      } catch (e) { /* ignore */ }
-    }
+    refreshEffectiveWeights();
   }
 
-  async function detectApi() {
-    const status = $("#api-status");
-    const api = window.HexastraAPI;
-    if (!api) {
-      state.apiOk = false;
-      if (status) {
-        status.textContent = "Falta js/api.js. El mapa estático sigue andando.";
-        status.className = "api-status down";
-      }
-      return false;
+  function presetWeights(id) {
+    const p = ((state.method && state.method.presets) || []).find((x) => x.id === id);
+    return (p && p.weights) || (state.method && state.method.default_weights) || {};
+  }
+
+  function currentWeightsSource() {
+    const mission = $("#finder-mission");
+    return mission && mission.value ? presetWeights(mission.value) : tasiWeightsFromUI();
+  }
+
+  // Región: un solo control con «Todo el mundo», cada continente y sus países (de /regions).
+  function populateRegion() {
+    const sel = $("#finder-region");
+    const parts = ["<option value=''>Todo el mundo</option>"];
+    ((state.regions && state.regions.continents) || []).forEach((c) => {
+      parts.push("<optgroup label='" + escapeHtml(c.name) + "'>");
+      parts.push("<option value='c:" + escapeHtml(c.name) + "'>Todo " + escapeHtml(c.name) + "</option>");
+      (c.countries || []).forEach((co) => {
+        parts.push("<option value='p:" + escapeHtml(co.iso) + "'>" + escapeHtml(co.name) + "</option>");
+      });
+      parts.push("</optgroup>");
+    });
+    sel.innerHTML = parts.join("");
+    sel.disabled = false;
+  }
+
+  function regionFilter() {
+    const v = $("#finder-region").value || "";
+    if (v.indexOf("c:") === 0) return { continent: v.slice(2), country: undefined };
+    if (v.indexOf("p:") === 0) return { continent: undefined, country: v.slice(2) };
+    return { continent: undefined, country: undefined };
+  }
+
+  function populateFinder() {
+    const sel = $("#finder-target");
+    sel.innerHTML = "";
+    [["moon", "Luna"], ["mars", "Marte"]].forEach(([body, name]) => {
+      const list = state.targets.filter((s) => s.body === body);
+      if (!list.length) return;
+      const optg = document.createElement("optgroup");
+      optg.label = name;
+      list.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.short_name || s.name;
+        optg.appendChild(opt);
+      });
+      sel.appendChild(optg);
+    });
+    sel.disabled = !state.targets.length;
+
+    // Misión: los presets de GET {earth}/method; «Pesos propios» cuando se mueven a mano.
+    const mission = $("#finder-mission");
+    const presets = (state.method && state.method.presets) || [];
+    mission.innerHTML = presets.map((p) => "<option value='" + escapeHtml(p.id) + "'>" + escapeHtml(p.title_es || p.id) + "</option>").join("") +
+      "<option value=''>Pesos propios</option>";
+    mission.disabled = !presets.length;
+    mission.addEventListener("change", () => { if (mission.value) renderWeights(presetWeights(mission.value)); });
+    renderWeights(presets.length ? presetWeights(presets[0].id) : (state.method && state.method.default_weights));
+
+    populateRegion();
+
+    const gamma = $("#finder-gamma");
+    const gval = $("#finder-gamma-val");
+    if (state.method && state.method.default_gamma != null) gamma.value = state.method.default_gamma;
+    const sync = () => { gval.textContent = Number(gamma.value).toFixed(1).replace(".", ","); };
+    gamma.addEventListener("input", sync);
+    sync();
+    const ndvi = $("#finder-mask-ndvi");
+    if (ndvi && state.method && state.method.ndvi_threshold != null) {
+      ndvi.textContent = String(state.method.ndvi_threshold).replace(".", ",");
     }
-    try {
-      const h = await api.health();
-      state.apiOk = !!h.ok;
-      state.apiBase = h.urls || api.getServiceUrls();
-      if (h.ok) {
-        if (status) {
-          status.textContent = "Servicios conectados · planetary " + h.urls.planetary + " · earth " + h.urls.earth;
-          status.className = "api-status ok";
-        }
-        return true;
-      }
-      const missing = [];
-      if (!h.planetary) missing.push("planetary-service :8766");
-      if (!h.earth) missing.push("earth-service :8767");
-      if (status) {
-        status.textContent = "Servicios no disponibles (" + missing.join(", ") + "). El mapa sigue andando. Levantá ./run_all.sh";
-        status.className = "api-status down";
-      }
-      return false;
-    } catch (e) {
-      state.apiOk = false;
-      if (status) {
-        status.textContent = "No pude hablar con los servicios. El mapa sigue andando. Levantá ./run_all.sh";
-        status.className = "api-status down";
-      }
-      return false;
-    }
+    $("#btn-buscar").disabled = !state.targets.length;
   }
 
   async function runSearch() {
     const out = $("#finder-results");
-    const api = window.HexastraAPI;
+    const api = state.api;
     if (!state.apiOk || !api) {
-      out.innerHTML = "<p class='caution'>No pude hablar con los servicios. Levantalos con <code>./run_all.sh</code> (planetary :8766, earth :8767, front :8765) y recargá. El mapa estático no se interrumpe.</p>";
+      out.innerHTML = "<p class='caution'>" + escapeHtml(unavailableText()) + "</p>";
       return;
     }
     const targetId = $("#finder-target").value;
@@ -810,108 +759,192 @@
       out.innerHTML = "<p class='caution'>Dejá al menos un componente TASI con peso mayor que cero.</p>";
       return;
     }
-    const continent = ($("#finder-continent") && $("#finder-continent").value) || undefined;
-    const country = ($("#finder-country") && $("#finder-country").value) || undefined;
-    const gamma = $("#finder-gamma") ? Number($("#finder-gamma").value) : 1;
-    const applyMask = $("#finder-mask") ? $("#finder-mask").checked : true;
-    out.innerHTML = "<p class='muted'>Buscando…</p>";
+    out.innerHTML = "<p class='muted' role='status'>Buscando…</p>";
     try {
+      const chosen = state.targets.find((x) => x.id === targetId);
+      if (chosen) focusTarget(chosen);
       const targetVector = await api.getTargetVector(targetId);
-      if (targetVector) setRightBody(targetVector.body, targetVector);
       const data = await api.rankAnalogs({
         targetVector: targetVector,
         weights: weights,
-        gamma: gamma,
+        gamma: Number($("#finder-gamma").value),
         top: 8,
-        continent: continent,
-        country: country,
-        applyMask: applyMask,
+        continent: regionFilter().continent,
+        country: regionFilter().country,
+        applyMask: $("#finder-mask").checked,
       });
       state.lastTasi = data;
-      highlightRanks(data.matches || []);
-      const items = (data.matches || []).map((m, i) => {
-        const used = (m.coverage && m.coverage.available_components) || [];
-        const skipped = (m.weights && m.weights.skipped) || [];
-        const flags = (m.mask && m.mask.unknown_flags) || [];
-        const parts = ["G", "T", "E", "V", "O"].map((k) => {
-          const c = (m.components || {})[k] || {};
-          return k + " " + (c.score == null ? "—" : c.score);
-        }).join(" · ");
-        return (
-          '<li><button type="button" class="rank-item" data-id="' + m.site.id + '">' +
-          "<strong>#" + (i + 1) + " " + m.site.name + "</strong> · <span class='score'>" +
-          (m.score == null ? "sin puntaje" : m.score.toLocaleString("es-AR") + " / 100") +
-          "</span><br><span class='muted'>" +
-          (m.site.country_iso || "") + (m.site.continent ? " · " + m.site.continent : "") +
-          " · usó: " + (used.join(", ") || "—") +
-          (skipped.length ? " · omitió: " + skipped.join(", ") : "") +
-          "<br>" + parts +
-          "</span>" +
-          (flags.length ? "<p class='rank-flags'>Máscara incompleta: " + flags.join(", ") + ".</p>" : "") +
-          "</button></li>"
-        );
-      }).join("");
-      const discardedN = data.n_discarded_by_mask || 0;
-      out.innerHTML =
-        "<p class='muted'>Objetivo: <strong>" + ((data.target && data.target.name) || targetId) +
-        "</strong> · TASI · gamma=" + data.gamma +
-        " · candidatos " + data.n_scored +
-        (discardedN ? " · descartados por M(x): " + discardedN : "") +
-        "</p><ol class='rank-list'>" + items + "</ol>" +
-        "<p class='muted'>G (espectro) y O (operacional) quedan nulos si no hay dato real comparable. S_T usa distancia de Mahalanobis sobre relieve relativo, pendiente y rugosidad, no la cota absoluta. Si solo entra la precipitación (0 mm por convención en Luna/Marte), el ranking refleja sobre todo quién es más árido.</p>";
-      out.querySelectorAll(".rank-item").forEach((btn) => {
-        btn.addEventListener("click", () => selectSiteOrRemote(btn.dataset.id));
-      });
+      const scored = (data.matches || []).filter((m) => m.score != null);
+      scored.forEach((m) => addSite(m.site));
+      state.rankIds = scored.map((m) => m.site.id);
+      refreshEarthIcons();
+      renderSiteList();
+      if (scored.length && hasSize(state.earthMap)) {
+        state.earthMap.fitBounds(scored.map((m) => [m.site.lat, m.site.lon]), { padding: [28, 28], maxZoom: 6 });
+      }
+      out.innerHTML = renderRanking(data, targetId);
+      const best = scored[0];
+      if (best) selectSite(best.site.id);
+      else if (state.selectedId) renderSitePanel(state.selectedId);
     } catch (e) {
-      out.innerHTML = "<p class='caution'>Falló la consulta a los servicios (" + e.message + "). El mapa sigue disponible.</p>";
+      out.innerHTML = "<p class='caution'>Falló la consulta a los servicios: " + escapeHtml(e.message) + "</p>";
+    }
+  }
+
+  // Resumen corto del ranking: la lista ordenada queda en «Sitios en la Tierra» y en los pines numerados.
+  function renderRanking(data, targetId) {
+    const discarded = data.n_discarded_by_mask || 0;
+    const n = (data.matches || []).filter((m) => m.score != null).length;
+    return "<p class='muted'>" + (n
+      ? n + " sitios en el ranking TASI frente a <strong>" + escapeHtml((data.target && data.target.name) || targetId) + "</strong>, ordenados en la lista de la izquierda"
+      : "No hay análogos con estos filtros") +
+      (discarded ? ". La máscara descartó " + discarded : "") + ".</p>";
+  }
+
+  /* ---------- Conexión ---------- */
+
+  function unavailableText() {
+    return (window.HexastraAPIStub && window.HexastraAPIStub.message) ||
+      "Los servicios no están disponibles en este momento.";
+  }
+
+  function markDown(status) {
+    state.apiOk = false;
+    status.textContent = unavailableText();
+    status.className = "api-status down";
+    return false;
+  }
+
+  async function detectApi() {
+    const status = $("#api-status");
+    const api = window.HexastraAPI;
+    state.api = api;
+    if (!api || typeof api.health !== "function") return markDown(status);
+    try {
+      const h = await api.health();
+      if (!h.ok) return markDown(status);
+      state.apiOk = true;
+      status.textContent = "Servicios conectados.";
+      status.title = "planetary " + h.urls.planetary + ", earth " + h.urls.earth;
+      status.className = "api-status ok";
+      return true;
+    } catch (e) {
+      return markDown(status);
     }
   }
 
   async function initFinder() {
     const ok = await detectApi();
     if (!ok) {
-      if ($("#finder-target")) $("#finder-target").disabled = true;
-      if ($("#btn-buscar")) $("#btn-buscar").disabled = true;
+      $("#finder-target").disabled = true;
+      $("#btn-buscar").disabled = true;
+      $("#site-buttons").innerHTML = "<p class='placeholder-msg'>" + escapeHtml(unavailableText()) + "</p>";
       return;
     }
-    const api = window.HexastraAPI;
+    const api = state.api;
     try {
-      const [moon, mars, regions, candidates] = await Promise.all([
+      const [moon, mars, regions, candidates, method, examples] = await Promise.all([
         api.getTargets("moon"),
         api.getTargets("mars"),
         api.getRegions(),
         api.getCandidates(),
+        api.getMethod(),
+        api.getExamples().catch(() => ({ examples: [] })),
       ]);
-      const targets = [].concat(moon || [], mars || []);
-      state.catalog = { sites: targets };
+      state.targets = [].concat(moon || [], mars || []);
       state.regions = regions;
-      populateFinder(targets, regions);
-      (moon || []).forEach((s) => {
-        const lat = Math.max(-85.05, Math.min(85.05, s.lat));
-        const m = L.marker([lat, s.lon], { icon: divIcon("menos", false), title: s.name });
-        m.bindTooltip(s.short_name || s.name);
-        state.moonMarkers[s.id] = m;
-      });
-      (candidates.sites || []).forEach((s) => ensureEarthMarker(s));
+      state.method = method;
+      state.examples = (examples && examples.examples) || [];
+      (candidates.sites || []).forEach(addSite);
+      state.examples.forEach((e) => { if (e.site) addSite(e.site); });
+      renderSiteList();
+      addDestMarkers();
+      populateFinder();
       $("#btn-buscar").addEventListener("click", runSearch);
       $("#finder-target").addEventListener("change", () => {
-        const s = (state.catalog.sites || []).find((x) => x.id === $("#finder-target").value);
-        if (s) setRightBody(s.body, s);
+        const t = state.targets.find((x) => x.id === $("#finder-target").value);
+        if (t) chooseTarget(t);
       });
+      // Arranque: el primer par documentado (sitio + su destino marcados); si no hay, el primer destino de la API.
+      const firstExample = state.examples.find((e) => state.sites[e.earth_id] && (e.target_ids || []).length);
+      if (firstExample) {
+        selectSite(firstExample.earth_id, true);
+      } else {
+        const first = state.targets.find((x) => x.id === $("#finder-target").value);
+        if (first) focusTarget(first);
+      }
     } catch (e) {
       const status = $("#api-status");
-      if (status) {
-        status.textContent = "Los servicios contestaron /health pero falló una consulta de catálogo (" + e.message + ").";
-        status.className = "api-status down";
-      }
+      status.textContent = "Los servicios respondieron /health pero falló una consulta del catálogo: " + e.message;
+      status.className = "api-status down";
     }
   }
 
+  /* ---------- Diálogo «Cómo se calcula» (contenido de GET {earth}/method) ---------- */
+
+  function methodHtml(m) {
+    const presets = (m.presets || []).map((p) =>
+      "<tr><th scope='row'>" + escapeHtml(p.title_es) + "</th>" +
+      COMPONENT_KEYS.map((k) => "<td>" + escapeHtml(String(Math.round(((p.weights || {})[k] || 0) * 100))) + "</td>").join("") + "</tr>"
+    ).join("");
+    const catalog = m.catalog || {};
+    return (
+      "<p><strong>" + escapeHtml(m.name_es || m.index) + ".</strong> " + escapeHtml(m.status_es || "") + "</p>" +
+      "<h3>Pasos</h3><ol class='method-steps'>" + (m.steps_es || []).map((s) => "<li>" + escapeHtml(s) + "</li>").join("") + "</ol>" +
+      "<h3>Enfoques y pesos (%)</h3>" +
+      "<table class='easy-table'><thead><tr><th scope='col'>Enfoque</th>" +
+      COMPONENT_KEYS.map((k) => "<th scope='col'>" + k + "</th>").join("") + "</tr></thead><tbody>" + presets + "</tbody></table>" +
+      "<p class='muted'>γ por defecto: " + escapeHtml(String(m.default_gamma).replace(".", ",")) +
+      ". Umbral de NDVI de la máscara: " + escapeHtml(String(m.ndvi_threshold).replace(".", ",")) +
+      ". Catálogo: " + escapeHtml(String(catalog.n_sites)) + " sitios (origen " + escapeHtml(catalog.origin || "a completar") + ").</p>"
+    );
+  }
+
+  async function renderMethod() {
+    const box = $("#method-body");
+    if (!box || box.dataset.loaded === "1") return;
+    box.innerHTML = "<p class='muted' role='status'>Cargando el método desde el servicio…</p>";
+    try {
+      const m = state.method || (await window.HexastraAPI.getMethod());
+      state.method = m;
+      box.dataset.loaded = "1";
+      box.innerHTML = methodHtml(m);
+    } catch (e) {
+      box.innerHTML = "<p class='caution'>" + escapeHtml(e.message || unavailableText()) + "</p>";
+    }
+  }
+
+  function openMethod() {
+    $("#modal-bg").classList.add("open");
+    renderMethod();
+  }
+
+  // Menús plegables (pesos, opciones, capas): se cierran con Escape o al tocar afuera; uno abierto a la vez.
+  function bindMenus() {
+    const menus = () => Array.from(document.querySelectorAll(".adv-menu, .layers-menu"));
+    menus().forEach((d) => d.addEventListener("toggle", () => {
+      if (d.open) menus().forEach((o) => { if (o !== d) o.open = false; });
+    }));
+    document.addEventListener("click", (e) => {
+      menus().forEach((d) => { if (d.open && !d.contains(e.target)) d.open = false; });
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      menus().forEach((d) => {
+        if (!d.open) return;
+        d.open = false;
+        const sum = d.querySelector("summary");
+        if (sum && d.contains(document.activeElement)) sum.focus();
+      });
+    });
+  }
+
   function bindModal() {
+    bindMenus();
     const bg = $("#modal-bg");
-    $("#btn-metodo").addEventListener("click", () => bg.classList.add("open"));
+    $("#btn-metodo").addEventListener("click", openMethod);
     $("#btn-fuentes").addEventListener("click", () => {
-      bg.classList.add("open");
+      openMethod();
       $("#fuentes-anchor").scrollIntoView();
     });
     bg.addEventListener("click", (e) => {
@@ -922,38 +955,27 @@
     });
   }
 
-  async function main() {
+  try {
     initMaps();
     bindModal();
-    const res = await fetch("data/sites.json");
-    if (!res.ok) {
-      $("#panel").innerHTML = "<p class='placeholder-msg'>No pude cargar data/sites.json. ¿Estás sirviendo la carpeta con un servidor local?</p>";
-      return;
-    }
-    const data = await res.json();
-    state.data = data;
-    addMarkers(data);
-    renderList(data);
-    if (state.earthMap) state.earthMap.setView([20, 0], 2);
     initFinder();
+  } catch (err) {
+    $("#panel").innerHTML = "<p class='placeholder-msg'>No se pudo iniciar el modo avanzado: " + escapeHtml(err.message) + "</p>";
   }
-
-  main().catch((err) => {
-    console.error(err);
-    $("#panel").innerHTML = "<p class='placeholder-msg'>Error al iniciar el prototipo. Mirá la consola del navegador.</p>";
-  });
 
   window.HexastraApp = {
     invalidateMaps: function () {
       if (state.earthMap) state.earthMap.invalidateSize();
       if (state.marsMap) state.marsMap.invalidateSize();
+      // Al mostrar el modo avanzado, el destino elegido vuelve al centro del mapa derecho.
+      if (state.target && state.marsMap && hasSize(state.marsMap)) {
+        state.marsMap.setView(clampLatLng(state.target.lat, state.target.lon), state.target.body === "moon" ? 4 : 5, { animate: false });
+      }
     },
-    showMethodModal: function () {
-      const bg = $("#modal-bg");
-      if (bg) bg.classList.add("open");
-    },
+    showMethodModal: openMethod,
     selectSite: function (id) {
-      selectSite(id);
-    }
+      if (state.sites[id]) selectSite(id);
+    },
+    getMethod: function () { return state.method; },
   };
 })();

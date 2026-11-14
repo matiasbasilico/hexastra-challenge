@@ -167,6 +167,30 @@
     return request(urls.earth + "/regions");
   }
 
+  // Método TASI en ejecución: pasos, presets, pesos y γ por defecto, umbral de NDVI y origen del catálogo.
+  async function getMethod() {
+    const urls = getServiceUrls();
+    return request(urls.earth + "/method");
+  }
+
+  // Valores físicos de referencia por cuerpo (NSSDC, RAD/MSL) con fuente; lo no verificado llega null.
+  async function getBodies() {
+    const urls = getServiceUrls();
+    return request(urls.planetary + "/bodies");
+  }
+
+  // Pares Tierra–destino documentados en la literatura (why_es, breaks_es, fuentes), sin puntaje.
+  async function getExamples() {
+    const urls = getServiceUrls();
+    return request(urls.earth + "/examples");
+  }
+
+  async function getCandidate(id) {
+    if (!id) return Promise.reject(new Error("getCandidate(id) requiere un id"));
+    const urls = getServiceUrls();
+    return request(urls.earth + "/candidates/" + encodeURIComponent(id));
+  }
+
   async function getFeatured() {
     const urls = getServiceUrls();
     return request(urls.earth + "/featured");
@@ -224,7 +248,11 @@
     getRegions: getRegions,
     getFeatured: getFeatured,
     getCandidates: getCandidates,
+    getCandidate: getCandidate,
+    getExamples: getExamples,
     rankAnalogs: rankAnalogs,
+    getMethod: getMethod,
+    getBodies: getBodies,
   };
 
   root.HexastraAPI = api;
