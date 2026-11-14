@@ -6,11 +6,16 @@ Features (straight-line geodesic distances on WGS84, not travel distances):
   dist_airport_km            nearest open aerodrome with a runway, OurAirports.
   dist_airport_scheduled_km  nearest aerodrome with scheduled service, OurAirports.
   population_50km            people within 50 km, NASA SEDAC GPWv4 r11 population count 2020.
+  dist_road_osm_km           nearest drivable way, OpenStreetMap (second source: gROADS is from 1980-2010).
+  population_50km_ghsl       people within 50 km, GHS-POP R2023A epoch 2020 (second source: GPWv4
+                             spreads census population evenly inside each administrative unit).
 
 Inputs are downloaded once into ~/.cache/hexastra/o-tierra (override with HEXASTRA_CACHE):
   groads/groads-v1-global-gdb.zip                         (Earthdata login, ~/.netrc)
   gpw/gpw-v4-population-count-rev11_2020_30_sec_tif.zip   (Earthdata login, ~/.netrc)
   ourairports/airports.csv                                (public)
+  ghsl/GHS_POP_E2020_GLOBE_R2023A_4326_30ss_V1_0.zip      (public, JRC)
+  osm/<site>_<radius_km>.json                             (Overpass responses, one per query)
 
 Usage:
   services/.venv/bin/python services/earth/scripts/ingest_accessibility.py [--download] [--validate-only]
@@ -37,6 +42,7 @@ if str(EARTH_ROOT) not in sys.path:
     sys.path.insert(0, str(EARTH_ROOT))
 
 import accessibility as acc  # noqa: E402
+from clients.overpass import ROAD_CLASSES, OverpassError, roads_around  # noqa: E402
 
 LOG = logging.getLogger("ingest_accessibility")
 METHOD = "services/earth/scripts/ingest_accessibility.py"
@@ -51,11 +57,17 @@ AIRPORTS_URL = "https://davidmegginson.github.io/ourairports-data/airports.csv"
 GROADS_ZIP = CACHE / "groads" / "groads-v1-global-gdb.zip"
 GPW_ZIP = CACHE / "gpw" / "gpw-v4-population-count-rev11_2020_30_sec_tif.zip"
 AIRPORTS_CSV = CACHE / "ourairports" / "airports.csv"
+GHSL_URL = ("https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/"
+            "GHS_POP_E2020_GLOBE_R2023A_4326_30ss/V1-0/GHS_POP_E2020_GLOBE_R2023A_4326_30ss_V1_0.zip")
+GHSL_ZIP = CACHE / "ghsl" / "GHS_POP_E2020_GLOBE_R2023A_4326_30ss_V1_0.zip"
+OSM_CACHE = CACHE / "osm"
+OSM_RADII_KM = (5, 25, 100, 400)
 
-ANTARCTIC_LAT = -60.0  # Antarctic Treaty area: gROADS has no roads there
+ANTARCTIC_LAT = -60.0  # Antarctic Treaty area: no roads in gROADS, no census behind GPWv4 or GHS-POP
 ROAD_ATTRS = ("SOURCEID", "FCLASS")
-FEATURES = ("dist_road_km", "dist_airport_km", "dist_airport_scheduled_km", "population_50km")
-UNITS = {"dist_road_km": "km", "dist_airport_km": "km", "dist_airport_scheduled_km": "km", "population_50km": "persons"}
+FEATURES = ("dist_road_km", "dist_airport_km", "dist_airport_scheduled_km", "population_50km",
+            "dist_road_osm_km", "population_50km_ghsl")
+UNITS = {f: "persons" if f.startswith("population") else "km" for f in FEATURES}
 
 STRAIGHT = "Distancia geodésica en línea recta (WGS84), no distancia de viaje; puede cruzar agua o relieve."
 SRC_ROADS = (
@@ -69,6 +81,16 @@ SRC_POP = (
 SRC_AIRPORTS = (
     "OurAirports airports.csv (dominio público; fuente externa: las fuentes oficiales del desafío no publican "
     "un catálogo mundial de aeródromos), consultado %s. " + AIRPORTS_URL
+)
+
+SRC_OSM = (
+    "OpenStreetMap (© colaboradores de OpenStreetMap, ODbL) vía Overpass API, vías highway=" + "/".join(ROAD_CLASSES)
+    + " y sus _link (fuente externa: segunda fuente porque gROADS v1 es de 1980-2010), consultado %s. "
+    "https://www.openstreetmap.org/copyright"
+)
+SRC_GHSL = (
+    "GHS-POP R2023A, época 2020, 30 arcsec WGS84 (GHS_POP_E2020_GLOBE_R2023A_4326_30ss V1-0), Comisión Europea JRC "
+    "(Copernicus GHSL), doi:10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE, consultado %s. " + GHSL_URL
 )
 
 # Validation: site, airport ident, published distance (km), tolerance (km), reference.
@@ -95,7 +117,8 @@ def download(url: str, dest: Path, netrc: bool) -> None:
 
 
 def ensure_inputs(do_download: bool) -> Dict[str, Optional[Path]]:
-    wanted = ((GROADS_ZIP, GROADS_URL, True), (GPW_ZIP, GPW_URL, True), (AIRPORTS_CSV, AIRPORTS_URL, False))
+    wanted = ((GROADS_ZIP, GROADS_URL, True), (GPW_ZIP, GPW_URL, True), (AIRPORTS_CSV, AIRPORTS_URL, False),
+              (GHSL_ZIP, GHSL_URL, False))
     for path, url, netrc in wanted:
         if path.exists() or not do_download:
             continue
@@ -108,6 +131,7 @@ def ensure_inputs(do_download: bool) -> Dict[str, Optional[Path]]:
         "roads": unpacked(GROADS_ZIP, ".gdb") if GROADS_ZIP.exists() else None,
         "population": unpacked(GPW_ZIP, ".tif") if GPW_ZIP.exists() else None,
         "airports": AIRPORTS_CSV if AIRPORTS_CSV.exists() else None,
+        "ghsl": unpacked(GHSL_ZIP, ".tif") if GHSL_ZIP.exists() else None,
     }
 
 
@@ -175,6 +199,52 @@ def population_row(site: Dict[str, Any], tif: Optional[Path], today: str) -> Dic
     return row(sid, "population_50km", round(res["value"]), "modeled", src, note, today)
 
 
+def osm_elements(site: Dict[str, Any], radius_km: int, online: bool) -> Optional[List[Dict[str, Any]]]:
+    """Overpass response for one site and radius, from the cache or (if online) the network."""
+    path = OSM_CACHE / ("%s_%s.json" % (site["id"], radius_km))
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    if not online:
+        return None
+    try:
+        elements = roads_around(site["lat"], site["lon"], radius_km * 1000)
+    except OverpassError as exc:
+        LOG.error("Overpass %s a %s km: %s", site["id"], radius_km, exc)
+        return None
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(elements), encoding="utf-8")
+    return elements
+
+
+def osm_road_row(site: Dict[str, Any], online: bool, today: str) -> Dict[str, Any]:
+    sid, src = site["id"], SRC_OSM % today
+    for radius in OSM_RADII_KM:
+        elements = osm_elements(site, radius, online)
+        if elements is None:
+            return missing(sid, "dist_road_osm_km", "No se pudo consultar Overpass (radio %s km)." % radius, src, today)
+        hit = acc.nearest_osm_way(elements, site["lat"], site["lon"])
+        if hit is None:
+            continue
+        note = "%s Vía más cercana: way %s, highway=%s (%s vías a <= %s km). OSM es colaborativo: incluye huellas (track) y su cobertura varía. La vía puede estar aislada: no implica conexión con una red vial." % (
+            STRAIGHT, hit["way_id"], hit["highway"], len(elements), radius)
+        return row(sid, "dist_road_osm_km", round(hit["distance_km"], 2), "derived", src, note, today)
+    return missing(sid, "dist_road_osm_km", "Sin vías de OSM a menos de %s km." % OSM_RADII_KM[-1], src, today)
+
+
+def ghsl_row(site: Dict[str, Any], tif: Optional[Path], today: str) -> Dict[str, Any]:
+    sid, src = site["id"], SRC_GHSL % today
+    if site["lat"] < ANTARCTIC_LAT:
+        return missing(sid, "population_50km_ghsl", "GHS-POP no tiene censo de base en la Antártida (sur de 60° S): su 0 no es una medición.", src, today)
+    if tif is None:
+        return missing(sid, "population_50km_ghsl", "No se pudo descargar GHS-POP.", src, today)
+    res = acc.population_within(tif, site["lat"], site["lon"])
+    if res["value"] is None:
+        return missing(sid, "population_50km_ghsl", "GHS-POP no tiene celdas con dato a 50 km.", src, today)
+    note = ("Suma de las celdas de 30 arcsec con centro a <= 50 km (%s de %s celdas con dato). GHS-POP reparte la población "
+            "censal según la superficie construida detectada por satélite, no de forma uniforme.") % (res["valid_cells"], res["cells"])
+    return row(sid, "population_50km_ghsl", round(res["value"]), "modeled", src, note, today)
+
+
 def validate(sites: Dict[str, Dict[str, Any]], airports: Optional[List[Dict[str, Any]]]) -> List[str]:
     """Checks against known values. Returns the failures (empty when everything holds)."""
     failures = []
@@ -214,6 +284,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         rows.append(road_row(site, inputs["roads"], today))
         rows.extend(airport_rows(site, airports, today))
         rows.append(population_row(site, inputs["population"], today))
+        rows.append(osm_road_row(site, args.download, today))
+        rows.append(ghsl_row(site, inputs["ghsl"], today))
     args.out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     nulls = sum(1 for r in rows if r["value"] is None)
     LOG.info("%s filas (%s null) -> %s", len(rows), nulls, args.out)

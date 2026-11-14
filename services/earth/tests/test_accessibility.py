@@ -132,6 +132,43 @@ def test_antarctic_sites_get_no_road_distance(tmp_path):
     assert row["value"] is None and "Antártida" in row["note"] and "a completar" in row["note"].lower()
 
 
+def test_nearest_osm_way_picks_the_closest_geometry():
+    far = {"id": 1, "tags": {"highway": "primary"}, "geometry": [{"lat": 2.0, "lon": -1.0}, {"lat": 2.0, "lon": 1.0}]}
+    near = {"id": 2, "tags": {"highway": "track"}, "geometry": [{"lat": 0.5, "lon": -1.0}, {"lat": 0.5, "lon": 1.0}]}
+    hit = acc.nearest_osm_way([far, near], 0.0, 0.0)
+    assert hit["way_id"] == 2 and hit["highway"] == "track"
+    assert hit["distance_km"] == pytest.approx(0.5 * KM_PER_DEG_EQUATOR, rel=1e-3)
+    assert acc.nearest_osm_way([], 0.0, 0.0) is None and acc.nearest_osm_way([{"id": 3, "tags": {}}], 0.0, 0.0) is None
+
+
+def test_osm_row_grows_the_radius_and_is_null_offline(tmp_path, monkeypatch):
+    from measurements import validate
+
+    site = {"id": "x", "lat": 0.0, "lon": 0.0}
+    way = {"id": 9, "tags": {"highway": "tertiary"}, "geometry": [{"lat": 0.1, "lon": -1.0}, {"lat": 0.1, "lon": 1.0}]}
+    monkeypatch.setattr(ing, "OSM_CACHE", tmp_path)
+    offline = ing.osm_road_row(site, False, TODAY)
+    assert offline["value"] is None
+    validate(offline, "o-tierra.jsonl:1")
+    asked = []
+    monkeypatch.setattr(ing, "roads_around", lambda lat, lon, r: asked.append(r) or ([] if r < 25000 else [way]))
+    found = ing.osm_road_row(site, True, TODAY)
+    assert asked == [5000, 25000] and found["value"] == pytest.approx(11.06, abs=0.02) and "way 9" in found["note"]
+    assert ing.osm_road_row(site, False, TODAY)["value"] == found["value"]  # second run reads the cache
+    monkeypatch.setattr(ing, "roads_around", lambda lat, lon, r: [])
+    empty = ing.osm_road_row({"id": "y", "lat": 0.0, "lon": 0.0}, True, TODAY)
+    assert empty["value"] is None and "400 km" in empty["note"]
+
+
+def test_ghsl_row_is_null_in_antarctica(tmp_path):
+    row = ing.ghsl_row({"id": "base-marambio", "lat": -64.24, "lon": -56.62}, tmp_path / "unused.tif", TODAY)
+    assert row["value"] is None and "Antártida" in row["note"]
+
+
+def test_ghsl_row_without_raster_is_null():
+    assert ing.ghsl_row({"id": "x", "lat": 0.0, "lon": 0.0}, None, TODAY)["value"] is None
+
+
 def test_validation_flags_a_wrong_airport_catalog():
     sites = {"haughton": {"lat": 75.38333333, "lon": -89.66666667}, "base-marambio": {"lat": -64.241769, "lon": -56.623225}}
     good = [{"ident": "CYRB", "name": "Resolute Bay", "type": "medium_airport", "lat": 74.7169, "lon": -94.9694, "scheduled": True, "country": "CA"},
@@ -165,7 +202,9 @@ def test_file_rows_are_sourced_non_negative_and_never_comparable(rows):
         if r["value"] is None:
             continue
         assert r["value"] >= 0 and "consultado" in r["source"]
-        assert ("ourairports" if "airport" in r["feature"] else "earthdata.nasa.gov") in r["source"]
+        host = {"dist_airport_km": "ourairports", "dist_airport_scheduled_km": "ourairports",
+                "dist_road_osm_km": "openstreetmap.org", "population_50km_ghsl": "jrc.ec.europa.eu"}
+        assert host.get(r["feature"], "earthdata.nasa.gov") in r["source"]
 
 
 def test_file_known_values(rows):
@@ -173,14 +212,47 @@ def test_file_known_values(rows):
     assert by[("haughton", "dist_airport_km")]["value"] == pytest.approx(169.8, abs=0.5)
     assert "CYRB" in by[("haughton", "dist_airport_km")]["note"]
     assert by[("base-marambio", "dist_airport_km")]["value"] < 2.0
-    # Censo 2010 de Cabo Verde (INE): Fogo 37 071 + Brava 5 995 = 43 066; no hay otra isla a 50 km del Pico do Fogo
-    assert by[("pico-do-fogo", "population_50km")]["value"] == pytest.approx(43066, rel=0.05)
-    # Meteor Crater queda unas 6 millas (9,7 km por camino) al sur de la I-40
+    # Censo 2010 de Cabo Verde, según Wikipedia EN: Fogo 37 051 + Brava 5 995 = 43 046 (otras fuentes dan 5 971 para
+    # Brava); no hay otra isla a 50 km del Pico do Fogo. Las dos fuentes de población tienen que caer cerca.
+    # GHS-POP proyecta la población a 2020, por eso se le da más margen que a GPWv4.
+    for feature, tolerance in (("population_50km", 0.05), ("population_50km_ghsl", 0.15)):
+        assert by[("pico-do-fogo", feature)]["value"] == pytest.approx(43046, rel=tolerance)
+    # Meteor Crater: 5 a 6 millas (8 a 9,7 km) al sur de la salida 233 de la I-40, según guías de viaje
     assert 7.0 < by[("meteor-crater", "dist_road_km")]["value"] < 10.0
     # Campo del Cielo: 12-15 km de Gancedo; su aeródromo más cercano está en Gancedo
     assert by[("campo-del-cielo", "dist_airport_km")]["value"] == pytest.approx(15.0, abs=3.0)
     for sid in ("base-marambio", "base-esperanza", "university-valley", "taylor-valley"):
         assert by[(sid, "dist_road_km")]["value"] is None
+        assert by[(sid, "population_50km_ghsl")]["value"] is None
     for r in rows:
         if r["feature"] == "dist_airport_scheduled_km" and r["value"] is not None:
             assert r["value"] >= by[(r["site_id"], "dist_airport_km")]["value"]
+
+
+def test_overpass_curl_wrapper_reports_failures(monkeypatch):
+    import subprocess
+    from clients import overpass
+
+    def fake(code, out, err=""):
+        return lambda *a, **k: subprocess.CompletedProcess(a, code, out, err)
+
+    monkeypatch.setattr(subprocess, "run", fake(0, '{"elements": [{"id": 1}]}'))
+    assert overpass._post_with_curl("https://x", "q", 10)["elements"] == [{"id": 1}]
+    for code, out in ((22, ""), (0, "<html>busy</html>"), (0, "[]")):
+        monkeypatch.setattr(subprocess, "run", fake(code, out, "boom"))
+        with pytest.raises(overpass.OverpassError):
+            overpass._post_with_curl("https://x", "q", 10)
+
+
+def test_file_osm_and_ghsl_known_values(rows):
+    by = {(r["site_id"], r["feature"]): r for r in rows}
+    assert all(by[(s, "dist_road_osm_km")]["value"] is not None for s, f in by if f == "dist_road_osm_km")
+    # Meteor Crater: the visitor-centre road reaches the rim (crater radius about 0.6 km).
+    assert by[("meteor-crater", "dist_road_osm_km")]["value"] < 1.0
+    # Svalbard is missing from gROADS and present in OSM.
+    assert by[("bockfjorden", "dist_road_osm_km")]["value"] < by[("bockfjorden", "dist_road_km")]["value"] / 10
+    # GHSL does not spread census population over the empty Puna.
+    assert by[("llullaillaco", "population_50km_ghsl")]["value"] < 1000 < by[("llullaillaco", "population_50km")]["value"]
+    for row in by.values():
+        if row["feature"] == "dist_road_osm_km":
+            assert "no implica conexión" in row["note"]
