@@ -175,3 +175,25 @@ def test_dbsource_is_identical_in_both_services():
     here = (ROOT / "dbsource.py").read_text(encoding="utf-8")
     other = (ROOT.parent / "earth" / "dbsource.py").read_text(encoding="utf-8")
     assert here == other
+
+
+def test_g_component_comes_from_map_geology_features():
+    from vector import G_LABELS, feature_vector
+
+    feats = {k: {"value": 0.0, "unit": "fraction", "source": "USGS https://example.org", "quality": "derived", "is_real": True}
+             for k in G_LABELS}
+    feats["g_lito_basaltico"]["value"] = 1.0
+    feats["g_impacto"] = {"value": None, "unit": "boolean", "source": "x", "quality": "unavailable", "is_real": False}
+    g = feature_vector({"id": "x", "body": "mars", "features": feats})["components"]["G"]
+    assert g["available"] is True and g["score_ready"] is True
+    assert g["vector_labels"] == G_LABELS
+    assert g["vector"][G_LABELS.index("g_lito_basaltico")] == 1.0
+    assert g["vector"][G_LABELS.index("g_impacto")] is None
+    assert any(f.startswith("partial_geology") for f in g["quality_flags"])
+
+
+def test_g_component_is_not_invented_without_features():
+    from vector import feature_vector
+
+    g = feature_vector({"id": "x", "body": "moon", "features": {}})["components"]["G"]
+    assert g["available"] is False and g["vector"] == []

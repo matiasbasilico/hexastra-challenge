@@ -1,11 +1,27 @@
 """Build a contracts/feature_vector.schema.json vector from a catalog site.
 
-Never fills missing numbers. G and O stay unavailable unless a real comparable
-dataset is present on the site record.
+Never fills missing numbers. G is built from the g_* map-geology features
+(data/measurements/g-mapas.jsonl) when present; O stays unavailable unless a real
+comparable dataset is present on the site record.
 """
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
+
+
+# Same labels as services/earth/geology.py (the services share only contracts, not
+# Python imports; a test checks the two lists stay equal).
+G_LABELS = [
+    "g_lito_basaltico",
+    "g_lito_silicico",
+    "g_lito_clastico",
+    "g_lito_quimico",
+    "g_lito_cristalino",
+    "g_lito_hielo",
+    "g_lito_volc_indiviso",
+    "g_lito_sed_indiviso",
+    "g_impacto",
+]
 
 
 def _feat(site: Dict[str, Any], key: str) -> Dict[str, Any]:
@@ -40,17 +56,18 @@ def _component(metrics: Dict[str, Dict[str, Any]], labels: Optional[list] = None
 
 def feature_vector(site: Dict[str, Any]) -> Dict[str, Any]:
     flags = []
-    # G — no CRISM/M3 spectra in this catalog
-    G = {
-        "available": False,
-        "score_ready": False,
-        "reason": "No sourced spectral / mineralogy vector (CRISM, M3, etc.) is stored for this site. S_G is not computed.",
-        "vector": [],
-        "vector_labels": [],
-        "metrics": {},
-        "source": None,
-        "quality_flags": ["spectra_unavailable"],
-    }
+    # G — map geology (composition classes + impact origin); never filled.
+    g_metrics = {k: _feat(site, k) for k in G_LABELS}
+    G = _component(
+        g_metrics,
+        G_LABELS,
+        reason_if_empty="No map-geology class (g_*) is stored for this site. S_G is not computed.",
+        quality_flags=["geology_from_map_classes_not_spectra"],
+    )
+    if G["available"]:
+        missing = [k for k in G_LABELS if g_metrics[k]["value"] is None]
+        if missing:
+            G["quality_flags"] = G["quality_flags"] + ["partial_geology: " + ", ".join(missing)]
     # T — relative relief / slope / roughness only (no absolute elevation)
     t_metrics = {
         "relative_relief_m": _feat(site, "relative_relief"),
