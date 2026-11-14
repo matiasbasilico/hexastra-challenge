@@ -5441,7 +5441,7 @@
     {
       "id": "pali-aike",
       "body": "earth",
-      "name": "Campo volcánico Pali Aike (sector argentino) (Santa Cruz)",
+      "name": "Campo volcánico Pali Aike (sector argentino, Santa Cruz)",
       "short_name": "Pali Aike",
       "lat": -51.995,
       "lon": -70.155,
@@ -5747,7 +5747,7 @@
     {
       "id": "dunas-de-taton",
       "body": "earth",
-      "name": "Campo de dunas de Tatón (Bolsón de Fiambalá) (Catamarca)",
+      "name": "Campo de dunas de Tatón (Bolsón de Fiambalá, Catamarca)",
       "short_name": "Dunas de Tatón",
       "lat": -27.343611,
       "lon": -67.538611,
