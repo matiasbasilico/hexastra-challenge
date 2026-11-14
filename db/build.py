@@ -24,6 +24,14 @@ def load_bases() -> Dict[str, Dict[str, Any]]:
     return {svc: json.loads(path.read_text(encoding="utf-8")) for svc, path in BASES.items()}
 
 
+def serves(payload: Dict[str, Any], svc: str) -> bool:
+    """A feature def belongs to a service. "service" may be a string or a list
+    (e.g. ["earth", "planetary"] for features shared by the three bodies).
+    Missing "service" keeps the historical default: planetary."""
+    declared = payload.get("service", "planetary")
+    return svc in declared if isinstance(declared, list) else declared == svc
+
+
 def build(measurements_dir: Path = MEASUREMENTS) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Any]]:
     """Return merged catalogs per service and a small report."""
     bases = load_bases()
@@ -43,9 +51,9 @@ def build(measurements_dir: Path = MEASUREMENTS) -> Tuple[Dict[str, Dict[str, An
     for svc, cat in bases.items():
         out = copy.deepcopy(cat)
         if svc == "planetary":
-            out["features"] = {**out.get("features", {}), **{k: v for k, v in defs.items() if v.get("service", "planetary") == "planetary"}}
+            out["features"] = {**out.get("features", {}), **{k: v for k, v in defs.items() if serves(v, "planetary")}}
         else:
-            out["feature_defs"] = {**out.get("feature_defs", {}), **{k: v for k, v in defs.items() if v.get("service") == "earth"}}
+            out["feature_defs"] = {**out.get("feature_defs", {}), **{k: v for k, v in defs.items() if serves(v, "earth")}}
         sites: List[Dict[str, Any]] = []
         for site in out["sites"]:
             feats = {fid: item for (sid, fid), item in result.features.items() if sid == site["id"]}

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 import httpx
@@ -8,9 +10,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from catalog import covariance, featured_sites, filter_sites, load_catalog, site_by_id, summary
+from catalog import all_sites, covariance, featured_sites, filter_sites, load_catalog, site_by_id, summary
 from geocode import regions_from_sites
-from tasi import DEFAULT_WEIGHTS, rank
+from tasi import DEFAULT_WEIGHTS, NDVI_THRESHOLD, earth_scales, rank
 from explain import add_explanations
 from clients import earthdata
 
@@ -87,6 +89,35 @@ def health() -> Dict[str, Any]:
 @app.get("/regions")
 def regions() -> Dict[str, Any]:
     return regions_from_sites(filter_sites())
+
+
+METHOD_PATH = Path(__file__).resolve().parent / "data" / "method.json"
+
+
+@app.get("/method")
+def method() -> Dict[str, Any]:
+    """Everything the front needs to explain TASI, taken from the running code and catalog.
+
+    Texts and presets live in data/method.json; weights, thresholds, scales and the
+    covariance come from tasi.py and the current catalog, so the explanation cannot drift.
+    """
+    with METHOD_PATH.open(encoding="utf-8") as f:
+        doc = json.load(f)
+    cov = covariance() or {}
+    return {
+        **doc,
+        "default_weights": dict(DEFAULT_WEIGHTS),
+        "default_gamma": TasiRequest.model_fields["gamma"].default,
+        "ndvi_threshold": NDVI_THRESHOLD,
+        "scales": earth_scales(all_sites()),
+        "covariance": {
+            k: cov.get(k) for k in ("labels", "n_samples", "shrinkage", "method", "source")
+        },
+        "catalog": {
+            "n_sites": len(all_sites()),
+            "origin": (load_catalog().get("meta") or {}).get("catalog_origin"),
+        },
+    }
 
 
 @app.get("/featured")

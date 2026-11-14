@@ -28,5 +28,6 @@ Campos obligatorios: `site_id`, `feature`, `value`, `unit`, `quality`, `is_real`
 - No se pisa un valor del catálogo base sin `"replaces_base": true` y `"replaces_reason"`.
 - Dos archivos no pueden escribir el mismo `(site_id, feature)`: si pasa, decide el orquestador.
 - Una feature nueva se declara una sola vez en `<agente>.features.json` (`{"id": {"service": "earth"|"planetary", "unit": …, "name_es": …, "description": …}}`).
+- Una feature que vale para la Tierra y para la Luna/Marte (misma definición en los dos lados, p. ej. las `g_*`) se declara con `"service": ["earth", "planetary"]` y aparece en los dos catálogos.
 
 Antes del PR, corré `./services/run_tests.sh`: incluye `db/tests`, que valida todos los archivos de esta carpeta.

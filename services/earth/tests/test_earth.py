@@ -366,3 +366,19 @@ def test_tasi_scores_document_sites_with_partial_coverage():
         assert match["components"]["G"]["available"] is False
         expected = DOCUMENT_AR_SITES.get(site_id, True)
         assert match["site"]["highlight_less_studied"] is expected, site_id
+
+
+def test_method_explains_tasi_from_running_code():
+    from main import app
+    from tasi import DEFAULT_WEIGHTS, NDVI_THRESHOLD
+
+    body = TestClient(app).get("/method").json()
+    assert body["index"] == "TASI"
+    assert body["default_weights"] == DEFAULT_WEIGHTS
+    assert body["ndvi_threshold"] == NDVI_THRESHOLD
+    assert body["catalog"]["n_sites"] >= 60
+    assert body["covariance"]["labels"] == ["relative_relief_m", "slope_deg", "roughness_m"]
+    ids = [p["id"] for p in body["presets"]]
+    assert ids == ["equilibrado", "terreno", "clima", "robots"]
+    for p in body["presets"]:
+        assert sum(p["weights"].values()) == pytest.approx(1.0)

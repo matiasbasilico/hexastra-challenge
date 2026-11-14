@@ -1,0 +1,3 @@
+# Extra del pipeline G (services/earth/scripts/ingest_g_piloto.py); shapely y httpx vienen de
+# services/planetary/requirements-ingest.txt
+pyshp>=2.3,<3

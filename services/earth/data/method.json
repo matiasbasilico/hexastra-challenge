@@ -1,0 +1,19 @@
+{
+  "index": "TASI",
+  "name_es": "Índice de similitud de análogos terrestres (TASI)",
+  "status_es": "Propuesta del equipo HexAstra, no un estándar publicado bajo esa sigla.",
+  "steps_es": [
+    "Máscara: se descartan sitios con NDVI > umbral o con agua líquida continental; si el dato falta, el sitio no se descarta y se marca.",
+    "T (terreno): S_T = exp(−γ · D_M), con D_M la distancia de Mahalanobis sobre relieve relativo, pendiente y rugosidad, y Σ una covarianza Ledoit-Wolf de celdas terrestres.",
+    "E (térmico) y Vo (volátiles): similitud por métrica, escalada por el desvío de esa métrica entre los sitios terrestres.",
+    "G (geología): solo con datos comparables de los dos lados; si no hay, queda nulo.",
+    "O (operaciones): solo con métricas operacionales comparables de los dos lados; si no hay, queda nulo.",
+    "TASI = Σ w_k · S_k sobre los componentes con dato de los dos lados; los pesos se renormalizan y se informa la cobertura."
+  ],
+  "presets": [
+    {"id": "equilibrado", "title_es": "Equilibrado", "lead_es": "Un poco de todo: terreno, clima, hielo y condiciones para operar.", "weights": {"G": 0.2, "T": 0.2, "E": 0.2, "V": 0.2, "O": 0.2}},
+    {"id": "terreno", "title_es": "Que el terreno se parezca", "lead_es": "Prioriza la forma del paisaje, la pendiente y la geología.", "weights": {"G": 0.35, "T": 0.45, "E": 0.05, "V": 0.05, "O": 0.1}},
+    {"id": "clima", "title_es": "Que el clima sea extremo", "lead_es": "Prioriza temperatura, amplitud térmica, iluminación y sequedad o hielo.", "weights": {"G": 0.05, "T": 0.1, "E": 0.5, "V": 0.25, "O": 0.1}},
+    {"id": "robots", "title_es": "Para probar robots", "lead_es": "Prioriza pendientes, rugosidad y restricciones para moverse u operar.", "weights": {"G": 0.1, "T": 0.3, "E": 0.1, "V": 0.1, "O": 0.4}}
+  ]
+}
