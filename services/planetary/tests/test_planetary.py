@@ -113,16 +113,38 @@ def test_document_target_lon_conventions_agree(site_id):
     assert site["lon_east_0_360"] == pytest.approx(site["lon"] % 360)
 
 
+ALLOWED_QUALITY = {"measured", "derived", "modeled", "convention"}
+
+
 @pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
-def test_document_target_has_no_invented_measurements(site_id):
+def test_document_target_values_are_sourced_or_marked_null(site_id):
     feats = site_by_id(site_id)["features"]
     for key, item in feats.items():
-        if key == "precip_mm":
-            assert item["quality"] == "convention" and item["value"] == 0.0
+        if item["value"] is None:
+            assert item["quality"] == "placeholder", key
+            assert "a completar" in item["note"], key
             continue
-        assert item["value"] is None, key
-        assert item["quality"] == "placeholder", key
-        assert "a completar" in item["note"], key
+        assert item["quality"] in ALLOWED_QUALITY, key
+        if item["quality"] != "convention":
+            assert "http" in item["source"], key
+
+
+@pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
+def test_document_target_topography_comes_from_usgs_dem(site_id):
+    feats = site_by_id(site_id)["features"]
+    for key in ("relative_relief", "slope", "roughness"):
+        assert feats[key]["value"] is not None, key
+        assert feats[key]["quality"] == "derived"
+        assert "planetarymaps.usgs.gov" in feats[key]["source"]
+    assert feats["precip_mm"]["quality"] == "convention" and feats["precip_mm"]["value"] == 0.0
+
+
+def test_marius_hills_thermal_is_diviner_surface_temperature():
+    feats = site_by_id("marius-hills")["features"]
+    for key in ("temp_mean", "temp_diurnal_range"):
+        assert feats[key]["quality"] == "measured"
+        assert "LRO-L-DLRE-5-GCP-V1.0" in feats[key]["source"]
+        assert "SUPERFICIE" in feats[key]["note"]
 
 
 @pytest.mark.parametrize("site_id", sorted(DOCUMENT_TARGETS))
@@ -132,9 +154,12 @@ def test_document_target_vector_responds(site_id):
     vec = r.json()
     assert vec["id"] == site_id
     assert set(vec["components"]) == {"G", "T", "E", "Vo", "O"}
-    # Sin DEM ni térmica verificados: T y E no pueden quedar listos para puntuar.
-    assert vec["components"]["T"]["score_ready"] is False
-    assert vec["components"]["E"]["score_ready"] is False
+    t = vec["components"]["T"]
+    assert t["score_ready"] is True
+    assert t["vector_labels"] == ["relative_relief_m", "slope_deg", "roughness_m"]
+    assert all(v is not None for v in t["vector"])
+    assert vec["components"]["G"]["available"] is False
+    assert vec["components"]["O"]["available"] is False
 
 
 def test_jezero_and_gale_keep_mars24_points_and_cite_iau_centres():
