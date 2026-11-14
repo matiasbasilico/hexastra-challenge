@@ -1,6 +1,6 @@
 # Propuesta G — geología, mineralogía y materiales
 
-Agente G, 14 nov 2026. Estado: **G v0 categórico cargado para los 74 sitios** (`data/measurements/g-mapas.jsonl`). No cambia `services/earth/tasi.py`: la fórmula de S_G (§6) y su cableado siguen necesitando el OK del usuario.
+Agente G, 14 nov 2026. Estado: **G v0 categórico cargado para los 74 sitios** (`data/measurements/g-mapas.jsonl`) y **S_G en TASI** con la opción (ii), aprobada por el usuario (`services/earth/geology.py`, conectado en `tasi.rank()` y en `services/planetary/vector.py`).
 
 Decisiones del usuario (14 nov): correr los 74 sitios en este mismo PR; que las features `g_*` sirvan para los tres cuerpos; sumar las clases «volcánico indiviso» y «sedimentario indiviso»; avanzar con la fase 2 (eje composicional en el infrarrojo térmico).
 
@@ -193,7 +193,7 @@ En la Tierra, el impacto vale 1 en los 11 sitios que están dentro de una estruc
 | utopia-planitia | Marte | **null** | **null** | lHl |
 | arsia-mons | Marte | basaltico 1 | **null** | Ave |
 
-## 6. S_G propuesto (requiere OK del usuario; no está en `tasi.py`)
+## 6. S_G (aprobado el 14 nov con la opción ii; implementado en `services/earth/geology.py`)
 
 ### En simple
 
@@ -212,7 +212,7 @@ El problema aparece cuando sólo se puede comparar un bloque. Ejemplo real: Lona
 | (ii) Multiplicar por la cobertura | 0,5 | 1,0 | Castiga la falta de dato; en el ranking pesa más lo bien documentado |
 | (iii) Exigir los dos bloques | sin S_G | 1,0 | Lo más estricto; hoy sólo Marius Hills tendría S_G |
 
-**Mi recomendación es (ii):** es honesta (menos evidencia, menos puntaje), no deja a 13 de los 14 destinos sin G y se explica en una línea. Cuando la fase 2 complete la composición de los destinos, la cobertura sube sola.
+**Elegida: (ii)** (usuario, 14 nov). es honesta (menos evidencia, menos puntaje), no deja a 13 de los 14 destinos sin G y se explica en una línea. Cuando la fase 2 complete la composición de los destinos, la cobertura sube sola.
 
 ### Fórmula
 
@@ -224,7 +224,13 @@ bloques = {S_comp si los dos lados tienen composición, S_imp si los dos tienen 
 S_G    = promedio(bloques) · (|bloques| / 2)        ← opción (ii); null si no hay bloques
 ```
 
-Cableado necesario (también requiere OK): que `rank()` arme el G del candidato desde `features` (`g_*`) en lugar de `{"score_ready": False}`, y que `vector.py` exponga las `g_*` de los destinos como `metrics` de G.
+Cableado (hecho): `tasi.rank()` arma el G del candidato desde sus `features` (`g_*`); `services/planetary/vector.py` expone las `g_*` del destino como el componente G (`vector_labels` + `vector`). Si el destino no trae `g_*`, se mantiene el coseno espectral original, que sólo puntúa con espectros reales en los dos lados.
+
+Prueba de punta a punta con los catálogos integrados en memoria (pesos por defecto):
+
+- **Marius Hills:** arriba quedan sitios basálticos con G = 100 y cobertura 2/2 (Timanfaya, Laguna Antofagasta, University Valley).
+- **Shackleton:** arriba quedan cráteres (Haughton, Devon/FMARS, Meteor Crater, Acraman) con G = 50 y cobertura 1/2.
+- **Jezero:** sin G; TASI se calcula con T, E y V.
 
 ### Ejemplo con los datos cargados (S_G sin multiplicar por la cobertura · bloques usados)
 
@@ -238,8 +244,6 @@ Cableado necesario (también requiere OK): que `rank()` arme el G del candidato 
 
 Hoy sólo Marius Hills tiene los dos bloques contra casi todos los sitios terrestres (58 de 60). Jezero, Medusae Fossae, Meridiani y Utopia no tienen ningún bloque comparable: G queda sin puntaje y TASI renormaliza sobre T, E y Vo, como corresponde.
 
-## 7. Pendiente de decisión
+## 7. Pendiente
 
-1. Opción de cobertura para S_G: (i), (ii) o (iii). Recomiendo (ii).
-2. Con eso aprobado, implementar el cableado en `tasi.py` / `vector.py` (otro PR).
-3. Fase 2: ¿seguimos con la alternativa (FeO de Lunar Prospector y clase feldespática para los polos lunares) en lugar del eje TIR?
+- Fase 2: completar la composición de los polos lunares con el FeO de Lunar Prospector y una clase feldespática (§4), en curso.
