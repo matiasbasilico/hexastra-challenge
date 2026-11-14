@@ -172,11 +172,23 @@
     return request(urls.earth + "/featured");
   }
 
+  // El modo fácil identifica continentes con un slug ("south-america", ver
+  // normalizeRegions en js/easy.js); earth-service filtra por el nombre de
+  // Natural Earth ("South America"). Un nombre ya válido pasa sin cambios.
+  function continentName(value) {
+    const text = String(value || "").trim();
+    if (!text || /\s|[A-Z]/.test(text)) return text;
+    return text
+      .split("-")
+      .map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); })
+      .join(" ");
+  }
+
   async function getCandidates(opts) {
     const urls = getServiceUrls();
     const q = new URLSearchParams();
     opts = opts || {};
-    if (opts.continent) q.set("continent", opts.continent);
+    if (opts.continent) q.set("continent", continentName(opts.continent));
     if (opts.country) q.set("country", opts.country);
     const qs = q.toString();
     return request(urls.earth + "/candidates" + (qs ? "?" + qs : ""));
@@ -195,7 +207,7 @@
       top: opts.top == null ? 5 : Number(opts.top),
       apply_mask: opts.applyMask == null ? true : !!opts.applyMask,
     };
-    if (opts.continent) payload.continent = opts.continent;
+    if (opts.continent) payload.continent = continentName(opts.continent);
     if (opts.country) payload.country = opts.country;
     return request(urls.earth + "/tasi", {
       method: "POST",
