@@ -191,3 +191,28 @@ def test_bodies_values_are_sourced_or_marked_null():
                 assert "a completar" in item["note"], key
             else:
                 assert "http" in item["source"], key
+
+
+def test_bodies_radiation_keeps_published_units_and_scope():
+    bodies = client.get("/bodies").json()["bodies"]
+    earth = bodies["earth"]["surface_dose_msv_day"]
+    moon = bodies["moon"]["surface_dose_msv_day"]
+    assert earth["value"] == pytest.approx(0.33 / 365)
+    assert earth["quality"] == "modeled"
+    assert "UNSCEAR_2024_Report_Vol.II.pdf" in earth["source"]
+    assert "promedio mundial" in earth["note"]
+    assert "magnitudes distintas" in earth["note"]
+    assert moon["value"] == pytest.approx(1369 / 1000)
+    assert moon["quality"] == "measured"
+    assert "PMC7518862" in moon["source"]
+    assert "partículas cargadas" in moon["note"]
+    for item in (earth, moon):
+        assert "2026-11-14" in item["source"]
+        assert "America/Argentina/Buenos_Aires" in item["source"]
+
+
+def test_moon_day_is_solar_not_sidereal():
+    day = client.get("/bodies").json()["bodies"]["moon"]["day_length_h"]
+    assert day["value"] == pytest.approx(29.53 * 24)
+    assert day["quality"] == "derived"
+    assert "Día solar" in day["note"]

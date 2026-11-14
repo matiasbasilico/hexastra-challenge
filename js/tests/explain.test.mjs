@@ -108,7 +108,28 @@ test("limits.js formatea en es-AR y escribe los valores muy chicos en notación 
   assert.equal(formatValue(3.73), "3,73");
   assert.equal(formatValue(1014), "1014");
   assert.equal(formatValue(3e-12), "3×10<sup>−12</sup>");
+  assert.equal(formatValue(0.001), "1×10<sup>−3</sup>");
+  assert.equal(formatValue(0.009), "9×10<sup>−3</sup>");
   assert.equal(formatValue(null), null);
+});
+
+test("la tabla conserva la dosis lunar y el día solar, con fuentes y sin pendientes", () => {
+  const src = readFileSync(join(ROOT, "js", "limits.js"), "utf8");
+  const bodies = JSON.parse(readFileSync(join(ROOT, "services", "planetary", "data", "bodies.json"), "utf8"));
+  const elements = { "limits-rows": {}, "limits-notes": {} };
+  const ctx = {};
+  const document = { readyState: "loading", addEventListener() {}, getElementById: (id) => elements[id] };
+  new Function("window", "document", src)(ctx, document);
+  ctx.HexastraLimits.render(bodies);
+  const rows = elements["limits-rows"].innerHTML;
+  assert.match(rows, /9×10<sup>−4<\/sup>/);
+  assert.match(rows, /1,369/);
+  assert.match(rows, /708,7/);
+  assert.match(rows, /día solar/);
+  assert.doesNotMatch(rows, /A completar/);
+  assert.match(elements["limits-notes"].innerHTML, /UNSCEAR/);
+  assert.match(elements["limits-notes"].innerHTML, /PMC7518862/);
+  assert.match(elements["limits-notes"].innerHTML, /magnitudes distintas/);
 });
 
 test("nada inventado en el front: sin sites.json, sin el índice viejo, sin presets ni γ propios", () => {

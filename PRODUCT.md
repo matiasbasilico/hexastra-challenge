@@ -34,7 +34,7 @@ Identificar y caracterizar análogos terrestres nuevos, poco estudiados, de las 
 - Sin servicios, la página avisa «servicio no disponible» y no muestra datos.
 - La comparativa lado a lado Tierra | destino, con los dos puntos marcados y sincronizados, es decisión de producto: ningún rediseño la saca ni la esconde.
 - Contratos que no se rompen: `js/api.js`, `js/config.js` y los ids que lee el JS.
-- Abierto: dosis de radiación en superficie de la Tierra y de la Luna (la API las devuelve null hasta tener fuente primaria).
+- Radiación de referencia en `/bodies`: Tierra, promedio exterior modelado por UNSCEAR 2024; Luna, medición Chang'e-4/LND publicada por Zhang et al. (2020); Marte, RAD/MSL. La fuente explicita la conversión diaria, el contexto y la diferencia entre dosis efectiva y equivalente; no son mediciones del sitio elegido ni entran en TASI.
 
 ## Brand Commitments
 
