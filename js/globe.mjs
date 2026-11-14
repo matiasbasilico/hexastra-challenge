@@ -159,6 +159,7 @@ export function attach(map, options = {}) {
       if (!entry) {
         const button = document.createElement('button');
         button.type = 'button'; button.className = 'globe-pin';
+        button.hidden = true;
         button.setAttribute('aria-label', layer.options.title || layer.options.alt || 'Sitio terrestre');
         button.title = layer.options.title || '';
         button.addEventListener('click', async e => {
