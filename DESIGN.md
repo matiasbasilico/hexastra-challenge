@@ -131,6 +131,8 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - **Fila seleccionable (sitio, resultado, destino):** `noche-2` con borde `linea`; seleccionada con fondo cian al 12 % y borde cian.
 - **Puntaje:** cifra Montserrat 700 coloreada en la escala violeta → óxido y barra de 4 px con el mismo degradado.
 - **Mapa:** marco `noche-2` con etiqueta del cuerpo y su punto de color; controles de Leaflet en `noche-2`.
+- **Globo terrestre:** textura ilustrativa de Earth3D con crédito visible, halo cian tenue y los mismos pines del mapa 2D. No rota automáticamente; la selección centra el sitio y mantiene su longitud sobre la textura. Flechas y controles de zoom accesibles, movimiento reducido respetado. Sin WebGL vuelve a Leaflet.
+- **Modal del punto:** cifra TASI grande a la izquierda, sitio y destino a la derecha, explicación de analogía y brecha, componentes sin datos en chips dorados. Se abre con clic o teclado; Escape y Cerrar devuelven el foco al punto. En celular se apila y permite desplazamiento interno.
 - **Texto de literatura:** bloque con borde punteado celeste, rotulado «Documentado en la literatura», separado del puntaje.
 
 ## Do's and Don'ts

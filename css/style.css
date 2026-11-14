@@ -514,6 +514,7 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 @media (max-width: 560px) {
   /* Por debajo de 560 px los dos mapas del avanzado se apilan, más anchos, y siguen visibles a la vez. */
   .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 240px 240px auto; }
+  .workspace .map-frame { min-height: 0; }
   .limits-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .limits-table, .limits-table tbody, .limits-table tr, .limits-table th, .limits-table td { display: block; }
   .limits-table tbody tr { padding: var(--space-xs) 0; }

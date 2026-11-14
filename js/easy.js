@@ -382,6 +382,20 @@
     });
   }
 
+  function plotFeaturedSites() {
+    if (!state.map || !state.featured) return;
+    if (state.featuredPins) state.map.removeLayer(state.featuredPins);
+    state.featuredPins = L.layerGroup().addTo(state.map);
+    allFeaturedPlaces().forEach(function (site) {
+      if (site.lat == null || site.lon == null) return;
+      const marker = L.marker([site.lat, site.lon], { icon: featuredIcon(false), title: site.name });
+      marker.hexastraSite = site;
+      marker.on("click", function () { selectFeatured(site.id); });
+      marker.bindTooltip(site.short_name || site.name);
+      marker.addTo(state.featuredPins);
+    });
+  }
+
   function clearFeaturedMarker() {
     if (state.map && state.featuredMarker) {
       state.map.removeLayer(state.featuredMarker);
@@ -406,6 +420,7 @@
         keyboard: true,
         alt: pl.name
       }).addTo(state.map);
+      marker.hexastraSite = pl;
       marker.bindTooltip(pl.short_name || pl.name);
       state.featuredMarker = marker;
       const z = Math.abs(pl.lat) > 70 ? 5 : 7;
@@ -1115,6 +1130,18 @@
     );
     state.tileEsri.addTo(map);
     state.map = map;
+    if (window.HexastraGlobe) {
+      state.globe = window.HexastraGlobe.attach(map, {
+        tools: $(".easy-map-tools"),
+        getContext: (marker) => ({
+          site: marker.hexastraSite,
+          target: currentTarget(),
+          match: ((state.results && state.results.matches) || []).find(function (m) {
+            return m.site && m.site.id === marker.hexastraSite?.id;
+          }) || null,
+        }),
+      });
+    }
     observeMapSize(map, el);
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
@@ -1340,6 +1367,10 @@
 
   function plotResults(data) {
     if (!state.map) return;
+    if (state.featuredPins) {
+      state.map.removeLayer(state.featuredPins);
+      state.featuredPins = null;
+    }
     Object.keys(state.markers).forEach(function (id) {
       state.map.removeLayer(state.markers[id]);
     });
@@ -1355,6 +1386,7 @@
         keyboard: true,
         alt: "Análogo " + (i + 1) + ": " + site.name
       }).addTo(state.map);
+      marker.hexastraSite = site;
       marker.bindTooltip(site.short_name || site.name);
       marker.on("click", function () { selectResult(site.id); });
       state.markers[site.id] = marker;
@@ -1539,6 +1571,7 @@
     renderFeatured();
 
     state.body = "moon";
+    plotFeaturedSites();
     state.loadingTargets = true;
     renderMain();
     await loadTargets("moon");

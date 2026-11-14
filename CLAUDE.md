@@ -31,7 +31,7 @@ Dimensiones del desafío y cómo las cubre la matriz V = [G, T, E, Vo, O] (`cont
 ## 2. Decisiones tomadas (no reabrir sin el usuario)
 
 - **Puntaje: solo TASI** (`services/earth/tasi.py`). No implementar la fórmula S del documento impreso (Gauss + promedio geométrico).
-- **MVP: el mapa de puntos actual** (Leaflet). No grilla H3, no Cesium, no migrar a Next/MapLibre.
+- **MVP: mapa de puntos desde la API.** Vista terrestre 3D con Three.js, inspirada en Earth3D y autorizada por el usuario el 14/11/2026; Leaflet conserva la vista terrestre 2D y los destinos. El clic en un punto del globo abre la ficha TASI del sitio. No grilla H3, no Cesium, no migrar a Next/MapLibre.
 - **No tocar** el monorepo `~/Desarrollo/nasa/nasa` (ni su Postgres en el puerto 5432) ni las carpetas viejas.
 - **Base de datos:** PostgreSQL + PostGIS propio del repo (contenedor `hexastra-db`, `127.0.0.1:55432`, `docker compose up -d db`). Se reconstruye entera desde archivos versionados con `db/load.py` (catálogos base + `data/measurements/*.jsonl`). Las APIs leen de ahí cuando `HEXASTRA_DATABASE_URL` está definida; si no, del snapshot `catalog.merged.json` (`db/export.py`) o del catálogo base. `/health` informa `catalog_origin`.
 - **Comparativa lado a lado, siempre:** el núcleo de la interfaz es la vista Tierra | destino (Marte o Luna) con los dos mapas a la vez. El punto del destino elegido y el del sitio terrestre seleccionado se ven marcados y resaltados en su mapa, sincronizados (elegir uno mueve y resalta el otro), con la ficha que explica qué se parece y qué no. Vale para el modo fácil y el avanzado; ningún rediseño puede sacarla ni esconderla.
