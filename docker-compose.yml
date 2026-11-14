@@ -1,4 +1,19 @@
 services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: hexastra-db
+    environment:
+      POSTGRES_DB: hexastra
+      POSTGRES_USER: hexastra
+      POSTGRES_PASSWORD: ${HEXASTRA_DB_PASSWORD:-hexastra-local}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - hexastra-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hexastra -d hexastra"]
+      interval: 5s
+      retries: 12
   planetary:
     build: ./services/planetary
     ports:
@@ -24,3 +39,6 @@ services:
     depends_on:
       - planetary
       - earth
+
+volumes:
+  hexastra-db-data:
