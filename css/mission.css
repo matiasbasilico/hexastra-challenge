@@ -200,3 +200,7 @@
   .onboarding-intro li p { font-size: 10px; }
   .onboarding-intro .orbit-primary { min-height: 36px; font-size: 12px; }
 }
+@media (max-width: 400px) {
+  .mission-progress button { padding-inline: 4px; gap: 4px; }
+  .mission-progress button .mission-progress-name { font-size: 11px; }
+}
