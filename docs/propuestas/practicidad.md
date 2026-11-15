@@ -25,8 +25,12 @@ Todas salen de `services/earth/scripts/ingest_accessibility.py` y quedan en `dat
 | `dist_airport_scheduled_km` | km | Igual, sólo con vuelos regulares | OurAirports (externa) |
 | `population_50km` | personas | Suma de celdas de 30″ con centro a ≤ 50 km | NASA SEDAC GPWv4 r11, 2020 (Earthdata) |
 | `elevation` | m | Ya está en el catálogo base | ASTER GDEM v3 |
+| `dist_road_osm_km` | km | Vía transitable más cercana (`highway` de motorway a track, sin senderos) | OpenStreetMap vía Overpass (externa) |
+| `population_50km_ghsl` | personas | Suma de celdas de 30″ con centro a ≤ 50 km | GHS-POP R2023A, época 2020, JRC/Copernicus (externa) |
 
 OurAirports es una fuente externa porque ninguno de los recursos oficiales del desafío publica un catálogo mundial de aeródromos. Es de dominio público y se descarga entera, sin consultas por sitio.
+
+Las dos últimas son **segundas fuentes**, pedidas por el usuario el 14 de noviembre de 2026 para cubrir los huecos de gROADS y de GPWv4. Se guardan al lado de las oficiales, sin pisarlas ni promediarlas, y **la fórmula de P de este documento sigue usando las oficiales** (`dist_road_km` y `population_50km`). Cuál usa P es una decisión abierta (punto 5 de «Qué hay que decidir»).
 
 ## Fórmula propuesta
 
@@ -63,6 +67,8 @@ Decisiones y sus motivos:
 - gROADS v1 es de 1980–2010 y su cobertura depende del país; no tiene rutas en la Antártida.
 - OurAirports es colaborativo: puede faltar una pista o figurar una en desuso.
 - GPWv4 reparte población censal de manera uniforme dentro de cada unidad administrativa; en unidades grandes y vacías (Puna, Sahara) el valor a 50 km es una estimación gruesa.
+- OpenStreetMap mide otra cosa que gROADS: la vía más cercana, incluidas huellas (`track`) y calles internas de una base. En Devon Island, Axel Heiberg o Marambio esa vía existe pero no conecta con ninguna red. Sirve para «¿se puede circular en el lugar?», no para «¿se llega por tierra?».
+- GHS-POP reparte la población según la superficie construida que detecta el satélite. Donde no hay construcciones da casi cero aunque haya población dispersa, y al sur de 60° S no tiene censo de base: ahí queda `null`.
 - P no mide permisos, áreas protegidas, estacionalidad del acceso ni costo. Un parque nacional con ruta asfaltada puede ser menos practicable que un campo privado sin ella.
 
 ## Qué hay que decidir
@@ -71,6 +77,7 @@ Decisiones y sus motivos:
 2. ¿Pesos y umbrales así, o se ajustan?
 3. ¿El término de aeródromo usa cualquier pista (`dist_airport_km`) o sólo las de vuelos regulares (`dist_airport_scheduled_km`)? La propuesta usa cualquier pista, porque las campañas a sitios remotos vuelan chárter.
 4. ¿Se suma el gráfico TASI contra P al front del MVP o queda para después?
+5. ¿Qué fuente de ruta y de población usa P? Ver «Segundas fuentes» más abajo.
 
 ## Resultado con los datos cargados (14 de noviembre de 2026)
 
@@ -145,3 +152,32 @@ Qué muestra la tabla:
 - **Los cuatro sitios antárticos tienen cobertura de 45 %.** Sin ruta ni población en las fuentes, su P sale sólo de aeródromo y altitud, y por eso Marambio y Esperanza (con pista propia) dan 100. Ese número no se puede leer sin la cobertura al lado; una opción es no mostrar P cuando la cobertura es menor que un umbral.
 - **La población de GPWv4 infla sitios de la Puna y de Afar.** Llullaillaco (77.955), Socompa (50.133) y Dallol (211.533) figuran con decenas de miles de personas a 50 km porque sus unidades censales son enormes y GPWv4 reparte la población de manera uniforme. Es el dato oficial, pero conviene tenerlo presente al fijar el peso de este término.
 - **gROADS no tiene las rutas de Svalbard:** Bockfjorden figura a 986 km de una ruta (Noruega continental).
+
+## Segundas fuentes: OpenStreetMap y GHSL (14 de noviembre de 2026)
+
+Los 60 sitios tienen `dist_road_osm_km`. `population_50km_ghsl` tiene 56 valores y 4 `null` (los sitios antárticos). P no se recalculó: la tabla de arriba sigue saliendo de gROADS y GPWv4.
+
+Dónde difieren más las dos fuentes:
+
+| Sitio | Ruta gROADS (km) | Vía OSM (km) | Población GPWv4 | Población GHSL |
+|---|---|---|---|---|
+| llullaillaco | 5,99 | 4,56 | 77.955 | 127 |
+| socompa | 7,47 | 7,39 | 50.133 | 39 |
+| yungay-atacama | 0,02 | 1,37 | 121.997 | 619 |
+| lut-desert | 62,39 | 5,20 | 117.025 | 47 |
+| dallol | 0,40 | 1,23 | 211.533 | 106.242 |
+| crateres-rio-cuarto | 3,73 | 0,79 | 112.220 | 238.605 |
+| bockfjorden | 985,71 | 62,38 | 339 | 0 |
+| haughton | 292,66 | 5,23 | 0 | 0 |
+| devon-island-fmars | 299,50 | 0,02 | 0 | 0 |
+| mcgill-arctic | 534,71 | 2,10 | 0 | 0 |
+| valley-10000-smokes | 150,36 | 2,80 | 1 | 0 |
+| base-marambio | `null` | 0,00 | `null` | `null` |
+
+Qué se ve:
+
+- **Población: GHSL corrige la Puna y el Lut.** Llullaillaco pasa de 77.955 a 127 personas y Socompa de 50.133 a 39, que es lo que se espera de dos volcanes sin poblados a 50 km. En sitios con ciudades cerca las dos fuentes coinciden dentro de 10 a 20 % (Tswaing, Teide, Nördlinger Ries). Dallol sigue alto en las dos (106.242 en GHSL): queda como duda.
+- **Ruta: OSM no se puede usar tal cual en sitios remotos.** Haughton figura a 5,23 km de una vía y FMARS a 0,02 km, pero son huellas de campamento en una isla sin rutas. Si P usara OSM sin filtro, Devon Island subiría de 32 a un valor parecido al de un sitio con ruta, que es falso.
+- **Bockfjorden mejora de verdad:** 62 km hasta una huella de Svalbard contra 986 km hasta Noruega continental.
+
+Recomendación: para población, usar GHSL en P y dejar GPWv4 como dato oficial visible. Para ruta, seguir con gROADS y mostrar OSM como dato aparte, o usar OSM sólo con vías de clase `tertiary` o superior (eso pide otra ingesta). Ninguna de las dos cosas está hecha: es decisión del usuario.

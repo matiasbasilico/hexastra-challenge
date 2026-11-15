@@ -53,3 +53,66 @@ def has_liquid_water(lat: float, lon: float, radius_m: int = 250, timeout: float
         "source": "OSM Overpass API request failed on all endpoints: %s" % " | ".join(errors),
         "elements": 0,
     }
+
+
+ROAD_ENDPOINTS: List[str] = ENDPOINTS[:1]  # the mirrors timed out on 2026-11-14; add them back here if they recover
+ROAD_CLASSES = ("motorway", "trunk", "primary", "secondary", "tertiary", "unclassified", "residential", "service", "track", "road")
+ROAD_ATTEMPTS = 6
+ROAD_BACKOFF_S = 5.0
+
+
+class OverpassError(RuntimeError):
+    pass
+
+
+def roads_around(lat: float, lon: float, radius_m: int, timeout: float = 180.0) -> List[Dict[str, Any]]:
+    """OSM ways tagged as drivable roads (ROAD_CLASSES and their _link variants) within radius_m.
+
+    Each element carries `tags` and `geometry` (list of {lat, lon}). Retries with
+    exponential backoff across endpoints; raises OverpassError if all attempts fail.
+    """
+    import time
+
+    query = '[out:json][timeout:%d];way[highway~"^(%s)(_link)?$"](around:%d,%.7f,%.7f);out tags geom;' % (
+        int(timeout), "|".join(ROAD_CLASSES), radius_m, lat, lon)
+    errors: List[str] = []
+    for attempt in range(ROAD_ATTEMPTS):
+        url = ROAD_ENDPOINTS[attempt % len(ROAD_ENDPOINTS)]
+        try:
+            payload = _post_with_curl(url, query, timeout + 30.0)
+        except OverpassError as exc:
+            errors.append("%s: %s" % (url, str(exc)[:120]))
+            time.sleep(ROAD_BACKOFF_S * 2 ** attempt)
+            continue
+        if payload.get("remark"):  # Overpass reports runtime errors (timeout, memory) here
+            errors.append("%s: %s" % (url, payload["remark"][:120]))
+            time.sleep(ROAD_BACKOFF_S * 2 ** attempt)
+            continue
+        return payload.get("elements") or []
+    raise OverpassError(" | ".join(errors))
+
+
+def _post_with_curl(url: str, query: str, max_time_s: float) -> Dict[str, Any]:
+    """POST the query with the system curl.
+
+    The venv Python links LibreSSL 2.8.3, which overpass-api.de rejects at the TLS
+    handshake (SSLV3_ALERT_HANDSHAKE_FAILURE, seen 2026-11-14); curl negotiates fine.
+    """
+    import json
+    import subprocess
+
+    cmd = ["curl", "--silent", "--show-error", "--fail", "--max-time", str(int(max_time_s)),
+           "--connect-timeout", "15", "--user-agent", USER_AGENT, "--data-urlencode", "data=" + query, url]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    except OSError as exc:
+        raise OverpassError("curl: %s" % exc)
+    if proc.returncode != 0:
+        raise OverpassError("curl %s: %s" % (proc.returncode, proc.stderr.strip()))
+    try:
+        payload = json.loads(proc.stdout)
+    except ValueError as exc:
+        raise OverpassError("respuesta no JSON: %s" % exc)
+    if not isinstance(payload, dict):
+        raise OverpassError("respuesta inesperada")
+    return payload

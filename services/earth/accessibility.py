@@ -140,6 +140,24 @@ def nearest_road(
     return None
 
 
+def nearest_osm_way(elements: Sequence[Dict[str, Any]], lat: float, lon: float) -> Optional[Dict[str, Any]]:
+    """Nearest way among Overpass `out geom` elements, or None if there are none."""
+    lats: List[float] = []
+    lons: List[float] = []
+    part: List[int] = []
+    for i, element in enumerate(elements):
+        for node in element.get("geometry") or []:
+            lats.append(node["lat"])
+            lons.append(node["lon"])
+            part.append(i)
+    if not lats:
+        return None
+    x, y = to_local_km(lat, lon, lats, lons)
+    dist, owner = min_distance_to_polylines(x, y, np.asarray(part))
+    way = elements[owner]
+    return {"distance_km": dist, "way_id": way.get("id"), "highway": (way.get("tags") or {}).get("highway")}
+
+
 def _plain(value: Any) -> Any:
     return value.item() if hasattr(value, "item") else value
 

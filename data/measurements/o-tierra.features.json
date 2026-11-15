@@ -17,6 +17,18 @@
     "name_es": "Distancia al aeropuerto con vuelos regulares más cercano",
     "description": "Igual que dist_airport_km, restringido a los aeródromos con scheduled_service = yes en OurAirports. Practicidad terrestre: no entra en TASI."
   },
+  "dist_road_osm_km": {
+    "service": "earth",
+    "unit": "km",
+    "name_es": "Distancia a la vía más cercana (OpenStreetMap)",
+    "description": "Distancia geodésica en línea recta (WGS84) a la vía transitable más cercana de OpenStreetMap (highway motorway a track, sin senderos). Segunda fuente de dist_road_km: gROADS v1 es de 1980-2010 y le faltan rutas. La vía más cercana puede ser una huella aislada (campamentos árticos, bases antárticas): no implica conexión con una red vial. Los dos valores se guardan por separado, sin promediar. Practicidad terrestre: no entra en TASI."
+  },
+  "population_50km_ghsl": {
+    "service": "earth",
+    "unit": "persons",
+    "name_es": "Población en un radio de 50 km (GHSL)",
+    "description": "Suma de las celdas de 30 arcsec de GHS-POP R2023A (época 2020, JRC/Copernicus) cuyo centro está a 50 km o menos. Segunda fuente de population_50km: GHS-POP reparte la población según la superficie construida, y GPWv4 de forma uniforme por unidad censal. Los dos valores se guardan por separado, sin promediar. Practicidad terrestre: no entra en TASI."
+  },
   "population_50km": {
     "service": "earth",
     "unit": "persons",
