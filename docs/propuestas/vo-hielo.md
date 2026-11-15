@@ -13,7 +13,28 @@ Agente Vo (hielo + máscara), 14 de noviembre de 2026. **No cambia `services/ear
 
 ¿Por qué MOD44W y no Sentinel-2? Es un producto oficial de Earthdata (recurso n.º 1 del desafío), con la misma resolución que el NDVI y una clase explícita de agua continental. CDSE (Sentinel) no hizo falta.
 
-Casos de control: Lake Natron, Laguna de Antofagasta y Salar de Uyuni. Los resultados están en el PR.
+Si el píxel del punto es **océano** (clases 0, 6, 7) en al menos la mitad de los años, el valor queda `null` y no `0`: eso indica que la coordenada del catálogo cae en el mar o en la costa, no que el sitio esté seco.
+
+### Resultados (60 sitios)
+
+| | valor | null |
+|---|---|---|
+| `ndvi` | 45 | 15 (nieve, nubes o hielo: < 23 compuestos buenos; Andes altos, Ártico, Antártida, Askja, Tolbachik, Tso Kar; Rio Tinto por ser píxel de agua) |
+| `has_liquid_water` | 56 (3 con agua = 1) | 4 (píxel oceánico: Rio Tinto, Timanfaya, Base Esperanza, Bockfjorden) |
+
+**Casos de control:**
+
+- **Lake Natron → 1.** Clase 3 (agua continental somera) en los 9 años y en todo el 3×3. Es lo esperado para un lago salino perenne. NDVI 0,078.
+- **Salar de Uyuni → 0.** Tierra en 8 de 9 años, con agua somera sólo en 2022 (la inundación estacional del salar). NDVI 0,005, el más bajo de los 60. Es lo esperado para un salar seco.
+- **Laguna de Antofagasta → 0.** El píxel y su entorno 3×3 (~375 m) son tierra en los 9 años. A 250 m, MOD44W no ve agua junto a la coordenada del catálogo. O la laguna es más chica que la resolución, o la coordenada está en la orilla. Queda como duda.
+- **Badwater → 0** (coincide con el valor base de OSM, que se reemplaza para usar una sola fuente). MOD44W marca agua somera sólo en 2023, el año del lago temporal que dejó el huracán Hilary.
+
+**Efecto en el Paso A de TASI (sin tocar fórmulas):** 23 de los 60 sitios quedan fuera de la máscara.
+
+- Por agua: Lake Natron, **Lonar** (el punto está en el lago del cráter) y **Laguna Diamante**.
+- Por NDVI > 0,15: Acraman, Campo del Cielo, Cráteres de Río Cuarto, Craters of the Moon, Devon/FMARS, Karijini, Kīlauea, Lava Beds, Meseta de Somuncurá, **Meteor Crater (0,177)**, Nördlinger Ries, Pali Aike, Pinacate, Popigai, SP Crater, Tswaing, Undara, Vredefort, White Sands, Wolfe Creek.
+
+  Varios son matorral árido cuyo NDVI medio (0,17–0,19) apenas pasa el umbral. Devon/FMARS (0,20) tiene sólo 26 compuestos buenos, todos de verano, así que su media está sesgada hacia el pico de vegetación.
 
 ## Parte B — hielo de agua en los tres cuerpos
 
@@ -57,6 +78,9 @@ Neutrones lunares (LEND / Lunar Prospector NS): el PDS de Geociencias no publica
 **Para decidir el usuario:**
 1. ¿Aceptamos `comparable: true` para el índice Tierra↔Luna con los límites de arriba? Si no, basta con borrar las filas `water_ice_indicator` de `vo-hielo.jsonl`: las magnitudes crudas quedan igual.
 2. ¿Leemos `ice_depth = −1` como hielo estable en superficie (cota superior) o esperamos la confirmación del equipo Diviner (PDS Geosciences / UCLA)? Con la cota superior, el índice lunar sería: Shackleton 1,00 · de Gerlache 1,00 · Haworth 1,00 · Malapert 1,00 · Amundsen 0,95 · Nobile 0,47.
+3. Máscara: el umbral `ndvi > 0,15` aplicado a la **media anual** deja afuera matorrales áridos clásicos (Meteor Crater 0,177, White Sands 0,172, SP Crater 0,193). ¿Mantenemos el criterio o pasamos a la mediana? Ver la nota de cada fila, que trae mediana y p90.
+4. Lonar y Laguna Diamante quedan fuera porque el punto está **en** el lago. ¿Se corre la coordenada al borde o al piso seco, o se acepta que se descarten?
+5. Coordenadas que caen en el mar según MOD44W: Rio Tinto (37,21, −6,938, ría de Huelva), Timanfaya (28,994, −13,793), Base Esperanza y Bockfjorden. Hay que corregirlas en el catálogo base, que no es mío.
 
 ## Validaciones contra valores publicados
 
