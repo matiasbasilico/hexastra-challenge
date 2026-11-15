@@ -1,6 +1,6 @@
 ---
 name: HexAstra
-description: Análogos terrestres de la Luna y Marte, con datos citados y la brecha de lo que la Tierra no puede imitar.
+description: Earth analogs for the Moon and Mars, with sourced evidence and explicit physical limits.
 colors:
   noche: "#070915"
   noche-2: "#121830"
@@ -87,54 +87,114 @@ components:
     rounded: "{rounded.chip}"
 ---
 
-# HexAstra — sistema de diseño
+# HexAstra design system
 
-La fuente de verdad de la identidad es [`docs/marca.md`](docs/marca.md) y sus tokens [`css/brand.css`](css/brand.css). Este archivo los traduce a reglas para pantallas nuevas; si algo choca, manda el manual. Ninguna herramienta (Hallmark, Impeccable u otra) cambia paleta, tipografía ni logo.
+The visual identity is defined by [`docs/marca.md`](docs/marca.md) and [`css/brand.css`](css/brand.css). This document applies it to interface behavior. The brand guide takes precedence over design-tool suggestions. Existing token and component identifiers retain their spelling to preserve code references.
 
 ## Overview
 
-Una herramienta de evidencia, no una landing. El fondo azul noche de la portada sostiene dos mapas (la Tierra y el destino) que son los protagonistas, y una ficha que explica el par: qué se parece, cuánto, qué no y qué dato falta. La marca vive en detalles precisos (el cian del foco y la selección, los colores de cada cuerpo, el puntaje de violeta a óxido), no en ornamento. Modo: Operate en el avanzado; el fácil guía en tres pasos.
+HexAstra is an evidence tool. In `index.html`, full 3D Earth is the canvas. Site points open comparisons; mission, list, and help controls reveal floating panels. Preserve the complete planetary volume and position it so Earth and its selected destination remain visible. The brand appears through cyan focus/selection, body colors, and the violet-to-rust score scale. `classic.html` retains advanced and guided workflows.
 
 ## Colors
 
-- **Fondo:** `noche` en todo; `noche-2` para paneles, fichas y controles; `linea` para divisores y bordes. No hay tema claro.
-- **Acento único de interfaz:** `cian` (foco, selección, enlaces, acción primaria con texto `noche`). `cian-brillo` es su hover.
-- **Semánticos (solo cuando significan algo):** Tierra `celeste`, Marte `marte`, Luna `luna`; puntaje de `violeta` (poco parecido) a `marte` (muy parecido), nunca rojo/verde; calidad del dato: medido `cian`, modelado `celeste`, a completar `sol`, siempre con la palabra.
-- `violeta` y `azul-orbita` no se usan en texto chico (contraste 3,9 y 4,6): solo gráficos o cifras de 24 px o más.
+- Use `noche` for the overall background, `noche-2` for panels/cards/controls, and `linea` for dividers and borders. There is no light theme.
+- Cyan is the sole interface accent: focus, selection, links, and the primary action with midnight-colored text. `cian-brillo` supplies hover emphasis.
+- Semantic colors identify Earth (`celeste`), Mars (`marte`), the Moon (`luna`), low-to-high similarity (`violeta` to `marte`), and data quality. Always pair meaning with text; never use a red/green similarity scale.
+- Reserve `violeta` and `azul-orbita` for graphics or suitably large text; do not use them for small body text.
 
 ## Typography
 
-Montserrat 700 para titulares y la marca escrita; Montserrat 600 en mayúsculas con 0,14 em solo para la única etiqueta superior de la pantalla. Open Sans 400/600 para texto y datos; las cifras en Open Sans 600 con `tabular-nums` y la unidad al lado. No se suma una tercera familia.
+Use Montserrat 700 for headings and the wordmark. Montserrat 600 uppercase with 0.14 em tracking is reserved for the screen's single top label. Use Open Sans 400/600 for prose and data, with tabular numerals and adjacent units. Do not add a third interface typeface.
 
 ## Layout
 
-- Contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
-- **Comparativa lado a lado siempre:** Tierra | destino con los dos mapas a la vez y los puntos marcados; bajo 560 px los mapas se apilan, más anchos, y siguen visibles a la vez.
-- Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con alto fijo y scroll interno; la búsqueda completa va debajo.
-- Espacios generosos y textos largos fuera de la pantalla principal (el detalle del método vive en «Cómo se calcula»).
+- **Immersive:** `100dvw × 100dvh`, without page scrolling. Keep the whole globe inside the canvas. Floating elements have 32 px margins, reduced to 20 px below 1100 px and 16 px on mobile.
+- **Selected site:** Earth on the left, floating destination/details on the right. Below 760 px, stack globe above details without overlap; long detail content scrolls inside its panel. Closing restores the full canvas and focus to the selected point.
+- **Classic:** maximum 1520 px content width, with 40 px gutters, 24 px below 60 rem, and 16 px below 40 rem.
+- At desktop sizes from 960 × 640 px, use a compact header and viewport-height workspace, with internal scrolling for lists/details. Smaller classic windows return to document flow.
+- Advanced mode uses a compact control bar, site list, Earth map, destination map, and pair details. Keep search status near the workspace footer. Weight controls open in a contained dialog rather than an overflowing popover.
+- Put long methodological explanations in the calculation help rather than the main workspace. Physical limits open in a focus-contained dialog with Escape dismissal and focus restoration.
 
-## Elevation & Depth
+## Depth and shape
 
-Plano y tonal: la profundidad sale del paso `noche` → `noche-2` y de bordes `linea`, sin sombras. Sin cajas anidadas: un panel no contiene otro panel con borde.
-
-## Shapes
-
-Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de mapa circulares con borde `noche` y anillo cian de 3 px al seleccionarse.
+Use tonal depth from `noche` to `noche-2` and `linea` borders instead of decorative shadows. Avoid nested bordered boxes. Controls have an 8 px radius; panels/cards use 10 px; chips are pills. Map pins are circular, with a midnight border and a 3 px cyan selected ring.
 
 ## Components
 
-- **Botón:** 40 px de alto, `noche-2` con borde `linea`; hover con borde y texto cian. Primario cian con texto noche.
-- **Segmentado (modo, cuerpo, mapa base):** contenedor `noche-2`, opción activa en cian (o en el color del cuerpo para Luna/Marte).
-- **Chip:** píldora con borde y texto del color semántico, sin relleno.
-- **Fila seleccionable (sitio, resultado, destino):** `noche-2` con borde `linea`; seleccionada con fondo cian al 12 % y borde cian.
-- **Puntaje:** cifra Montserrat 700 coloreada en la escala violeta → óxido y barra de 4 px con el mismo degradado.
-- **Mapa:** marco `noche-2` con etiqueta del cuerpo y su punto de color; controles de Leaflet en `noche-2`.
-- **Texto de literatura:** bloque con borde punteado celeste, rotulado «Documentado en la literatura», separado del puntaje.
+### Shared controls
 
-## Do's and Don'ts
+- **Button:** 40 px high, panel background, divider-colored border. Hover adds cyan text/border. Primary action is cyan with midnight text.
+- **Segmented control:** panel background; cyan active selection, or the body's semantic color where appropriate.
+- **Chip:** semantic text and border, without a filled background.
+- **Selectable row:** panel background and divider border. Selection adds 12% cyan fill and a cyan border.
+- **Score:** Montserrat 700 in the violet-to-rust scale, with a 4 px gradient bar. Include units, coverage, and an understandable label.
+- **Map:** dark frame, body label and colored point, Leaflet controls styled with the panel background. Layer menus explain the meaning and limitations of available layers.
 
-- Do: todo dato desde la API, con su fuente; lo null como «A completar».
-- Do: foco visible cian inmediato, `prefers-reduced-motion` respetado, 320 px sin scroll horizontal.
-- Don't: colores fuera de `css/brand.css`, una tercera tipografía, el logo recoloreado o sobre fondos claros.
-- Don't: más de una etiqueta superior por pantalla, cajas dentro de cajas, sombras decorativas.
-- Don't: esconder la comparativa Tierra | destino ni mezclar el texto de literatura con el puntaje.
+### Earth globe
+
+Use illustrative, credited Solar System Scope textures, a restrained cyan atmosphere, and site pins consistent with the 2D map. Earth3D is a visual reference, not the source of scientific measurements.
+
+Rotate at the sidereal rate of **23.9345 hours per revolution**. Pause manually, during interaction, and while mission/comparison workflows are open. Disable automatic movement with reduced-motion preferences. Rotation does not claim current astronomical orientation or illumination.
+
+Selection centers the actual site coordinate and keeps its position aligned with the texture. Provide accessible keyboard and zoom controls. Fall back to Leaflet without WebGL.
+
+### Ranking emphasis and visibility
+
+Up to five sites with the highest positive TASI scores emit two soft, staggered cyan rings. Update them when destination, focus, region, or mask changes; remove the old pulse while recalculating. This is ranking emphasis, not an absolute strong-analogy threshold. Reduced-motion users receive a fixed ring.
+
+The default comparable-only visual filter hides sites without a valid score for the active destination/region/mask. A floating control and mission setting can disable it. Unscored sites then appear smaller and subdued, without pulses. A valid zero score remains comparable. For a site outside the region, the comparison can offer to remove that filter and compute the pair.
+
+### Mission setup
+
+- Mars and Moon use square cards, each with a textured 3D sphere, semantic body color, cyan selection, and a checkmark. Native radio semantics preserve keyboard operation. A shared canvas renders both cards; spherical image fallbacks remain available without WebGL.
+- Use three steps: celestial body, destination, and focus. Completed steps show the selected body/destination and a checkmark rather than repeating generic labels.
+- Focus choices are illustrated cards for balanced, terrain, climate, and robot testing. Region and filtering settings have a dedicated tab within the final step.
+- Back preserves the draft. Closing discards it. Only completing the final action applies a mission.
+- Every step, including open region/filter options, must fit the viewport with close/back/continue controls visible. Cards remain usable from 320 px and respect mobile safe areas.
+- Destination details use catalog descriptions, terrain, coordinates, and a dated, linked historical milestone. Distinguish landing, orbital observation, publication, and announcement. The 2022 lunar candidate-region announcement is not a landing. All 14 current targets have a sourced milestone; any future unverified date remains pending rather than invented.
+
+### Comparison panel
+
+Show site identity, marked destination map, TASI, coverage, why it matches, where it differs, and expandable data/source details. Keep the terrestrial globe interactive. Open with pointer or keyboard, close with Escape or the close control, and preserve both marked positions. The classic interface retains its point dialog.
+
+Do not inherit another pair's score. Present one-sided measurements in their proper context. Keep literature narratives visually distinct with a dashed light-blue boundary and a written literature label; they do not become score inputs.
+
+### Onboarding and first mission
+
+On first visit, introduce HexAstra, its purpose, and three short usage instructions, with a mission-selection action. Closing stores `hexastra.onboarding.v1=seen` in that browser's origin-specific local storage. The full project help remains available. Onboarding does not block interaction after dismissal and respects reduced motion.
+
+The initial globe has **no active mission**. The header invites mission selection, the catalog remains explorable, and ranking starts only after completing setup. Launching selects the highest valid TASI result, centers Earth, and opens its details. A temporary hint near another visible point explains how to switch sites; hide it on interaction and do not repeat it over a manual selection.
+
+The welcome links to the official [team page](https://www.spaceappschallenge.org/2026/find-a-team/hexastra/) and [challenge](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/). Do not invent team biographies or membership.
+
+### TASI explanation
+
+The TASI label opens an explanation by hover, focus, or touch. Define G, T, E, Vo, and O and reflect the actual comparison state from the same API response, including valid zero scores and absent values. Escape closes the explanation without dismissing the comparison.
+
+## Responsive behavior and accessibility
+
+In landscape, preserve the Earth | destination workspace with compact details; in portrait, stack the views and scroll only their long contents. Keep the mission wizard within the viewport. Preserve native controls, accessible labels, immediate visible cyan focus, keyboard operation, and reduced motion. At 320 px, do not introduce horizontal page scrolling.
+
+## Implementation rules
+
+- Obtain scientific values and their sources from the APIs. Keep nulls honest.
+- Preserve the brand palette, typefaces, and logo.
+- Keep a single top label per screen, avoid nested boxes, and do not add decorative shadows.
+- Never hide one side of an open comparison or merge a literature narrative into the computed score.
+- The immersive initial state intentionally shows the globe before a comparison is selected.
+
+## Sources for mission history and rotation
+
+Retrieved November 14, 2026, America/Argentina/Buenos_Aires. These are editorial references for interface context, not additional TASI measurements.
+
+- [NASA GISS Mars24 — Mars Lander Missions](https://www.giss.nasa.gov/tools/mars24/help/landers.html), updated December 9, 2023: Perseverance, February 18, 2021; Curiosity, August 6, 2012 UTC; Opportunity, January 25, 2004; Viking 2, September 3, 1976.
+- [NASA release 22-089](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/), August 19, 2022: historical candidate south-polar regions. Catalog points are geographic anchors, not confirmed landing sites.
+- [NASA NSSDCA Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html), updated November 15, 2024: 23.9345-hour sidereal rotation period.
+- [NASA Pavonis Mons, PIA05243](https://science.nasa.gov/photojournal/pavonis-mons/), January 18, 2004: publication of a Mars Global Surveyor/MOC image acquired in December 2003. The displayed milestone is publication, not landing.
+- [NASA Seven Possible Cave Skylights on Mars](https://science.nasa.gov/resource/seven-possible-cave-skylights-on-mars/), September 21, 2007: Mars Odyssey/THEMIS observations of possible pits in Arsia Mons.
+- [ESA Medusae Fossae radar publication](https://www.esa.int/ESA_Multimedia/Images/2024/01/Mars_Express_radar_data_indicating_heaps_of_water_ice_at_Mars_s_equator), January 18, 2024: Mars Express/MARSIS material, not a surface visit.
+- [JAXA/ISAS SELENE/Kaguya discovery](https://www.isas.jaxa.jp/j/topics/topics/2009/1105.shtml), November 5, 2009: Marius Hills pit publication.
+
+## Language selection
+
+Support English and Rioplatense Spanish, with explicit URL language, saved manual preference, then browser detection. Keep the compact language selector keyboard-accessible in both interfaces. Switching language preserves the active mission and weights. Reserve enough room at 320 px; collapse the adjacent wordmark text before cutting off controls. Localize descriptions, explanations, dates, numbers, and accessible names while retaining scientific source records and API identifiers.

@@ -5,7 +5,7 @@ under this acronym (as verified on 2026-11-14). The formula is intentional and
 transparent.
 
 V = [G, T, E, Vo, O]
-  G  geology / mineralogy (spectral cosine). Only if real spectra exist.
+  G  sourced geological map categories, with composition/impact coverage.
   T  topography + roughness (Mahalanobis on relative relief, slope, roughness).
   E  thermal regime + illumination.
   Vo volatiles / ice / precipitation.
@@ -19,7 +19,7 @@ Step A — boolean mask M(x):
 Step B — S_T = exp(-gamma * D_M), D_M = sqrt((Tx-Ty)^T Sigma^{-1} (Tx-Ty))
   Sigma is a Ledoit-Wolf covariance estimated on Earth terrain cells.
 
-Step C — S_G spectral cosine, only with real spectra (otherwise null).
+Step C — S_G mean of comparable composition/impact map blocks; coverage reported.
 
 Step D — TASI = sum w_k S_k over components that are available on both sides.
   Weights are renormalized to sum 1. Coverage is reported.
@@ -33,6 +33,7 @@ import numpy as np
 
 from covariance import LABELS as T_LABELS
 from covariance import submatrix
+from geology import similarity as geology_similarity
 
 DEFAULT_WEIGHTS = {"G": 0.2, "T": 0.2, "E": 0.2, "V": 0.2, "O": 0.2}
 NDVI_THRESHOLD = 0.15
@@ -274,17 +275,18 @@ def s_spectral(target_g: Dict[str, Any], candidate_g: Dict[str, Any]) -> Dict[st
 
 
 def s_operational(target_o: Dict[str, Any], cand_feats: Dict[str, Any]) -> Dict[str, Any]:
-    if not (target_o or {}).get("score_ready"):
-        return {
-            "available": False,
-            "score": None,
-            "reason": (target_o or {}).get("reason")
-            or "No sourced operational metric that is comparable across the target body and Earth was available. Accessibility of an Earth site alone is not treated as similarity to a Moon/Mars site.",
-        }
+    # Access is useful operational context, never similarity to a planetary site.
+    keys = ("dist_road_km", "dist_airport_km", "dist_airport_scheduled_km", "population_50km")
+    metrics = {k: cand_feats[k] for k in keys if k in cand_feats}
+    present = [k for k, item in metrics.items() if _num(item.get("value")) is not None and item.get("source") and item.get("is_real") is not False and item.get("quality") in ("measured", "derived")]
     return {
         "available": False,
         "score": None,
-        "reason": "O is declared on the target but this prototype still lacks a mapped Earth counterpart; S_O left null.",
+        "data_available": bool(present),
+        "scope": "earth_accessibility",
+        "metrics": metrics,
+        "used": present,
+        "reason": "Acceso terrestre documentado; sin contraparte equivalente en el destino, no entra en TASI." if present else "Sin datos de acceso terrestre verificables ni métrica operacional comparable.",
     }
 
 
@@ -344,7 +346,7 @@ def rank(
         st = s_topography(site_T_vector(cand), target_T, cov or {}, gamma)
         se = s_thermal(comps.get("E") or {}, cand.get("features") or {}, scales)
         sv = s_volatiles(comps.get("Vo") or comps.get("V") or {}, cand.get("features") or {}, scales)
-        sg = s_spectral(comps.get("G") or {}, {"score_ready": False})  # Earth spectra also unavailable in this catalog
+        sg = geology_similarity(comps.get("G") or {}, cand.get("features") or {})
         so = s_operational(comps.get("O") or {}, cand.get("features") or {})
         parts = {"G": sg, "T": st, "E": se, "V": sv, "O": so}
         available = {k: bool(parts[k].get("available") and parts[k].get("score") is not None) for k in COMPONENT_KEYS}
@@ -375,6 +377,7 @@ def rank(
                     "score": None if parts[k].get("score") is None else round(parts[k]["score"] * 100.0, 2),
                     "score_0_1": parts[k].get("score"),
                     "available": parts[k].get("available"),
+                    "data_available": bool(parts[k].get("data_available", parts[k].get("available"))),
                     "reason": parts[k].get("reason"),
                     "detail": {dk: dv for dk, dv in parts[k].items() if dk not in ("reason",)},
                 }

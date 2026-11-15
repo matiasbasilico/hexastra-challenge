@@ -6,8 +6,8 @@
     "Máscara: se descartan sitios con NDVI > umbral o con agua líquida continental; si el dato falta, el sitio no se descarta y se marca.",
     "T (terreno): S_T = exp(−γ · D_M), con D_M la distancia de Mahalanobis sobre relieve relativo, pendiente y rugosidad, y Σ una covarianza Ledoit-Wolf de celdas terrestres.",
     "E (térmico) y Vo (volátiles): similitud por métrica, escalada por el desvío de esa métrica entre los sitios terrestres.",
-    "G (geología): solo con datos comparables de los dos lados; si no hay, queda nulo.",
-    "O (operaciones): solo con métricas operacionales comparables de los dos lados; si no hay, queda nulo.",
+    "G (geología): promedio de los bloques comparables de tipo de roca y origen por impacto según mapas publicados. Se informa cobertura de 0 a 2 bloques; los faltantes no se convierten en cero.",
+    "O (operaciones): el acceso terrestre (rutas, aeródromos y población) se muestra como contexto, fuera del TASI. Sólo una métrica con contraparte equivalente en ambos sitios puede puntuar similitud operacional.",
     "TASI = Σ w_k · S_k sobre los componentes con dato de los dos lados; los pesos se renormalizan y se informa la cobertura."
   ],
   "presets": [

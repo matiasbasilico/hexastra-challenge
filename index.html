@@ -2,9 +2,12 @@
 <html lang="es-AR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>HexAstra: análogos terrestres de la Luna y Marte</title>
   <meta name="description" content="HexAstra, NASA Space Apps Challenge 2026: buscá lugares de la Tierra que se parecen a sitios de la Luna y de Marte, con datos citados y lo que la Tierra no puede imitar.">
+  <script src="js/locales/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <link rel="stylesheet" href="css/i18n.css">
   <meta name="theme-color" content="#070915">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
   <link rel="icon" type="image/png" sizes="64x64" href="assets/brand/favicon-64.png">
@@ -15,151 +18,148 @@
   <link rel="stylesheet" href="css/brand.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/easy.css">
+  <link rel="stylesheet" href="css/immersive.css">
+  <link rel="stylesheet" href="css/mission.css">
+  <link rel="stylesheet" href="css/tasi-help.css">
+  <link rel="stylesheet" href="css/globe.css">
 </head>
-<body class="mode-easy">
-  <div class="app">
-    <header class="header">
-      <div class="topbar">
-        <div class="mode-switch" role="tablist" aria-label="Modo de la interfaz">
-          <button type="button" role="tab" id="mode-easy" aria-selected="true" class="is-active">Modo fácil</button>
-          <button type="button" role="tab" id="mode-advanced" aria-selected="false">Modo avanzado</button>
-        </div>
-        <div class="header-actions">
-          <button type="button" id="btn-metodo">Cómo se calcula</button>
-          <button type="button" id="btn-fuentes">Fuente</button>
-          <a class="btn" href="https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/" target="_blank" rel="noopener">El desafío</a>
-        </div>
-      </div>
-      <div class="masthead">
-        <div class="brand">
-          <img class="brand-logo" src="assets/brand/hexastra-logo-512.png" width="112" height="112" alt="HexAstra, parche de misión del equipo">
-          <div class="brand-text">
-            <p class="brand-tag">NASA Space Apps 2026 · Equipo HexAstra</p>
-            <h1>Análogos terrestres de la Luna y Marte</h1>
-            <p class="subtitle">Elegí un sitio de la Luna o de Marte y buscamos lugares de la Tierra que se le parezcan. Podés filtrar por continente y por país. El desafío pide justificar la analogía con datos, no quedarse solo en los análogos ya famosos.</p>
-          </div>
-        </div>
-        <section class="limits" aria-labelledby="limits-title">
-          <h2 id="limits-title">Lo que la Tierra no puede imitar</h2>
-          <p class="limits-lead">Quedan fuera del puntaje. Las mostramos como brecha.</p>
-          <table class="limits-table">
-            <caption class="visually-hidden">Valores de referencia de la Tierra, Marte y la Luna, según el servicio planetary</caption>
-            <thead>
-              <tr><th scope="col">Magnitud</th><th scope="col" class="num">Tierra</th><th scope="col" class="num">Marte</th><th scope="col" class="num">Luna</th></tr>
-            </thead>
-            <tbody id="limits-rows">
-              <tr><td colspan="4" class="limits-pending" role="status">Cargando los valores de referencia del servicio…</td></tr>
-            </tbody>
-          </table>
-          <details class="limits-sources">
-            <summary>Fuentes y datos a completar</summary>
-            <div id="limits-notes"></div>
-          </details>
-        </section>
-      </div>
+<body class="immersive" data-comparable-only="false">
+  <main id="world-app" aria-label="Explorador de análogos terrestres">
+    <div class="world-stage" id="world-map" role="application" aria-label="Tierra 3D con sitios del catálogo"></div>
+    <header class="orbit-header">
+      <a class="orbit-brand" href="./" aria-label="HexAstra, inicio">
+        <img src="assets/brand/hexastra-logo-512.png" width="52" height="52" alt="Parche de misión HexAstra">
+        <span><strong>HexAstra</strong><span>NASA Space Apps 2026</span></span>
+      </a>
+      <label class="language-choice" translate="no"><span aria-hidden="true">◎</span><select data-language-select aria-label="Language / Idioma"><option value="en">English</option><option value="es">Español</option></select></label>
+      <button type="button" class="orbit-mission" id="open-mission" aria-haspopup="dialog">
+        <span class="orbit-body-dot" aria-hidden="true"></span>
+        <span><span class="orbit-control-label" id="mission-control-label">Tu exploración</span><strong id="mission-label">Elegir misión</strong></span>
+        <span aria-hidden="true">↗</span>
+      </button>
     </header>
-
-    <div id="easy-app"></div>
-
-    <section class="adv" aria-label="Comparativa Tierra y destino">
-      <div class="adv-bar" role="search" aria-label="Destino, región y misión">
-        <label class="adv-field">
-          <span>Destino</span>
-          <select id="finder-target" disabled></select>
-        </label>
-        <label class="adv-field">
-          <span>Región</span>
-          <select id="finder-region" disabled></select>
-        </label>
-        <label class="adv-field">
-          <span>Misión</span>
-          <select id="finder-mission" disabled></select>
-        </label>
-        <details class="adv-menu" id="weights-menu">
-          <summary>Ajustar pesos</summary>
-          <div class="adv-menu-panel">
-            <p class="adv-menu-note">Porcentaje efectivo después de renormalizar sobre los componentes con dato para este destino.</p>
-            <div id="finder-features"></div>
-          </div>
-        </details>
-        <details class="adv-menu" id="options-menu">
-          <summary>Opciones avanzadas</summary>
-          <div class="adv-menu-panel">
-            <label class="adv-option" for="finder-gamma">
-              <span>γ del terreno <span id="finder-gamma-val"></span></span>
-              <input type="range" id="finder-gamma" min="0.1" max="3" step="0.1" value="1">
+    <div class="orbit-intro" id="orbit-intro"><h1 class="visually-hidden">Explorá análogos terrestres de la Luna y Marte</h1><span>Arrastrá para girar · Tocá un punto para comparar</span></div>
+    <nav class="orbit-dock" aria-label="Herramientas de exploración">
+      <button type="button" id="open-sites" aria-controls="sites-panel" aria-expanded="false"><span aria-hidden="true">◉</span> Sitios <span class="dock-count" id="site-count">…</span></button>
+      <button type="button" id="open-help" aria-haspopup="dialog"><span aria-hidden="true">ⓘ</span> Sobre nuestro proyecto</button>
+      <a href="classic.html?mode=advanced" id="open-advanced" class="orbit-advanced-link"><span aria-hidden="true">☷</span> Modo avanzado <span aria-hidden="true">↗</span></a>
+    </nav>
+    <p class="orbit-status" id="world-status" role="status">Conectando con los catálogos…</p>
+    <button type="button" class="orbit-filter" id="toggle-comparable" hidden aria-pressed="true" title="Mostrar también los sitios sin puntaje en esta misión"><span aria-hidden="true">✓</span><span id="comparable-label">Solo comparables</span></button>
+    <aside class="sites-float floating-panel" id="sites-panel" hidden aria-labelledby="sites-title">
+      <div class="float-heading"><div><p class="float-kicker">Explorar</p><h2 id="sites-title">Sitios en la Tierra</h2></div><button type="button" id="close-sites" aria-label="Cerrar lista de sitios">×</button></div>
+      <div class="site-tools">
+        <label class="site-search"><span class="visually-hidden">Buscar sitio o país</span><input type="search" id="site-query" placeholder="Buscar sitio o país…" autocomplete="off"></label>
+        <button type="button" id="toggle-comparable-list" hidden class="site-filter-toggle" aria-pressed="true" aria-label="Mostrar solo sitios comparables">Comparables</button>
+      </div>
+      <div id="world-sites" class="world-sites"></div>
+    </aside>
+    <aside class="compare-float floating-panel" id="compare-panel" hidden aria-labelledby="compare-title">
+      <div class="float-heading"><div><p class="float-kicker">Tierra ↔ <span id="compare-body">Destino</span></p><h2 id="compare-title" tabindex="-1">Comparativa</h2></div><button type="button" id="close-comparison" aria-label="Cerrar comparativa">×</button></div>
+      <div class="compare-place" id="compare-place"></div>
+      <section class="destination-frame" aria-label="Mapa del destino seleccionado"><div class="destination-label" id="destination-label"></div><div id="destination-map" aria-label="Mapa de Luna o Marte" role="application"></div></section>
+      <div class="compare-scroll" id="compare-content" aria-live="polite"></div>
+    </aside>
+    <dialog id="mission-dialog" class="orbit-dialog mission-wizard" data-mission-step="0" aria-labelledby="mission-title">
+      <div class="float-heading"><div><p class="float-kicker" id="mission-step-label">Tu exploración · Paso 1 de 3</p><h2 id="mission-title" tabindex="-1">¿Marte o la Luna?</h2></div><button type="button" data-close-dialog aria-label="Cerrar configuración">×</button></div>
+      <ol class="mission-progress" aria-label="Pasos de la misión">
+        <li><button type="button" data-mission-go="0" aria-current="step"><span>01</span> Cuerpo</button></li>
+        <li><button type="button" data-mission-go="1" disabled><span>02</span> Destino</button></li>
+        <li><button type="button" data-mission-go="2" disabled><span>03</span> Enfoque</button></li>
+      </ol>
+      <form id="mission-form">
+        <section class="mission-step mission-world-step" data-mission-page="0">
+          <fieldset class="body-options">
+            <legend class="visually-hidden">Cuerpo celeste</legend>
+            <label class="planet-card planet-card-mars">
+              <input type="radio" name="body" value="mars" checked>
+              <span class="planet-check" aria-hidden="true">✓</span>
+              <span class="planet-visual" aria-hidden="true"></span>
+              <span class="planet-card-name">Marte</span>
+              <span class="planet-card-caption">Exploración marciana</span>
             </label>
-            <label class="adv-check"><input type="checkbox" id="finder-mask" checked> Descartar sitios con vegetación (NDVI mayor que <span id="finder-mask-ndvi">el umbral del servicio</span>) o agua líquida</label>
-          </div>
-        </details>
-        <button type="button" id="btn-buscar" class="easy-btn-primary" disabled>Buscar</button>
-        <p class="api-status" id="api-status" role="status">Buscando la API…</p>
-      </div>
-
-      <div class="workspace">
-        <aside class="sitelist" aria-label="Sitios en la Tierra">
-          <div class="sitelist-head">
-            <h2>Sitios en la Tierra</h2>
-          </div>
-          <div id="site-buttons"></div>
-        </aside>
-
-        <section class="map-frame" aria-label="Mapa de la Tierra">
-          <div class="map-label"><h2>Tierra</h2></div>
-          <details class="layers-menu">
-            <summary>Capas</summary>
-            <div class="layers-panel">
-              <label><input type="checkbox" id="layer-esri" checked> Satélite (Esri)</label>
-              <label><input type="checkbox" id="layer-osm"> Mapa (OpenStreetMap)</label>
-              <label><input type="checkbox" id="layer-gibs-tc"> NASA GIBS, color verdadero</label>
-              <label><input type="checkbox" id="layer-gibs-lst"> NASA GIBS, temperatura de superficie</label>
-              <label class="layers-date">Fecha de GIBS <input type="date" id="gibs-date" value="2026-11-10"></label>
-            </div>
-          </details>
-          <div id="map-earth" class="map"></div>
+            <label class="planet-card planet-card-moon">
+              <input type="radio" name="body" value="moon">
+              <span class="planet-check" aria-hidden="true">✓</span>
+              <span class="planet-visual" aria-hidden="true"></span>
+              <span class="planet-card-name">Luna</span>
+              <span class="planet-card-caption">Destinos lunares</span>
+            </label>
+          </fieldset>
         </section>
-
-        <section class="map-frame" aria-label="Mapa del destino">
-          <div class="map-label"><h2 id="map-right-label">Marte</h2></div>
-          <details class="layers-menu" id="layers-dest">
-            <summary>Capas</summary>
-            <div class="layers-panel">
-              <label><input type="radio" name="marsbase" id="layer-opm" checked> OpenPlanetary</label>
-              <label><input type="radio" name="marsbase" id="layer-mola"> MOLA (color)</label>
-              <label><input type="radio" name="marsbase" id="layer-shaded"> Relieve sombreado</label>
-              <p class="layers-note" id="layers-dest-note" hidden>La Luna tiene una sola capa base (OpenPlanetary).</p>
-            </div>
-          </details>
-          <div id="map-mars" class="map"></div>
+        <section class="mission-step mission-destination-step" data-mission-page="1" hidden>
+          <div class="mission-target-choice">
+            <label class="orbit-field">Sitio de destino<select id="world-target" required disabled></select></label>
+          </div>
+          <article id="mission-target-info" class="mission-target-info" aria-live="polite"></article>
         </section>
-
-        <aside class="panel" id="panel" aria-label="Ficha del par">
-          <div class="panel-head"><h2>Ficha</h2></div>
-          <p class="placeholder-msg">Elegí un sitio de la lista o del mapa de la Tierra.</p>
-        </aside>
+        <section class="mission-step mission-focus-step" data-mission-page="2" hidden>
+          <div class="mission-focus-tabs" role="tablist" aria-label="Configurar la prueba">
+            <button type="button" role="tab" id="mission-test-tab" data-focus-tab="test" aria-controls="mission-test-panel" aria-selected="true">Elegir prueba</button>
+            <button type="button" role="tab" id="mission-filters-tab" data-focus-tab="filters" aria-controls="mission-filters-panel" aria-selected="false" tabindex="-1">Región y filtros</button>
+          </div>
+          <div id="mission-test-panel" role="tabpanel" aria-labelledby="mission-test-tab">
+            <fieldset id="mission-presets" class="mission-preset-options"><legend class="visually-hidden">Qué querés poner a prueba</legend></fieldset>
+            <select id="world-preset" hidden disabled aria-hidden="true" tabindex="-1"></select>
+            <p class="visually-hidden" id="preset-description"></p>
+          </div>
+          <div id="mission-filters-panel" class="mission-refine" role="tabpanel" aria-labelledby="mission-filters-tab" hidden>
+            <p class="mission-filter-context" id="mission-current-preset"></p>
+            <div class="mission-filter-grid">
+              <label class="orbit-field">Buscar en<select id="world-region"><option value="">Todo el mundo</option></select></label>
+              <label class="orbit-mask"><input type="checkbox" id="world-mask" checked> Máscara de vegetación y agua líquida</label>
+              <label class="orbit-mask"><input type="checkbox" id="world-comparable-only" checked> Solo sitios comparables</label>
+            </div>
+            <p class="dialog-note">Desactivá «Solo sitios comparables» para ver también los sitios sin puntaje.</p>
+          </div>
+        </section>
+        <div class="mission-actions">
+          <button type="button" id="mission-back" hidden>← Atrás</button>
+          <button type="submit" id="apply-mission" class="orbit-primary" disabled><span id="mission-next-label">Elegir destino</span><span aria-hidden="true">↗</span></button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="help-dialog" class="orbit-dialog help-dialog" aria-labelledby="help-title">
+      <div class="float-heading"><div><p class="float-kicker">Sobre nuestro proyecto</p><h2 id="help-title">La Tierra como laboratorio</h2></div><button type="button" data-close-dialog aria-label="Cerrar explicación">×</button></div>
+      <div class="onboarding-intro" hidden>
+        <p>Somos HexAstra. Participamos en NASA Space Apps 2026 y buscamos lugares de la Tierra para preparar la exploración de la Luna y Marte con datos abiertos.</p>
+        <div class="onboarding-links"><a href="https://www.spaceappschallenge.org/2026/find-a-team/hexastra/" target="_blank" rel="noopener">Nuestro equipo ↗</a><a href="https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/" target="_blank" rel="noopener">El desafío ↗</a></div>
+        <ol>
+          <li><span aria-hidden="true">01</span><div><strong>Prepará tu misión</strong><p>Elegí un cuerpo celeste, un destino y qué querés probar.</p></div></li>
+          <li><span aria-hidden="true">02</span><div><strong>Explorá el globo</strong><p>Girá la Tierra. El pulso destaca hasta cinco sitios con mayor similitud.</p></div></li>
+          <li><span aria-hidden="true">03</span><div><strong>Descubrí qué se parece</strong><p>Tocá un punto para ver la comparación, las diferencias y los datos que faltan.</p></div></li>
+        </ol>
+        <button type="button" class="orbit-primary" id="onboarding-start" disabled>Elegir mi misión <span aria-hidden="true">↗</span></button>
       </div>
-      <div id="finder-results" class="adv-results" aria-live="polite"></div>
+      <p>Buscamos análogos terrestres poco estudiados para explorar la Luna y Marte. Un lugar puede servir para probar un instrumento o una operación aunque no se parezca en todo.</p>
+      <ol class="help-steps"><li>Elegí un destino y un enfoque en <strong>Misión</strong>, arriba a la derecha.</li><li>Girá el planeta o abrí <strong>Sitios</strong>. Todos los puntos vienen del catálogo. El pulso señala hasta cinco sitios con los mayores puntajes TASI de esta misión.</li><li>Tocá un sitio para ver el par Tierra | destino, cuánto se parece, en qué no y qué dato falta.</li></ol>
+      <details class="help-method"><summary>Cómo se calcula TASI</summary><div id="world-method"></div></details>
+      <button type="button" id="btn-limites">Lo que la Tierra no puede imitar ↗</button>
+      <p class="dialog-note">La textura del globo es ilustrativa. Los valores, fuentes y puntajes salen de las APIs. Gravedad, presión y radiación se muestran fuera del puntaje.</p>
+      <a href="classic.html?mode=advanced" class="classic-link">Abrir modo avanzado ↗</a>
+      <button type="button" id="toggle-earth-view">Cambiar a mapa 2D</button>
+    </dialog>
+  </main>
+  <dialog class="limits-dialog" id="limits-dialog" aria-labelledby="limits-title">
+    <form method="dialog"><button type="submit">Cerrar</button></form>
+    <section class="limits" aria-labelledby="limits-title">
+      <h2 id="limits-title">Lo que la Tierra no puede imitar</h2>
+      <p class="limits-lead">Quedan fuera del puntaje. Las mostramos como brecha.</p>
+      <table class="limits-table">
+        <caption class="visually-hidden">Valores de referencia de la Tierra, Marte y la Luna, según el servicio planetary</caption>
+        <thead>
+          <tr><th scope="col">Magnitud</th><th scope="col" class="num">Tierra</th><th scope="col" class="num">Marte</th><th scope="col" class="num">Luna</th></tr>
+        </thead>
+        <tbody id="limits-rows">
+          <tr><td colspan="4" class="limits-pending" role="status">Cargando los valores de referencia del servicio…</td></tr>
+        </tbody>
+      </table>
+      <details class="limits-sources">
+        <summary>Fuentes y datos a completar</summary>
+        <div id="limits-notes"></div>
+      </details>
     </section>
-  </div>
-
-  <div class="modal-bg" id="modal-bg" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal">
-      <button type="button" class="close">Cerrar</button>
-      <h2 id="modal-title">Cómo se calcula</h2>
-      <div id="method-body">
-        <p class="muted">El método se carga desde el servicio earth (/method) al abrir esta ventana.</p>
-      </div>
-      <h3 id="fuentes-anchor">Fuentes</h3>
-      <ul>
-        <li>Sitios terrestres: cada ficha muestra la fuente de sus coordenadas, tal como la devuelve el servicio earth (/candidates).</li>
-        <li>Destinos de la Luna y de Marte: servicio planetary (/sites), con la fuente de cada punto.</li>
-        <li>Lo que la Tierra no puede imitar: servicio planetary (/bodies), con la fuente de cada valor en la tabla de arriba.</li>
-        <li>Teselas de los mapas: OpenStreetMap, Esri, NASA GIBS, OpenPlanetaryMap y WhereOnMars/Carto (MOLA y relieve).</li>
-      </ul>
-      <h3>Servicios</h3>
-      <p>El buscador pide el vector del destino a <code>planetary-service</code> y el ranking TASI a <code>earth-service</code>, a través de <code>js/api.js</code>. Las direcciones se configuran en <code>js/config.js</code> o con <code>?planetary=…&amp;earth=…</code> en el link. Sin servicios, la página avisa que no están disponibles y no muestra datos.</p>
-    </div>
-  </div>
+  </dialog>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
@@ -171,8 +171,12 @@
   <script src="js/api.js"></script>
   <script src="js/api-stub.js"></script>
   <script src="js/explain.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/vendor/globe.bundle.js"></script>
   <script src="js/limits.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/easy.js"></script>
+  <script src="js/immersive-data.js"></script>
+  <script src="js/mission.js"></script>
+  <script src="js/tasi-help.js"></script>
+  <script src="js/immersive.js"></script>
 </body>
 </html>

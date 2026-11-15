@@ -1,99 +1,97 @@
-# Propuesta Vo — máscara de viabilidad e índice de hielo `water_ice_indicator`
+# Vegetation/water mask and ice-product methodology
 
-Agente Vo (hielo + máscara), 14 de noviembre de 2026. **No cambia `services/earth/tasi.py`.** Sólo carga datos en `data/measurements/vo-mascara.jsonl` y `data/measurements/vo-hielo.jsonl` y propone cómo leerlos.
+This guide documents the versioned `vo-mascara.jsonl` and `vo-hielo.jsonl` products and their current limitations. It does not change `services/earth/tasi.py`. Counts refer to the repository files on November 15, 2026; live availability is determined by the catalog served by the APIs.
 
-## Parte A — máscara de viabilidad (Paso A de TASI)
+## Part A — vegetation and inland-water mask
 
-`tasi.viability_mask` descarta un sitio terrestre si `ndvi > 0,15` o si `has_liquid_water = 1`. Un valor desconocido no descarta, pero levanta una bandera. Hasta ahora NDVI estaba en 0/60 y agua en 1/60.
+When enabled, `tasi.viability_mask` excludes an Earth site if `ndvi > 0.15` or `has_liquid_water = 1`. Unknown values do not exclude the site, but produce an availability flag. This is a configurable screening convention, not a universal statement that vegetated or water-bearing places cannot be useful analogs.
 
-| Feature | Producto | Estadístico / criterio |
+| Feature | Official product | Statistic or decision rule |
 |---|---|---|
-| `ndvi` | MODIS Terra **MOD13Q1 v061** (250 m, compuestos de 16 días) vía **NASA AppEEARS** (Earthdata) | Píxel que contiene la coordenada del sitio. **Media 2015-01-01 a 2024-12-31 de los compuestos con `pixel_reliability = 0`** («good data»). Se descartan los marginales, nieve/hielo y nubes. Con menos de 23 compuestos buenos (un año) queda `null`. La nota lleva n, mediana y p90. |
-| `has_liquid_water` | MODIS **MOD44W v061** (máscara tierra/agua anual, 250 m) vía AppEEARS | Capa `seven_class` del píxel del sitio, años 2015–2023. **1 si el píxel es agua continental (clase 3 «shallow inland» o 5 «deep inland») en al menos la mitad de los años**, 0 si no. El océano (0, 6, 7) nunca cuenta. El agua efímera (clase 4) y el agua en el entorno 3×3 (~375 m) van a la nota, no al valor: la regla de TASI habla de agua *en el punto*. |
+| `ndvi` | MODIS Terra [MOD13Q1 v061](https://doi.org/10.5067/MODIS/MOD13Q1.061), 250 m, 16-day composites, through [NASA AppEEARS](https://appeears.earthdatacloud.nasa.gov/) | Site pixel; mean over January 1, 2015–December 31, 2024, using `pixel_reliability = 0` good-quality composites. Exclude marginal quality, snow/ice, and clouds. Fewer than 23 good composites leaves null. Notes include count, median, and p90. |
+| `has_liquid_water` | MODIS [MOD44W v061](https://doi.org/10.5067/MODIS/MOD44W.061), annual 250 m land/water mask, through AppEEARS | Site pixel, `seven_class`, 2015–2023. Assign 1 if inland water, class 3 or 5, occurs in at least half the years; otherwise 0. Ocean classes 0, 6, and 7 do not count as inland water. |
 
-¿Por qué MOD44W y no Sentinel-2? Es un producto oficial de Earthdata (recurso n.º 1 del desafío), con la misma resolución que el NDVI y una clase explícita de agua continental. CDSE (Sentinel) no hizo falta.
+Ephemeral water, class 4, and water in the surrounding 3 × 3 cells are documented in notes rather than substituted for water at the actual point. If the site pixel is ocean in at least half the years, leave the feature **null**, not zero: the coordinate or coastline resolution needs review.
 
-Si el píxel del punto es **océano** (clases 0, 6, 7) en al menos la mitad de los años, el valor queda `null` y no `0`: eso indica que la coordenada del catálogo cae en el mar o en la costa, no que el sitio esté seco.
+MOD44W was chosen as an official Earthdata product with a defined inland-water class and resolution compatible with the NDVI product. This pipeline does not claim Sentinel-2 ingestion.
 
-### Resultados (60 sitios)
+### File coverage and checks
 
-| | valor | null |
+| Feature | Records with values | Null records |
+|---|---:|---:|
+| `ndvi` | 44 | 16 |
+| `has_liquid_water` | 56 | 4 |
+
+The file contains 120 records and 100 non-null values. Quality filtering, cloud/snow coverage, and coastline ambiguity cause gaps. Null records retain their reasons rather than being silently filled.
+
+Control cases from the recorded products:
+
+- **Lake Natron:** water = 1; the site pixel is shallow inland water in all nine annual observations.
+- **Salar de Uyuni:** water = 0; eight years are land, with shallow water only in 2022. This captures the majority-year rule rather than denying seasonal flooding.
+- **Laguna de Antofagasta:** water = 0; the point and its 3 × 3 neighborhood are land in the nine observations. At 250 m this does not prove the absence of a nearby small lake.
+- **Badwater:** water = 0 under the majority-year rule, despite the temporary water classification in 2023.
+- **Coastal/ocean-classified coordinates:** preserve null and a coordinate-review note instead of claiming the site is dry.
+
+An annual mean NDVI threshold can exclude sparse arid shrubland and can be biased toward the season with valid observations. Median and p90 are retained for interpretation; the documented threshold is not silently changed. The application lets users remove the mask.
+
+## Part B — ice and permafrost on the three bodies
+
+### Raw quantities
+
+These product-specific features use `comparable: false`. Their units and meanings must not be mixed directly in similarity scoring.
+
+| Body | Feature | Product | Quantity |
+|---|---|---|---|
+| Earth | `permafrost_fraction` | [ESA Permafrost_cci L4 v5.0, PFR](https://catalogue.ceda.ac.uk/uuid/d235665772ec4b558e9a89ac85595e71/), through CEDA | Permafrost area fraction of the sampled 0.01° cell, averaged over 2019–2023. Model-derived product using MODIS LST, ERA5, and CryoGrid. |
+| Moon | `moon_ice_stable_frac` | LRO Diviner Polar Resource Products v2, `LRO-L-DLRE-5-PRP-V2.0`, [PDS table](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab) | Fraction of sampled approximately 240 m triangles within 5 km of the site with modeled ice stability to a depth of 2.87 m. |
+| Moon | `moon_ice_surface_frac` | Same Diviner product | Fraction with `ice_depth = 0`, modeled surface stability. |
+| Moon | `moon_ice_depth_min_m` | Same Diviner product | Shallowest reported stability depth. |
+| Moon | `moon_prp_code_m1_frac` | Same Diviner product | Fraction with the undocumented `ice_depth = -1` code; not silently interpreted as detected ice. |
+| Mars | `mars_grs_h2o_wt_pct` | Mars Odyssey GRS `ODY-M-GRS-5-ELEMENTS-V1.0`, [PDS smoothed table](https://pds-geosciences.wustl.edu/ody/ody-m-grs-5-elements-v1/odgm_xxxx/data/smoothed/h2o_sr_5x5.tab) | Water-equivalent hydrogen weight percent in the upper approximately one meter, smoothed to 5° × 5° bins. |
+
+The permafrost dataset has limited geographic coverage. The recorded Andes and other out-of-coverage sites remain null rather than being assigned zero permafrost. Polar Diviner products do not cover Marius Hills at 14° N; its corresponding polar-resource values remain null.
+
+### Common indicator: `water_ice_indicator`
+
+The intended meaning is **the fraction of site area where water ice could remain thermally stable in the upper approximately 1–3 m**. This asks about persistence if ice were present, not whether ice has been detected.
+
+| Body | Current mapping | Status |
 |---|---|---|
-| `ndvi` | 45 | 15 (nieve, nubes o hielo: < 23 compuestos buenos; Andes altos, Ártico, Antártida, Askja, Tolbachik, Tso Kar; Rio Tinto por ser píxel de agua) |
-| `has_liquid_water` | 56 (3 con agua = 1) | 4 (píxel oceánico: Rio Tinto, Timanfaya, Base Esperanza, Bockfjorden) |
+| Earth | `water_ice_indicator = permafrost_fraction` | Derived proxy; 12 non-null values. Preserve its physical and geographic limitations. |
+| Moon | No numeric indicator loaded | Null: PRP v2 includes `ice_depth = -1` in very cold triangles, but the cited metadata does not establish its interpretation. Raw quantities and uncertainty bounds remain available. |
+| Mars | No numeric indicator loaded | Null: GRS hydrogen can reflect hydrated minerals or adsorbed water rather than stable ice. Converting hydrogen weight percent to an ice-area fraction would invent a different quantity. |
 
-**Casos de control:**
+The file has **169 records, 55 non-null**: 12 permafrost fractions, 12 Earth indicator values, six values in each of the four lunar raw fields, and seven Martian GRS values. There are no non-null lunar or Martian `water_ice_indicator` records in this file.
 
-- **Lake Natron → 1.** Clase 3 (agua continental somera) en los 9 años y en todo el 3×3. Es lo esperado para un lago salino perenne. NDVI 0,078.
-- **Salar de Uyuni → 0.** Tierra en 8 de 9 años, con agua somera sólo en 2022 (la inundación estacional del salar). NDVI 0,005, el más bajo de los 60. Es lo esperado para un salar seco.
-- **Laguna de Antofagasta → 0.** El píxel y su entorno 3×3 (~375 m) son tierra en los 9 años. A 250 m, MOD44W no ve agua junto a la coordenada del catálogo. O la laguna es más chica que la resolución, o la coordenada está en la orilla. Queda como duda.
-- **Badwater → 0** (coincide con el valor base de OSM, que se reemplaza para usar una sola fuente). MOD44W marca agua somera sólo en 2023, el año del lago temporal que dejó el huracán Hilary.
+Current consequences:
 
-**Efecto en el Paso A de TASI (sin tocar fórmulas):** 23 de los 60 sitios quedan fuera de la máscara.
+- The indicator does not change planetary similarity by itself because the target side remains unavailable. TASI requires comparable information on both sides.
+- A future confirmed target indicator would need a documented cross-body definition and comparability review before integration.
+- Earth cells and lunar 5 km neighborhoods have different support areas. A shared label does not remove resolution differences.
+- Earth permafrost and lunar sublimation stability involve different physics. Neither implies the presence or accessibility of extractable water ice.
+- Out-of-coverage values remain null; precipitation or other shared metrics can still contribute according to the active method.
 
-- Por agua: Lake Natron, **Lonar** (el punto está en el lago del cráter) y **Laguna Diamante**.
-- Por NDVI > 0,15: Acraman, Campo del Cielo, Cráteres de Río Cuarto, Craters of the Moon, Devon/FMARS, Karijini, Kīlauea, Lava Beds, Meseta de Somuncurá, **Meteor Crater (0,177)**, Nördlinger Ries, Pali Aike, Pinacate, Popigai, SP Crater, Tswaing, Undara, Vredefort, White Sands, Wolfe Creek.
+### Validation
 
-  Varios son matorral árido cuyo NDVI medio (0,17–0,19) apenas pasa el umbral. Devon/FMARS (0,20) tiene sólo 26 compuestos buenos, todos de verano, así que su media está sesgada hacia el pico de vegetación.
+The producer tests check recorded products against published ranges and physical ordering:
 
-## Parte B — hielo de agua en los tres cuerpos
+- Mars GRS values fall within the published water-equivalent hydrogen range cited in the records. This validates the raw product, not a stable-ice interpretation.
+- Very cold lunar polar triangles and warmer illuminated terrain show the expected ordering of modeled stability depths. The unexplained `-1` code remains unresolved rather than reclassified from intuition.
+- Continuous-permafrost reference sites retain the sampled product fractions; temperate fill cells and out-of-coverage locations are not converted to invented zero values.
 
-### Magnitudes crudas (features propias, `comparable: false`)
+Full source strings, quality flags, and notes remain in each JSONL record.
 
-| Cuerpo | Feature | Producto (fuente oficial) | Unidad | Qué mide |
-|---|---|---|---|---|
-| Tierra | `permafrost_fraction` | **ESA Permafrost_cci** L4 v5.0, PFR (CEDA; ESA Open Science Catalog) | fracción 0–1 | % de la celda de 0,01° con suelo ≤ 0 °C durante ≥ 2 años (modelo CryoGrid forzado con LST MODIS + ERA5). Media 2019–2023. Cubre el hemisferio norte (25–85° N) y la Antártida libre de hielo. |
-| Luna | `moon_ice_stable_frac` | **LRO Diviner Polar Resource Products v2** (LRO-L-DLRE-5-PRP-V2.0, PDS Geosciences) | fracción 0–1 | Fracción de triángulos de ~240 m, a ≤ 5 km del sitio, donde el hielo es estable a la sublimación (< 1 kg m⁻² por 10⁹ años) a ≤ 2,87 m. |
-| Luna | `moon_ice_surface_frac` | ídem | fracción 0–1 | Idem, con hielo estable en superficie (`ice_depth = 0`). |
-| Luna | `moon_ice_depth_min_m` | ídem | m | Profundidad de estabilidad más somera del círculo. |
-| Luna | `moon_prp_code_m1_frac` | ídem | fracción 0–1 | Fracción de triángulos con el código no documentado `ice_depth = −1` (sólo aparece con Tmax ≤ ~101 K). |
-| Marte | `mars_grs_h2o_wt_pct` | **2001 Mars Odyssey GRS** (ODY-M-GRS-5-ELEMENTS-V1.0, PDS Geosciences; Boynton et al. 2007) | % en peso | Hidrógeno equivalente a agua en el primer metro, bin suavizado de 5°×5°. |
+## Reproduction
 
-Neutrones lunares (LEND / Lunar Prospector NS): el PDS de Geociencias no publica un mapa derivado de hidrógeno de LP (sólo los RDR de cuentas, y el producto derivado de LP GRS trae óxidos, no H). Quedan como trabajo futuro; por eso Marius Hills (14° N, fuera del PRP polar) queda `null`.
-
-### Índice propuesto `I_hielo` (0–1)
-
-**Definición común:** *fracción del área del sitio donde el hielo de agua es térmicamente estable en el primer ~1–3 m del suelo.* Es una pregunta de estabilidad («si hubiera hielo, ¿persistiría?»), no de presencia. Se eligió porque es la única que los tres cuerpos pueden contestar con productos oficiales y con la misma semántica.
-
-| Cuerpo | Mapeo | Calidad | `comparable` | Justificación |
-|---|---|---|---|---|
-| Tierra | `I = permafrost_fraction` | `derived` | `true` | El permafrost es, por definición, el suelo donde el hielo persiste (≤ 0 °C ≥ 2 años). Es una fracción de área a escala de 1 km. |
-| Luna | `I = moon_ice_stable_frac` (+ código −1, ver abajo) | **no se carga todavía (`null`)** | — | Diviner calcula directamente dónde el hielo es estable a ≤ 2,87 m; se toma la fracción de área en un círculo de 5 km (escala de un borde o del piso de un cráter). **Bloqueo:** el PRP v2 trae `ice_depth = −1` en 4393 de los 14 726 triángulos muestreados, justo en los más fríos (Tmax ≤ 101 K). La etiqueta y el SIS sólo documentan `0` (estable en superficie) y `−999`/`−32768` (> 2,87 m). Según la física, −1 parece «trampa fría con hielo estable en superficie» (Paige et al. 2010 usan ~110 K como umbral), pero eso es una inferencia. Hasta confirmarlo se cargan las magnitudes crudas y `moon_prp_code_m1_frac`, y la nota del índice lleva las dos cotas. |
-| Marte | **no se carga (`null`)** | `unavailable` | — | El GRS mide **hidrógeno**, no estabilidad. A latitudes bajas (todos los sitios salvo Utopia) el 2–7 % en peso se explica por minerales hidratados y agua adsorbida (Boynton et al. 2007). Convertirlo en una «fracción con hielo» sería inventar. Falta un mapa de estabilidad o de consistencia de hielo (p. ej. **SWIM**, Morgan et al. 2021, Nature Astronomy; o el modelo de Mellon et al. 2004) para el punto. |
-
-**Límites de la analogía:**
-
-1. El mecanismo físico difiere. En la Tierra lo que manda es la temperatura del suelo bajo una atmósfera densa; en la Luna, la sublimación al vacío. Las dos fracciones responden a la misma pregunta («¿persiste el hielo?»), pero los umbrales no son idénticos. Lo marcamos como analogía de estabilidad, no como igualdad física.
-2. Las escalas difieren: celda de ~1 km en la Tierra frente a un círculo de 5 km de triángulos de 240 m en la Luna. Las dos son «escala de sitio», no de región.
-3. Estabilidad ≠ presencia. Un valle seco antártico puede tener permafrost seco; un PSR lunar puede ser estable sin hielo detectado. La presencia (neutrones, radar, LCROSS) sería otra feature.
-4. Cobertura de Permafrost_cci: no cubre los Andes, África ni Australia fuera de la Antártida. Allí el índice queda `null` y TASI renormaliza: no se rellena con 0.
-
-**Efecto en TASI (sin tocar fórmulas):** `s_volatiles` compara `precip_mm` y `water_ice_indicator` con `exp(-|x-y|/escala)`, donde la escala es el desvío estándar terrestre. Con este cambio:
-
-- **Hoy, ningún cambio de puntaje.** El índice sólo tiene valor en la Tierra, y `s_volatiles` necesita el dato en los dos lados.
-- Si se confirma el código −1 y se carga el índice lunar, la Vo contra destinos lunares polares pasa a premiar sitios con permafrost (Ártico canadiense, valles secos, Antártida) frente a desiertos cálidos (índice 0).
-- Contra Marte, nada cambia (índice `null` en Marte).
-- Un sitio terrestre fuera de cobertura sólo usa `precip_mm`, igual que hoy.
-
-**Para decidir el usuario:**
-1. ¿Aceptamos `comparable: true` para el índice Tierra↔Luna con los límites de arriba? Si no, basta con borrar las filas `water_ice_indicator` de `vo-hielo.jsonl`: las magnitudes crudas quedan igual.
-2. ¿Leemos `ice_depth = −1` como hielo estable en superficie (cota superior) o esperamos la confirmación del equipo Diviner (PDS Geosciences / UCLA)? Con la cota superior, el índice lunar sería: Shackleton 1,00 · de Gerlache 1,00 · Haworth 1,00 · Malapert 1,00 · Amundsen 0,95 · Nobile 0,47.
-3. Máscara: el umbral `ndvi > 0,15` aplicado a la **media anual** deja afuera matorrales áridos clásicos (Meteor Crater 0,177, White Sands 0,172, SP Crater 0,193). ¿Mantenemos el criterio o pasamos a la mediana? Ver la nota de cada fila, que trae mediana y p90.
-4. Lonar y Laguna Diamante quedan fuera porque el punto está **en** el lago. ¿Se corre la coordenada al borde o al piso seco, o se acepta que se descarten?
-5. Coordenadas que caen en el mar según MOD44W: Rio Tinto (37,21, −6,938, ría de Huelva), Timanfaya (28,994, −13,793), Base Esperanza y Bockfjorden. Hay que corregirlas en el catálogo base, que no es mío.
-
-## Validaciones contra valores publicados
-
-- **Marte (GRS):** el rango del producto (1,6–7,4 % en peso en ±57,5°) cae dentro de lo publicado por Boynton et al. 2007 (1,5–7,5 %), y el máximo (7,40 % en −7,5°, 177,5° E) está junto a Apollinaris Patera, una de las dos zonas más ricas según ese trabajo. Hay un test (`test_grs_raw_matches_published_range`).
-- **Luna (Diviner PRP):** los triángulos centrales de Haworth (Tmax 62,8 K) y de Gerlache (60,6 K) quedan muy por debajo de los ~110 K de las trampas frías de Paige et al. 2010 (Science 330, 479). Los macizos iluminados (Malapert 230 K, Amundsen 214 K) quedan por encima y con hielo estable sólo en el subsuelo (1–4 cm). Además, en todo lo muestreado los triángulos con hielo estable en superficie (`0`) tienen Tmax ≤ 126 K y los `−999` ≥ 223 K: es el orden físico esperado.
-- **Tierra (Permafrost_cci):** fracción 1,0 en Haughton, Devon/FMARS, McGill (Ártico canadiense), Popigai (Siberia), valles secos de McMurdo y bases antárticas, todas zonas de permafrost continuo. 0,0 en el Valle de los Diez Mil Humos (península de Alaska, fuera de la zona continua). Las celdas templadas son relleno en el producto, no 0 (ver nota).
-
-## Reproducir
+Run each producer's fetch and build stages sequentially:
 
 ```bash
-services/.venv/bin/python services/earth/scripts/ingest_mask.py fetch && services/.venv/bin/python services/earth/scripts/ingest_mask.py build
-services/.venv/bin/python services/earth/scripts/ingest_permafrost.py fetch && services/.venv/bin/python services/earth/scripts/ingest_permafrost.py build
-services/.venv/bin/python services/planetary/scripts/ingest_ice.py fetch && services/.venv/bin/python services/planetary/scripts/ingest_ice.py build
+services/.venv/bin/python services/earth/scripts/ingest_mask.py fetch
+services/.venv/bin/python services/earth/scripts/ingest_mask.py build
+services/.venv/bin/python services/earth/scripts/ingest_permafrost.py fetch
+services/.venv/bin/python services/earth/scripts/ingest_permafrost.py build
+services/.venv/bin/python services/planetary/scripts/ingest_ice.py fetch
+services/.venv/bin/python services/planetary/scripts/ingest_ice.py build
 ```
 
-Los subconjuntos chicos quedan versionados en `services/*/data/raw/`. Las descargas completas (PRP de 605 MB y los NetCDF de CCI) van a carpetas `cache/` ignoradas por git.
+Small reproducible subsets are versioned under `services/*/data/raw/`. Full source downloads and caches remain ignored by Git. Fetching products can require provider credentials or acceptance of their terms. Generating a measurement file does not authorize loading the shared database; follow the [integration rules](../../data/measurements/README.md).

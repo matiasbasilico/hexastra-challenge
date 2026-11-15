@@ -1,245 +1,162 @@
-# Propuesta G — geología, mineralogía y materiales
+# Geological comparison: categorical G v0
 
-Agente G, 14 nov 2026. Estado: **G v0 categórico cargado para los 74 sitios** (`data/measurements/g-mapas.jsonl`). No cambia `services/earth/tasi.py`: la fórmula de S_G (§6) y su cableado siguen necesitando el OK del usuario.
+**Implemented November 15, 2026.** The active method in `services/earth/geology.py` compares sourced geological map categories and reports coverage. The ingestion pipeline covers 74 sites: 60 on Earth, seven on the Moon, and seven on Mars. This guide documents the implemented method; it does not propose a replacement scoring formula.
 
-Decisiones del usuario (14 nov): correr los 74 sitios en este mismo PR; que las features `g_*` sirvan para los tres cuerpos; sumar las clases «volcánico indiviso» y «sedimentario indiviso»; avanzar con la fase 2 (eje composicional en el infrarrojo térmico).
+## Representation and sources
 
-## 1. El problema
+A rock-type category and an impact-origin indicator provide a common representation across the three bodies. They are map interpretations, not measured mineral spectra.
 
-Hoy G está vacío. `tasi.py` sólo acepta un coseno entre espectros reales (`s_spectral`) y, además, `rank()` le pasa al sitio terrestre `{"score_ready": False}` fijo, así que S_G nunca puede salir aunque se carguen datos. Hace falta:
-
-1. una representación de G que signifique lo mismo en la Tierra, la Luna y Marte;
-2. fuentes oficiales o reconocidas que la llenen para nuestros 74 sitios (60 terrestres + 7 lunares + 7 marcianos);
-3. una forma de comparar que respete los nulos (regla 6 de CLAUDE.md: no rellenar para subir puntajes).
-
-## 2. Camino (a): espectral
-
-| | Tierra | Luna | Marte |
-|---|---|---|---|
-| Instrumento | EMIT (VSWIR 0,38–2,5 µm, 60 m) · ASTER GED AG100 (5 bandas TIR 8,3–11,3 µm, 100 m) | M3 / Chandrayaan-1 (85 bandas en modo global, 140 m; 280 m en la 2.ª fase) | CRISM MSP (72 bandas, ~200 m) |
-| Archivo | NASA Earthdata / LP DAAC (EMITL2BMIN, doi:10.5067/EMIT/EMITL2BMIN.001; AG100 v003) | PDS Imaging Node | PDS Geosciences (MTRDR, parámetros de resumen) |
-| Cobertura | EMIT: 54° N–54° S y sólo las regiones áridas que apunta la misión. ASTER GED: global, escenas 2000–2008 | >95 % de la Luna en modo global; SNR objetivo >100 en la referencia polar (contra >400 en el ecuador) | ~80 % de Marte en MSP |
-
-**Qué sería comparable:** no las bandas crudas (cada sensor tiene otras longitudes de onda, otra resolución y otra corrección atmosférica), sino índices con la misma definición física: profundidad de banda a 1 µm (olivino/piroxeno), a 1,9 µm (agua de hidratación), a 2,1–2,3 µm (sulfatos, filosilicatos, carbonatos). EMIT ya publica identificación de minerales con Tetracorder; CRISM publica parámetros de resumen. Para M3 y EMIT habría que calcular los índices a mano sobre reflectancia.
-
-**Cobertura de nuestros sitios (estimación, no verificada sitio por sitio):**
-
-- Tierra con EMIT: como máximo 49 de 60 (quedan fuera por latitud Haughton, Devon/FMARS, McGill, Bockfjorden, Popigai, Askja, Tolbachik, Valley of 10,000 Smokes, los dos valles secos antárticos y las bases Marambio y Esperanza). Dentro de esa franja falta confirmar granulo por granulo.
-- Luna con M3: 6 de los 7 destinos lunares son polares (Shackleton, Haworth, Malapert, de Gerlache, Amundsen, Nobile). Ahí la iluminación es rasante y hay sombra permanente, justo donde el espectro VSWIR es menos confiable. Sólo Marius Hills es ecuatorial.
-- Marte con CRISM: probable para Jezero, Gale y Meridiani (sitios muy observados); para Pavonis, Arsia, Medusae Fossae y Utopia hay que buscar cubos.
-
-**Costo:** cubos de cientos de MB a varios GB por escena (M3 L2, CRISM TRDR/MTRDR, EMIT L2A), correcciones fotométricas distintas por cuerpo y una cadena de procesamiento por instrumento. Calculo de 3 a 5 días-persona para llegar a un índice común validado en un puñado de sitios.
-
-**Defensa ante el jurado:** es alta si funciona, porque compara mineralogía medida y no interpretada. El riesgo, sin embargo, es grande: alguien puede preguntar con razón por qué un índice a 1 µm de M3 en un borde polar en penumbra se compara con EMIT en un salar, y no tenemos una buena respuesta en el tiempo que queda.
-
-## 3. Camino (b): categórico (mapas geológicos + tabla de equivalencias)
-
-| | Tierra | Luna | Marte |
-|---|---|---|---|
-| Mapa | Macrostrat API v2, `scale=small` (~1:5M: CGMW South America 2018, Geologic Map of North America, etc.); si no hay unidad, `scale=tiny` (Chorlton 2007, GSC OF 5529) | USGS Unified Geologic Map of the Moon 1:5M v2 (Fortezzo, Spudis y Harrel 2020) | USGS SIM 3292, Geologic Map of Mars 1:20M (Tanaka et al. 2014, doi:10.3133/sim3292) |
-| Acceso | API pública por punto (CC-BY 4.0; Peters et al. 2018, doi:10.1029/2018GC007467) | Shapefile `GeoUnits` dentro de un ZIP de 224 MB; bajamos sólo los miembros necesarios (~84 MB comprimidos) por HTTP Range | Shapefile `SIM3292_Global_Geology` dentro de un ZIP de 809 MB; bajamos sólo ese miembro |
-| Impacto en la Tierra | Osinski et al. 2022, *Impact Earth*, Earth-Sci. Rev. 232:104112, tabla de cráteres confirmados | — | — |
-
-¿Por qué Macrostrat y no GLiM? GLiM (Hartmann y Moosdorf 2012) es la referencia clásica, pero en PANGAEA sólo hay una grilla de 0,5° (~50 km, demasiado gruesa para la regla de escala) y el vector original se distribuye como una geodatabase por fuera de PANGAEA. Macrostrat devuelve la litología del mapa fuente en el punto, cita ese mapa y trabaja a 1:5M, la misma escala que el mapa lunar. Ninguna agencia de la lista oficial del desafío publica un mapa litológico global de la Tierra, así que esto es una fuente del nivel 3 (§4 de CLAUDE.md) y queda documentado.
-
-### Representación propuesta: vector G de 9 componentes
-
-| Feature | Qué es | Tierra (palabra clave en `lith`) | Luna (unidad DOMU) | Marte (unidad SIM 3292) |
-|---|---|---|---|---|
-| `g_lito_basaltico` | volcánico máfico | basalt, mafic volcanic, basanite | mare Em, Im1, Im2, Imd, EIp; manto oscuro Id (piroclástico) | volcánicas Av, Ave, lAv, lAvf, AHv, eHv, lHv, lHvf, Hve, Nve, lNv → basálticas por McSween et al. 2009 (doi:10.1126/science.1165871) |
-| `g_lito_silicico` | volcánico intermedio a félsico | andesite, dacite, rhyolite, trachyte, ignimbrite, tuff | — | — |
-| `g_lito_clastico` | sedimentario clástico o no consolidado | sandstone, shale, siltstone, conglomerate, siliciclastic, alluvium, sand… | — | — (los médanos lApd quedan para la v1) |
-| `g_lito_quimico` | carbonatos y evaporitas | limestone, dolomite, carbonate, evaporite, gypsum, halite | — | — |
-| `g_lito_cristalino` | plutónico o metamórfico | granite, gneiss, schist, plutonic, metamorphic | — | — |
-| `g_lito_hielo` | hielo | ice, glacier | — | casquete lApc |
-| `g_lito_volc_indiviso` | volcánico sin composición en el mapa | volcanic, volcaniclastic, volcano-sedimentary (sólo si no hay una clase volcánica fina) | — | — |
-| `g_lito_sed_indiviso` | sedimentario sin tipo en el mapa | sedimentary (sólo si no hay una clase sedimentaria fina) | — | — |
-| `g_impacto` | origen por impacto (0/1) | 1 si figura en la tabla de Osinski et al. 2022 | 1 en cráteres, cuencas, formaciones de eyecta y terras/planicies (la DOMU las interpreta como «megaregolito; eyecta de cráteres y cuencas»); 0 en mare | 1 en AHi; **null** en el resto (un cráter de menos de ~100 km no se ve a 1:20M; que no esté en el mapa no quiere decir 0) |
-
-Las ocho fracciones de composición suman 1. Si el texto de litología trae varias clases, se reparte en partes iguales. Un término genérico (`sedimentary` a secas, `volcanic` sin más) va a la clase **indivisa** de su familia: no se adivina si es clástico o químico, pero tampoco se pierde que es sedimentario. Las clases se agrupan en cuatro familias (volcánica, sedimentaria, cristalina, hielo) para dar crédito parcial en S_G. Si no aparece ninguna palabra clave (p. ej. «lake»), la composición queda **null** con «a completar». Tampoco se completa la composición de cráteres y terras lunares ni de las unidades morfoestratigráficas de Marte: el mapa las define por su origen y no por su roca.
-
-**Defensa ante el jurado:** media-alta. Cada valor sale de un mapa publicado y de una regla escrita (`services/earth/scripts/g_equivalencias.py`), y cada fila cita la unidad leída. La tabla sigue la idea de *análogo funcional* de Foucher et al. 2021 (Planet. Space Sci. 197:105162, doi:10.1016/j.pss.2021.105162): se compara la propiedad que importa para un uso concreto (aquí, tipo de roca y proceso de formación) y no la composición total. El punto débil está a la vista y conviene mostrarlo: la escala de los mapas (1:5M y 1:20M) y que en Marte muchas unidades no tienen litología.
-
-**Esfuerzo:** ya está hecho para los 74 sitios (`services/earth/scripts/ingest_g_mapas.py`, unos minutos; las descargas quedan en `~/.cache/hexastra/g`).
-
-## 4. Recomendación
-
-**Camino (b), categórico, como G v0 para el MVP**, y el espectral en una fase 2 acotada.
-
-Por qué:
-
-1. Cubre los 74 sitios con un dato trazable (la corrida en seco de abajo lo confirma) y no depende de cubos de GB ni de iluminación polar.
-2. Encaja con la regla de «decir qué se parece y qué no»: el vector separa composición e impacto, y un nulo dice por qué falta.
-3. El espectral, con los destinos que tenemos (6 de 7 lunares polares), entrega poco y cuesta mucho antes de la entrega.
-
-### Fase 2: hallazgo al investigarla (14 nov)
-
-El eje propuesto (posición del rasgo de Christiansen en el infrarrojo térmico como índice de sílice) **no es comparable entre los tres cuerpos**:
-
-- **Luna:** Diviner tiene tres canales cerca de 8 µm pensados para ubicar el rasgo, y el PDS publica su posición en los GDR de nivel 3 (`LRO-L-DLRE-5-GDR-V1.0`), también en proyección polar. Ahí sí sigue la composición de silicatos (Greenhagen et al. 2010, Science 329:1507).
-- **Marte:** en el mapa global de TES, la posición del rasgo depende sobre todo de la **cubierta de polvo** y no del contenido de sílice. Compararla con la Tierra mediría polvo, no roca. (Lo leí en un resumen secundario; si se retoma, hay que confirmarlo en el paper original.)
-- **Tierra:** ASTER GED tiene 5 bandas entre 8,3 y 11,3 µm, que no muestrean la zona del rasgo como Diviner, y la medición se hace a través de la atmósfera. Los índices usuales de ASTER (cuarzo, máfico) son cocientes de bandas, no la misma magnitud.
-
-**Alternativa que propongo (pendiente de OK):** usar el producto composicional oficial de cada cuerpo para **asignar una clase** de la tabla, en vez de comparar un número físico entre cuerpos. Es lo que ya hacemos con los mapas.
-
-- Luna, polos: hierro (FeO) y torio de Lunar Prospector GRS (PDS Geosciences; Lawrence et al. 1998, Science 281:1484). FeO bajo indica corteza feldespática (anortosítica); FeO alto, basalto de mare. Haría falta una clase nueva `g_lito_feldespatico` (en la Tierra, la palabra clave «anorthosite») y un umbral publicado de FeO (terrenos de Jolliff et al. 2000, **a verificar**). El resultado esperable es informativo: ningún sitio terrestre del catálogo es anortosita, así que la geología de los polos lunares no tendría análogo, y eso conviene decirlo.
-- Marte: Odyssey GRS (también en PDS Geosciences) tiene resolución de cientos de km; habría que ver si alcanza para Jezero o Meridiani o si conviene CRISM puntual.
-- Esfuerzo estimado: 1 a 2 días para la Luna (ubicar las tablas PDS4, validar contra un valor publicado de Apollo 16 y cargar); Marte, a evaluar aparte.
-
-## 5. Carga completa (74 sitios, `g-mapas.jsonl`)
-
-Script: `services/earth/scripts/ingest_g_mapas.py` (más `remote_zip.py` y `g_equivalencias.py`). Dependencia extra: `pyshp` (`services/earth/requirements-g.txt`). Calidad `derived` (clase derivada de un mapa publicado con una regla documentada); los nulos van como `unavailable`. Son 666 filas: 74 sitios × 9 features. Las features se declaran con `"service": ["earth", "planetary"]` (cambio chico en `db/build.py`, con test) para usar la misma definición en los tres cuerpos.
-
-**Cobertura**
-
-| | Composición | Impacto |
+| Body | Source | Sampling and limitations |
 |---|---|---|
-| Tierra (60) | 58 | 60 |
-| Luna (7) | 1 (Marius Hills) | 7 |
-| Marte (7) | 2 (Pavonis, Arsia) | 1 (Gale) |
+| Earth | [Macrostrat API v2](https://macrostrat.org/api), including its attributed underlying geological maps | Query the site coordinate at `scale=small`, then `scale=tiny` when necessary. Source lithology and map citation remain in each record. |
+| Moon | [USGS Unified Geologic Map of the Moon](https://astrogeology.usgs.gov/search/map/unified_geologic_map_of_the_moon_1_5m_2020), Fortezzo, Spudis and Harrel 2020 | Geological unit at the site coordinate; 1:5 million scale. |
+| Mars | [USGS Geologic Map of Mars, SIM 3292](https://pubs.usgs.gov/sim/3292/), Tanaka et al. 2014 | Geological unit at the site coordinate; 1:20 million scale. |
+| Earth impact origin | [Impact Earth, Osinski et al. 2022](https://doi.org/10.1016/j.earscirev.2022.104112) | Confirmed-structure catalog matching, with its documented exceptions and limits. |
 
-En la Tierra, el impacto vale 1 en los 11 sitios que están dentro de una estructura de la tabla de Osinski et al. 2022: Lonar, Meteor Crater (Barringer), Vredefort, Tswaing, Popigai, Ries, Haughton, Devon/FMARS (a 6,9 km del centro de Haughton, dentro del radio de ~11,5 km), Wolfe Creek, Acraman y Campo del Cielo (Tabla 3: cráter sin metamorfismo de choque). En los otros 49 vale 0. Río Cuarto queda en 0 porque no está en esa tabla.
+Macrostrat is a recognized external resource used because the official challenge list does not supply the required global terrestrial lithological point map. Its API and underlying map attribution must be retained. The [Macrostrat reference](https://doi.org/10.1029/2018GC007467) describes the resource. The volcanic-unit interpretation for Mars cites [McSween, Taylor and Wyatt 2009](https://doi.org/10.1126/science.1165871).
 
-**Qué quedó null y por qué**
+## Nine feature fields
 
-- Composición de **lake-natron** («lake» no es una litología) y de **popigai** (el mapa dice impactita, que no es una de nuestras clases; su impacto sí es 1).
-- Composición de los **6 destinos lunares polares**, de **gale** y de las unidades morfoestratigráficas de Marte (**jezero, medusae-fossae, meridiani, utopia-planitia**): el mapa define la unidad por su origen o su terreno, no por su roca. A completar en la fase 2.
-- Impacto de **jezero, medusae-fossae, pavonis-mons, meridiani, utopia-planitia y arsia-mons**: a 1:20M no se mapean cráteres chicos, y que no estén en el mapa no quiere decir 0.
+The original field identifiers remain unchanged to preserve data contracts and measurement provenance.
 
-**Validaciones contra lo publicado** (`services/earth/tests/test_g_mapas.py`)
+| Feature | Meaning | Mapping rule |
+|---|---|---|
+| `g_lito_basaltico` | Mafic volcanic | Earth basalt/mafic terms; lunar mare and mapped volcanic units; mapped Martian volcanic units interpreted as basaltic using the cited reference. |
+| `g_lito_silicico` | Intermediate to felsic volcanic | Earth andesite, dacite, rhyolite, trachyte, ignimbrite, and tuff terms. |
+| `g_lito_clastico` | Clastic or unconsolidated sediment | Sandstone, shale, siltstone, conglomerate, siliciclastic, alluvium, and related terms. |
+| `g_lito_quimico` | Carbonates and evaporites | Limestone, dolomite, carbonate, evaporite, gypsum, and halite terms. |
+| `g_lito_cristalino` | Plutonic or metamorphic rock | Granite, gneiss, schist, plutonic, and metamorphic terms. |
+| `g_lito_hielo` | Ice | Mapped ice/glacier lithology or the Martian `lApc` cap unit. |
+| `g_lito_volc_indiviso` | Undivided volcanic | Generic volcanic terms when the map does not resolve a finer volcanic class. |
+| `g_lito_sed_indiviso` | Undivided sedimentary | Generic sedimentary terms when the map does not resolve a finer sediment class. |
+| `g_impacto` | Impact origin, 0 or 1 | Earth catalog matching; mapped lunar impact/mare origin; Martian `AHi` impact unit. Other Martian units retain null rather than implying no small crater exists. |
 
-- Pali Aike → basáltico (D'Orazio et al. 2000, Tectonophysics 321:407: basaltos alcalinos y basanitas).
-- Lonar, Meteor Crater, Vredefort, Ries y Haughton → impacto 1; Río Cuarto → 0 (Osinski et al. 2022). En esa tabla las coordenadas parecen grados-minutos escritos como decimal (Lonar «19.58, 76.31»), así que el cruce se hace por nombre.
-- Salar de Uyuni → químico (CGMW, «Quaternary Evaporitic»).
-- Pavonis y Arsia → unidad volcánica Ave; Gale → AHi (Tanaka et al. 2014).
-- Marius Hills → meseta volcánica EIp (DOMU lunar).
+The eight composition fractions sum to one. Multiple recognized classes share equal fractions. Generic terms use the undivided class within their family rather than an invented finer classification. Unrecognized lithology, such as a unit described only as a lake, leaves the composition block null. Lunar highland/crater units and Martian morphostratigraphic units are not assigned a rock type when the map does not identify one.
 
-**Tabla completa**
+Four composition families group the classes: volcanic, sedimentary, crystalline, and ice. The exact equivalence table is versioned in `services/earth/scripts/g_equivalencias.py`.
 
-| Sitio | Cuerpo | Composición | g_impacto | Unidad o litología leída |
-|---|---|---|---|---|
-| campo-piedra-pomez | Tierra | silicico 1 | 0 | Rhyolite (small) |
-| laguna-negra | Tierra | silicico 1 | 0 | Andesite and related volcanic (small) |
-| payun-matru | Tierra | basaltico 1 | 0 | basalt (small) |
-| ischigualasto | Tierra | clastico 1 | 0 | Siliciclastic (small) |
-| laguna-antofagasta | Tierra | basaltico 1 | 0 | basalt (small) |
-| salar-de-uyuni | Tierra | quimico 1 | 0 | Evaporite (small) |
-| yungay-atacama | Tierra | cristalino 1 | 0 | Granite (small) |
-| valle-de-la-luna-chile | Tierra | clastico 1 | 0 | Siliciclastic (small) |
-| dallol | Tierra | volc_indiviso 1 | 0 | volcanic (small) |
-| erta-ale | Tierra | volc_indiviso 1 | 0 | volcanic (small) |
-| sossusvlei | Tierra | sed_indiviso 1 | 0 | sedimentary (small) |
-| richat | Tierra | sed_indiviso 1 | 0 | sedimentary (small) |
-| vredefort | Tierra | sed_indiviso 1 | 1 | sedimentary (karoo) (small) |
-| tswaing | Tierra | cristalino 1 | 1 | plutonic (small) |
-| chott-el-djerid | Tierra | quimico 1 | 0 | evaporites; sedimentary (small) |
-| lake-natron | Tierra | **null** | 0 | lake (small) |
-| pico-do-fogo | Tierra | basaltico 1 | 0 | mafic volcanic rocks (tiny) |
-| da-qaidam | Tierra | sed_indiviso 1 | 0 | sedimentary rocks (tiny) |
-| lut-desert | Tierra | sed_indiviso 1 | 0 | sedimentary rocks (tiny) |
-| lonar | Tierra | basaltico 1 | 1 | flood basalt(s); mafic volcanic rocks; basalt (tiny) |
-| wadi-rum | Tierra | clastico 1 | 0 | sandstone; sedimentary (small) |
-| tso-kar | Tierra | sed_indiviso 1 | 0 | sedimentary rocks (tiny) |
-| tolbachik | Tierra | basaltico 1 | 0 | mafic volcanic rocks (tiny) |
-| popigai | Tierra | **null** | 1 | impact breccia, impact melt rock, crater fill;  (small) |
-| rio-tinto | Tierra | clastico 1 | 0 | Major:{conglomerate}, Minor{sand,mud} (small) |
-| nordlinger-ries | Tierra | cristalino 1 | 1 | miscellaneous metamorphic rock group (small) |
-| askja | Tierra | basaltico 1 | 0 | volcanic: mafic rocks; basalt group; basalt, olivine basalt, (small) |
-| bockfjorden | Tierra | clastico 0,5 + quimico 0,5 | 0 | sandstone; limestone, dolomite, shale, sandstone, quartzite, (small) |
-| badwater | Tierra | sed_indiviso 1 | 0 | sedimentary (small) |
-| meteor-crater | Tierra | sed_indiviso 1 | 1 | sedimentary (small) |
-| haughton | Tierra | sed_indiviso 1 | 1 | sedimentary; impact breccia, impact melt rock, crater fill (small) |
-| craters-of-the-moon | Tierra | basaltico 1 | 0 | volcanic: mafic rocks (small) |
-| lava-beds | Tierra | basaltico 1 | 0 | volcanic: mafic rocks (small) |
-| pinacate | Tierra | basaltico 1 | 0 | volcanic: mafic rocks (small) |
-| white-sands | Tierra | sed_indiviso 1 | 0 | sedimentary (small) |
-| ubehebe | Tierra | sed_indiviso 1 | 0 | sedimentary (small) |
-| kilauea | Tierra | basaltico 1 | 0 | shield volcano(s); mafic volcanic rocks (tiny) |
-| sp-crater | Tierra | basaltico 1 | 0 | volcanic: mafic rocks (small) |
-| mcgill-arctic | Tierra | clastico 1 | 0 | sedimentary; sandstone, siltstone, shale; marine fossils (small) |
-| valley-10000-smokes | Tierra | basaltico 0,5 + silicico 0,5 | 0 | volcanic, andesite, basalt, rhyolite, minor dacite; volcanic (small) |
-| undara | Tierra | basaltico 1 | 0 | igneous mafic volcanic (small) |
-| wolfe-creek | Tierra | sed_indiviso 1 | 1 | sedimentary (small) |
-| karijini | Tierra | sed_indiviso 1 | 0 | sedimentary (small) |
-| acraman | Tierra | silicico 1 | 1 | igneous felsic volcanic (small) |
-| university-valley | Tierra | basaltico 1 | 0 | mafic volcanic rocks (tiny) |
-| taylor-valley | Tierra | cristalino 1 | 0 | intrusive igneous rocks (tiny) |
-| devon-island-fmars | Tierra | clastico 0,5 + quimico 0,5 | 1 | limestone, dolostone, shale, evaporites, chalk; carbonate re (small) |
-| timanfaya | Tierra | basaltico 1 | 0 | volcanic; basalt (small) |
-| teide | Tierra | silicico 1 | 0 | trachyte; volcanic (small) |
-| mauna-kea | Tierra | basaltico 1 | 0 | shield volcano(s); mafic volcanic rocks (tiny) |
-| laguna-diamante | Tierra | clastico 1 | 0 | Siliciclastic (small) |
-| socompa | Tierra | volc_indiviso 1 | 0 | Volcaniclastic, volcanic (small) |
-| meseta-de-somuncura | Tierra | volc_indiviso 1 | 0 | Volcanic (small) |
-| pali-aike | Tierra | basaltico 1 | 0 | basalt (small) |
-| campo-del-cielo | Tierra | clastico 1 | 1 | Siliciclastic (small) |
-| crateres-rio-cuarto | Tierra | clastico 1 | 0 | Siliciclastic (small) |
-| dunas-de-taton | Tierra | cristalino 1 | 0 | Medium to high grade metamorphic (small) |
-| llullaillaco | Tierra | basaltico 1 | 0 | basalt (small) |
-| base-marambio | Tierra | sed_indiviso 1 | 0 | sedimentary rocks (tiny) |
-| base-esperanza | Tierra | sed_indiviso 1 | 0 | sedimentary rocks (tiny) |
-| jezero | Marte | **null** | **null** | HNt |
-| gale | Marte | **null** | 1 | AHi |
-| medusae-fossae | Marte | **null** | **null** | AHtu |
-| pavonis-mons | Marte | basaltico 1 | **null** | Ave |
-| meridiani | Marte | **null** | **null** | HNhu |
-| shackleton-rim | Luna | **null** | 1 | Ec |
-| haworth | Luna | **null** | 1 | pNc |
-| malapert | Luna | **null** | 1 | Ip |
-| de-gerlache | Luna | **null** | 1 | Ec |
-| amundsen | Luna | **null** | 1 | Nc |
-| nobile | Luna | **null** | 1 | pNc |
-| marius-hills | Luna | basaltico 1 | 0 | EIp |
-| utopia-planitia | Marte | **null** | **null** | lHl |
-| arsia-mons | Marte | basaltico 1 | **null** | Ave |
+## Active S_G formula
 
-## 6. S_G propuesto (requiere OK del usuario; no está en `tasi.py`)
+For normalized class vectors `a` and `b`, and their corresponding family totals `A` and `B`:
 
-### En simple
-
-S_G responde «¿qué tan parecida es la geología del sitio terrestre a la del destino?» con un número de 0 a 1. Miramos dos cosas por separado:
-
-1. **¿Es la misma roca?** (bloque de composición). Basalto contra basalto da 1; basalto contra arenisca da 0; basalto contra «volcánico sin detalle» da 0,5, porque sabemos que los dos son volcánicos pero no si el segundo es basalto.
-2. **¿Se formó igual?** (bloque de impacto). Cráter contra cráter da 1; cráter contra colada de lava da 0.
-
-S_G es el promedio de los bloques que se pueden comparar. **Si falta el dato de un lado, ese bloque no entra**: no se inventa.
-
-El problema aparece cuando sólo se puede comparar un bloque. Ejemplo real: Lonar (cráter en basalto) contra Shackleton (cráter lunar). Del lado lunar no sabemos la roca, así que sólo comparamos «¿los dos son cráteres?». La respuesta es sí y S_G da 1,0. Pero ese 1,0 vale menos que el 1,0 de Payún Matrú contra Marius Hills, donde coinciden la roca **y** el origen. Por eso hay que decidir qué hacer con la «cobertura» (cuántos de los 2 bloques se usaron):
-
-| Opción | Lonar vs Shackleton (1 bloque) | Payún vs Marius Hills (2 bloques) | Efecto |
-|---|---|---|---|
-| (i) Mostrar la cobertura y no tocar el número | 1,0 «1/2» | 1,0 «2/2» | Simple; la interfaz tiene que mostrar «1/2» al lado del número |
-| (ii) Multiplicar por la cobertura | 0,5 | 1,0 | Castiga la falta de dato; en el ranking pesa más lo bien documentado |
-| (iii) Exigir los dos bloques | sin S_G | 1,0 | Lo más estricto; hoy sólo Marius Hills tendría S_G |
-
-**Mi recomendación es (ii):** es honesta (menos evidencia, menos puntaje), no deja a 13 de los 14 destinos sin G y se explica en una línea. Cuando la fase 2 complete la composición de los destinos, la cobertura sube sola.
-
-### Fórmula
-
-```
-familia(x) = suma de las fracciones de x por familia (volcánica, sedimentaria, cristalina, hielo)
-S_comp = ½ · Σ_clases min(a_i, b_i) + ½ · Σ_familias min(A_f, B_f)
-S_imp  = 1 − |a_imp − b_imp|
-bloques = {S_comp si los dos lados tienen composición, S_imp si los dos tienen impacto}
-S_G    = promedio(bloques) · (|bloques| / 2)        ← opción (ii); null si no hay bloques
+```text
+S_comp = 0.5 * sum(min(a_i, b_i)) + 0.5 * sum(min(A_f, B_f))
+S_imp  = 1 - abs(a_imp - b_imp)
+blocks = composition if available on both sides,
+         impact if available on both sides
+S_G    = mean(blocks), or null when no block can be compared
+coverage = number of shared blocks / 2
 ```
 
-Cableado necesario (también requiere OK): que `rank()` arme el G del candidato desde `features` (`g_*`) en lugar de `{"score_ready": False}`, y que `vector.py` exponga las `g_*` de los destinos como `metrics` de G.
+**Do not multiply S_G by coverage.** The active implementation excludes missing blocks and reports evidence coverage separately. It does not treat missing information as zero or penalize it. This replaced the earlier unimplemented coverage-penalty proposal.
 
-### Ejemplo con los datos cargados (S_G sin multiplicar por la cobertura · bloques usados)
+A score of 1 with one shared block carries less evidence than a score of 1 with both blocks. For example, an impact-origin match alone does not establish a rock-type match. Conversely, a valid zero is a genuine disagreement in an available block, not missing evidence.
 
-| Tierra \ destino | marius-hills | shackleton-rim | pavonis-mons | gale |
+Each composition block requires sourced, comparable fractions in [0, 1] that sum to one. The implementation rejects unsupported quality states, nonfinite values, explicit `is_real: false`, and `comparable: false`.
+
+## Dataset coverage
+
+`data/measurements/g-mapas.jsonl` contains **666 records**: 74 sites × nine fields, of which **556 are non-null**. Derived categories use `quality: derived`; unavailable values preserve null and a reason. The feature declarations use `"service": ["earth", "planetary"]` so definitions remain identical across bodies.
+
+| Body | Sites with composition | Sites with impact indicator |
+|---|---:|---:|
+| Earth, 60 sites | 58 | 60 |
+| Moon, seven sites | 1: Marius Hills | 7 |
+| Mars, seven sites | 2: Pavonis and Arsia | 1: Gale |
+
+Remaining gaps have explicit causes:
+
+- Lake Natron is mapped as a lake; Popigai's impactite is not one of the composition classes. Their composition blocks remain null.
+- Six polar lunar targets, Gale, and Martian morphostratigraphic units lack a map-derived rock composition in this representation.
+- Jezero, Medusae Fossae, Meridiani, and Utopia have no shared categorical G block and therefore no G score. TASI renormalizes over the remaining available components.
+- A coarse Martian map's failure to show a small crater is not evidence of its absence. Most Martian impact indicators remain null.
+- An Earth impact value of zero records the implemented catalog classification, not a universal proof against a disputed impact hypothesis. Río Cuarto remains scientifically disputed.
+
+## Validation and reproduction
+
+Producer: `services/earth/scripts/ingest_g_mapas.py`, with `remote_zip.py` and `g_equivalencias.py`. Extra dependencies are declared in `services/earth/requirements-g.txt`. Download caches remain outside version control.
+
+Published-reference checks in `services/earth/tests/test_g_mapas.py` cover basaltic Pali Aike, known impact structures, chemical deposits at Salar de Uyuni, volcanic `Ave` at Pavonis/Arsia, impact `AHi` at Gale, and volcanic `EIp` at Marius Hills. API integration preserves existing sourced non-null measurements and does not require a write to the shared demo database.
+
+The map scales and categorical interpretation limit the result. No CRISM, M3, or EMIT spectra are claimed by this dataset, and no unverified spectral extension is part of the active method.
+
+## Complete map-derived classification
+
+Values below reproduce the versioned ingestion result. Class labels are translated for documentation; technical feature IDs and site IDs are unchanged. Source-unit descriptions retain their original wording.
+
+| Site | Body | Composition | g_impacto | Source unit or lithology |
 |---|---|---|---|---|
-| pali-aike (basalto) | 1,00 · 2/2 | 0,00 · 1/2 | 1,00 · 1/2 | 0,00 · 1/2 |
-| lonar (cráter en basalto) | 0,50 · 2/2 | 1,00 · 1/2 | 1,00 · 1/2 | 1,00 · 1/2 |
-| dallol (volcánico indiviso) | 0,75 · 2/2 | 0,00 · 1/2 | 0,50 · 1/2 | 0,00 · 1/2 |
-| meteor-crater (cráter en sedimentario) | 0,00 · 2/2 | 1,00 · 1/2 | 0,00 · 1/2 | 1,00 · 1/2 |
-| salar-de-uyuni (evaporitas) | 0,50 · 2/2 | 0,00 · 1/2 | 0,00 · 1/2 | 0,00 · 1/2 |
-
-Hoy sólo Marius Hills tiene los dos bloques contra casi todos los sitios terrestres (58 de 60). Jezero, Medusae Fossae, Meridiani y Utopia no tienen ningún bloque comparable: G queda sin puntaje y TASI renormaliza sobre T, E y Vo, como corresponde.
-
-## 7. Pendiente de decisión
-
-1. Opción de cobertura para S_G: (i), (ii) o (iii). Recomiendo (ii).
-2. Con eso aprobado, implementar el cableado en `tasi.py` / `vector.py` (otro PR).
-3. Fase 2: ¿seguimos con la alternativa (FeO de Lunar Prospector y clase feldespática para los polos lunares) en lugar del eje TIR?
+| campo-piedra-pomez | Earth | silicic 1 | 0 | Rhyolite (small) |
+| laguna-negra | Earth | silicic 1 | 0 | Andesite and related volcanic (small) |
+| payun-matru | Earth | basaltic 1 | 0 | basalt (small) |
+| ischigualasto | Earth | clastic 1 | 0 | Siliciclastic (small) |
+| laguna-antofagasta | Earth | basaltic 1 | 0 | basalt (small) |
+| salar-de-uyuni | Earth | chemical 1 | 0 | Evaporite (small) |
+| yungay-atacama | Earth | crystalline 1 | 0 | Granite (small) |
+| valle-de-la-luna-chile | Earth | clastic 1 | 0 | Siliciclastic (small) |
+| dallol | Earth | undivided volcanic 1 | 0 | volcanic (small) |
+| erta-ale | Earth | undivided volcanic 1 | 0 | volcanic (small) |
+| sossusvlei | Earth | undivided sedimentary 1 | 0 | sedimentary (small) |
+| richat | Earth | undivided sedimentary 1 | 0 | sedimentary (small) |
+| vredefort | Earth | undivided sedimentary 1 | 1 | sedimentary (karoo) (small) |
+| tswaing | Earth | crystalline 1 | 1 | plutonic (small) |
+| chott-el-djerid | Earth | chemical 1 | 0 | evaporites; sedimentary (small) |
+| lake-natron | Earth | **null** | 0 | lake (small) |
+| pico-do-fogo | Earth | basaltic 1 | 0 | mafic volcanic rocks (tiny) |
+| da-qaidam | Earth | undivided sedimentary 1 | 0 | sedimentary rocks (tiny) |
+| lut-desert | Earth | undivided sedimentary 1 | 0 | sedimentary rocks (tiny) |
+| lonar | Earth | basaltic 1 | 1 | flood basalt(s); mafic volcanic rocks; basalt (tiny) |
+| wadi-rum | Earth | clastic 1 | 0 | sandstone; sedimentary (small) |
+| tso-kar | Earth | undivided sedimentary 1 | 0 | sedimentary rocks (tiny) |
+| tolbachik | Earth | basaltic 1 | 0 | mafic volcanic rocks (tiny) |
+| popigai | Earth | **null** | 1 | impact breccia, impact melt rock, crater fill;  (small) |
+| rio-tinto | Earth | clastic 1 | 0 | Major:{conglomerate}, Minor{sand,mud} (small) |
+| nordlinger-ries | Earth | crystalline 1 | 1 | miscellaneous metamorphic rock group (small) |
+| askja | Earth | basaltic 1 | 0 | volcanic: mafic rocks; basalt group; basalt, olivine basalt, (small) |
+| bockfjorden | Earth | clastic 0.5 + chemical 0.5 | 0 | sandstone; limestone, dolomite, shale, sandstone, quartzite, (small) |
+| badwater | Earth | undivided sedimentary 1 | 0 | sedimentary (small) |
+| meteor-crater | Earth | undivided sedimentary 1 | 1 | sedimentary (small) |
+| haughton | Earth | undivided sedimentary 1 | 1 | sedimentary; impact breccia, impact melt rock, crater fill (small) |
+| craters-of-the-moon | Earth | basaltic 1 | 0 | volcanic: mafic rocks (small) |
+| lava-beds | Earth | basaltic 1 | 0 | volcanic: mafic rocks (small) |
+| pinacate | Earth | basaltic 1 | 0 | volcanic: mafic rocks (small) |
+| white-sands | Earth | undivided sedimentary 1 | 0 | sedimentary (small) |
+| ubehebe | Earth | undivided sedimentary 1 | 0 | sedimentary (small) |
+| kilauea | Earth | basaltic 1 | 0 | shield volcano(s); mafic volcanic rocks (tiny) |
+| sp-crater | Earth | basaltic 1 | 0 | volcanic: mafic rocks (small) |
+| mcgill-arctic | Earth | clastic 1 | 0 | sedimentary; sandstone, siltstone, shale; marine fossils (small) |
+| valley-10000-smokes | Earth | basaltic 0.5 + silicic 0.5 | 0 | volcanic, andesite, basalt, rhyolite, minor dacite; volcanic (small) |
+| undara | Earth | basaltic 1 | 0 | igneous mafic volcanic (small) |
+| wolfe-creek | Earth | undivided sedimentary 1 | 1 | sedimentary (small) |
+| karijini | Earth | undivided sedimentary 1 | 0 | sedimentary (small) |
+| acraman | Earth | silicic 1 | 1 | igneous felsic volcanic (small) |
+| university-valley | Earth | basaltic 1 | 0 | mafic volcanic rocks (tiny) |
+| taylor-valley | Earth | crystalline 1 | 0 | intrusive igneous rocks (tiny) |
+| devon-island-fmars | Earth | clastic 0.5 + chemical 0.5 | 1 | limestone, dolostone, shale, evaporites, chalk; carbonate re (small) |
+| timanfaya | Earth | basaltic 1 | 0 | volcanic; basalt (small) |
+| teide | Earth | silicic 1 | 0 | trachyte; volcanic (small) |
+| mauna-kea | Earth | basaltic 1 | 0 | shield volcano(s); mafic volcanic rocks (tiny) |
+| laguna-diamante | Earth | clastic 1 | 0 | Siliciclastic (small) |
+| socompa | Earth | undivided volcanic 1 | 0 | Volcaniclastic, volcanic (small) |
+| meseta-de-somuncura | Earth | undivided volcanic 1 | 0 | Volcanic (small) |
+| pali-aike | Earth | basaltic 1 | 0 | basalt (small) |
+| campo-del-cielo | Earth | clastic 1 | 1 | Siliciclastic (small) |
+| crateres-rio-cuarto | Earth | clastic 1 | 0 | Siliciclastic (small) |
+| dunas-de-taton | Earth | crystalline 1 | 0 | Medium to high grade metamorphic (small) |
+| llullaillaco | Earth | basaltic 1 | 0 | basalt (small) |
+| base-marambio | Earth | undivided sedimentary 1 | 0 | sedimentary rocks (tiny) |
+| base-esperanza | Earth | undivided sedimentary 1 | 0 | sedimentary rocks (tiny) |
+| jezero | Mars | **null** | **null** | HNt |
+| gale | Mars | **null** | 1 | AHi |
+| medusae-fossae | Mars | **null** | **null** | AHtu |
+| pavonis-mons | Mars | basaltic 1 | **null** | Ave |
+| meridiani | Mars | **null** | **null** | HNhu |
+| shackleton-rim | Moon | **null** | 1 | Ec |
+| haworth | Moon | **null** | 1 | pNc |
+| malapert | Moon | **null** | 1 | Ip |
+| de-gerlache | Moon | **null** | 1 | Ec |
+| amundsen | Moon | **null** | 1 | Nc |
+| nobile | Moon | **null** | 1 | pNc |
+| marius-hills | Moon | basaltic 1 | 0 | EIp |
+| utopia-planitia | Mars | **null** | **null** | lHl |
+| arsia-mons | Mars | basaltic 1 | **null** | Ave |

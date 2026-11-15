@@ -1,259 +1,524 @@
-# Análogos argentinos — Hexastra
+# HexAstra — Earth analogs for the Moon and Mars
 
-Prototipo de mapa interactivo y **servicios TASI** para el [NASA Space Apps Challenge 2026](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
+HexAstra connects **60 Earth sites** with **14 lunar and Martian destinations**, using open data and a transparent, multidimensional similarity index. Built by Team HexAstra in Buenos Aires for the [2026 NASA Space Apps Challenge](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 
-Equipo **Hexastra**, sede Buenos Aires. Interfaz en español rioplatense.
+- **Explore:** https://hexastra.pages.dev/
+- **Advanced mode:** https://hexastra.pages.dev/classic.html?mode=advanced
+- **Team:** https://www.spaceappschallenge.org/2026/find-a-team/hexastra/
+- **Challenge:** https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/
 
-Integrantes:
+The application supports English and Rioplatense Spanish. The browser language selects the initial interface; the language selector saves a manual preference. Use `?lang=en` or `?lang=es` for a reproducible language-specific link. Repository documentation is in English. Site names, dataset identifiers, API field names, source quotations, and existing file paths retain their original spelling.
+
+## Team
+
+Team members, preserving the current list on `main`:
+
 - Matias Basilico
 - Juan Martín Verna
 - Marcela Gutiérrez
 - Nicole Arias
 - Kevin Agustin Ruiz
 
-La idea: caracterizar terrenos **argentinos** (y un catálogo terrestre **mundial** de terrenos análogos) con datos citados, y compararlos con sitios de **Marte** y de la **Luna**. El desafío pide justificar la analogía, decir dónde se corta, y no quedarse en los análogos ya famosos (Atacama, Islandia, Hawái, Antártida). La ficha narrativa del primer prototipo sigue centrada en la Argentina; el buscador TASI busca en todo el mundo y se puede filtrar por continente y país.
+## What it does
 
-El **buscador de análogos** pide un vector del objetivo a `planetary-service` y un ranking TASI a `earth-service`. TASI es una **propuesta del equipo**, no un índice publicado bajo esa sigla (se buscó bibliografía el 14 de noviembre de 2026). Si un componente no tiene dato real, queda nulo y se renormalizan los pesos. **No se fabrican números.**
+Before testing technology on the Moon or Mars, mission teams need to choose where to test it on Earth. HexAstra helps narrow that search and explain the tradeoffs. It goes beyond visual resemblance: each comparison shows what matches, what differs, which measurements support it, and what evidence is missing.
 
-## Cómo levantarlo
+The catalog includes deserts, salt flats, volcanic fields, impact structures, polar environments, and lava tubes worldwide. Argentine sites receive particular attention. Well-known analogs such as Atacama, Haughton, Hawaii, and the McMurdo Dry Valleys provide baselines; their inclusion is not presented as a new discovery.
 
-### Opción recomendada (los dos servicios + el front)
+**TASI (Terrestrial Analog Similarity Index) is the team's proposed index, not an official NASA index or a mission-suitability certification.** Missing evidence remains missing. Scores use only comparable information and report coverage.
 
-Python 3.9+ (el código evita sintaxis más nueva). En la raíz del prototipo:
+## Explore the application
+
+### Immersive mode
+
+The home page opens with a full 3D Earth and a first-visit introduction. No mission is applied until the user completes the three steps:
+
+1. Choose a celestial body: Mars or the Moon, using textured planet cards.
+2. Choose a destination and read its terrain, coordinates, and dated exploration context.
+3. Choose a comparison focus: balanced, terrain, extreme climate, or robot testing. Region and masking controls are available within this step.
+
+Launching a mission centers the globe on the highest-ranked valid match and opens its comparison. Up to five sites with the highest positive TASI scores pulse; this is a relative ranking, not a threshold proving a strong analogy. A temporary hint explains how to select another point.
+
+Selecting a point shows Earth and its destination together, with both positions marked, a score, coverage, similarities, differences, measurements, and sources. Controls and comparison panels float over the globe. Desktop and mobile layouts fit the viewport; long comparison details scroll within their panel.
+
+The globe rotates at Earth's sidereal rate, approximately **23.9345 hours per revolution**. Rotation pauses during interaction and mission/comparison workflows, and respects reduced-motion preferences. It is an illustrative animation, not a representation of Earth's current astronomical orientation or lighting. Without WebGL, the Earth view falls back to Leaflet.
+
+The project panel provides access to the 2D Earth view and the classic interface. The globe textures are illustrations and never contribute to TASI; see [visual credits](assets/globe/CREDITS.md).
+
+### Advanced mode
+
+Open the [advanced interface](https://hexastra.pages.dev/classic.html?mode=advanced) directly to compare Earth and the destination in two 2D maps. Choose a target, adjust dimension weights, filter by region, change map layers, and inspect the score and sources. The classic interface also retains its guided mode and published literature examples.
+
+Earth map layers provide different visual contexts:
+
+| Layer | What it helps inspect | Interpretation |
+|---|---|---|
+| Esri satellite imagery | Surface appearance, landforms, surrounding landscape | Visual context; not a numeric terrain measurement |
+| OpenStreetMap | Roads, settlements, access | Map context; separate from planetary similarity |
+| NASA GIBS MODIS imagery | Regional vegetation, snow, and landscape patterns | Satellite imagery; dates and resolution matter |
+| NASA GIBS land-surface temperature | Regional surface thermal patterns | Surface temperature; not equivalent to air temperature |
+
+Planetary basemaps include OpenPlanetaryMap and WhereOnMars relief imagery. Changing a displayed layer does not recalculate TASI: numeric features come from the APIs and their documented products.
+
+## Run locally
+
+Python 3.9 or later is required. From the repository root:
 
 ```bash
-cd hexastra-analogos
 chmod +x run_all.sh
 ./run_all.sh
 ```
 
-Eso instala un venv en `services/.venv` si hace falta y levanta:
+The launcher creates `services/.venv` when needed and starts:
 
-| Qué | URL |
-| --- | --- |
-| Front (mapa + buscador) | http://127.0.0.1:8765/ |
-| planetary-service (Luna/Marte, OpenAPI) | http://127.0.0.1:8766/docs |
-| earth-service (candidatos mundiales + TASI, OpenAPI) | http://127.0.0.1:8767/docs |
+| Component | URL |
+|---|---|
+| Frontend | http://127.0.0.1:8765/ |
+| Planetary API documentation | http://127.0.0.1:8766/docs |
+| Earth API documentation | http://127.0.0.1:8767/docs |
 
-El front llama a esos puertos desde el navegador (CORS abierto). Para apuntar a otros hosts:
+Local service addresses can be overridden in the browser:
 
 ```js
 localStorage.setItem("HEXASTRA_PLANETARY_URL", "http://127.0.0.1:8766");
 localStorage.setItem("HEXASTRA_EARTH_URL", "http://127.0.0.1:8767");
 ```
 
-Los defaults también están en `js/config.js`. La capa de llamadas, pensada para el front avanzado y para el *easy mode* en paralelo, está documentada en `js/api.js`.
+Published pages use the same-origin proxies `/api/planetary` and `/api/earth` by default. Explicit share-link overrides accept only approved local or Cloudflare quick-tunnel hosts; a published page cannot be redirected to a local service through these parameters. See `js/config.js` and `js/api.js` for the connection contract.
 
-### Docker
+To run the Docker setup:
 
 ```bash
 docker compose up --build
 ```
 
-### Solo el mapa estático (sin buscador)
+To serve only the frontend:
 
 ```bash
-cd hexastra-analogos
 python3 -m http.server 8765
 ```
 
-Si los servicios no están, el buscador se deshabilita y el mapa (fichas de la Argentina) sigue andando.
+Without the APIs, the illustrative Earth can remain visible, but the application reports unavailable catalogs and does not invent points or scores.
 
-### Tests
+### Database and measurement files
 
-Los tests de ingesta (DEM, accesibilidad) necesitan además `services/planetary/requirements-ingest.txt` y `services/earth/requirements-ingest.txt` (rasterio, pyogrio, shapely).
+PostgreSQL with PostGIS runs in the repository's `hexastra-db` container on `127.0.0.1:55432`. Authorized integration can rebuild a database from versioned base catalogs and `data/measurements/*.jsonl`:
 
 ```bash
-cd hexastra-analogos
+docker compose up -d db
+services/.venv/bin/python db/load.py
+services/.venv/bin/python db/export.py
+```
+
+`db/load.py` rebuilds the selected database; these are integration commands, not steps to run against the shared demonstration database during a documentation review. Set `HEXASTRA_DATABASE_URL` to use PostgreSQL. Otherwise, the services read an exported `catalog.merged.json` snapshot when available, then the base catalog. `/health` reports `catalog_origin`.
+
+The public demonstration runs entirely on Cloudflare using a versioned export of the verified reference APIs. It does not connect to a Mac, tunnel, or PostgreSQL instance. The Python reference services remain available for development and data updates. Geological and Earth-access supplements preserve existing non-null values and provenance. See [measurement format and integration rules](data/measurements/README.md).
+
+### Rebuild the 3D renderer
+
+The ready-to-serve bundle is versioned, so local startup and static deployment do not require Node.js. To modify the renderer:
+
+```bash
+npm ci
+npm run build:globe
+```
+
+Sources: `js/globe.mjs` and `js/globe-data.mjs`. Output: `js/vendor/globe.bundle.js`, with the Three.js license alongside it.
+
+### Validation
+
+```bash
 ./services/run_tests.sh
-# o por separado (no juntos en un solo pytest: ambos servicios tienen catalog.py/main.py)
+```
+
+To test each service separately:
+
+```bash
 services/.venv/bin/python -m pytest -q services/planetary/tests
 services/.venv/bin/python -m pytest -q services/earth/tests
 ```
 
-### Comprobaciones con curl
+Do not collect both service suites in a single pytest invocation: the services deliberately use separate modules with names such as `main.py` and `catalog.py`.
+
+Example requests:
 
 ```bash
 curl -s http://127.0.0.1:8766/health
-curl -s http://127.0.0.1:8766/sites?body=moon
+curl -s 'http://127.0.0.1:8766/sites?body=moon'
 curl -s http://127.0.0.1:8766/sites/shackleton-rim/vector
 curl -s http://127.0.0.1:8767/health
 curl -s http://127.0.0.1:8767/regions
 curl -s 'http://127.0.0.1:8767/candidates?continent=South%20America&country=AR'
-# ranking: primero el vector, después POST /tasi
-curl -s http://127.0.0.1:8766/sites/jezero/vector -o /tmp/jezero.json
-curl -s -X POST http://127.0.0.1:8767/tasi \
-  -H 'Content-Type: application/json' \
-  -d "{\"target\": $(cat /tmp/jezero.json), \"gamma\": 1, \"top\": 5, \"country\": \"AR\"}"
 ```
 
-## Arquitectura de los servicios
+For a ranking, first obtain a target vector from the planetary API, then submit it to `POST /tasi` on the Earth API. Its request accepts `target`, `weights`, `gamma`, `top`, `continent`, `country`, and `apply_mask`.
 
-No hay imports Python compartidos. El contrato es `contracts/feature_vector.schema.json`.
+## Architecture and API
 
-**planetary-service** (`services/planetary/`, puerto 8766) es dueño del catálogo Luna/Marte y de los clientes de fuentes planetarias.
+The frontend is static HTML, CSS, and JavaScript, with Three.js for the Earth globe and Leaflet for 2D maps. The development/reference backend has two independent FastAPI services with no shared Python imports. The public deployment uses the standalone Cloudflare runtime described below. The feature-vector contract is [`contracts/feature_vector.schema.json`](contracts/feature_vector.schema.json).
 
-| Método | Ruta | Qué hace |
-| --- | --- | --- |
-| GET | `/health` | Estado (sin llamar a la red) |
-| GET | `/sources?live=true` | Sonda opcional de Lunar Landing Site API y Trek WMTS |
-| GET | `/features` | Esquema de rasgos del catálogo |
-| GET | `/sites?body=moon\|mars` | Lista de objetivos |
-| GET | `/sites/{id}` | Ficha |
-| GET | `/sites/{id}/vector` | Vector listo para TASI (G, T, E, Vo, O) |
-| GET | `/docs` | OpenAPI |
+| Service | Method and route | Purpose |
+|---|---|---|
+| Planetary | `GET /health` | Local service health and catalog origin |
+| Planetary | `GET /sources?live=true` | Optional live source checks |
+| Planetary | `GET /features` | Feature definitions |
+| Planetary | `GET /sites?body=moon` or `body=mars` | Target catalog |
+| Planetary | `GET /sites/{id}` | Target details |
+| Planetary | `GET /sites/{id}/vector` | TASI-ready target vector |
+| Planetary | `GET /bodies` | Sourced physical reference values and analogy limits |
+| Earth | `GET /health` | Local service health and catalog origin |
+| Earth | `GET /regions` | Continents and ISO-3166 alpha-2 countries in the catalog |
+| Earth | `GET /featured` | Catalog shortcuts and baseline analogs |
+| Earth | `GET /examples` | Published literature pairs, narratives, and references |
+| Earth | `GET /method` | Implemented method, presets, scales, covariance, and provenance |
+| Earth | `GET /candidates?continent=&country=` | Candidates with optional region filters |
+| Earth | `GET /candidates/{id}` | Measurements and sources for one Earth site |
+| Earth | `POST /tasi` | Similarity ranking and per-component explanation |
+| Earth | `GET /tasi?target_id=&...` | Ranking when `PLANETARY_URL` is configured |
+| Both | `GET /docs` | Interactive OpenAPI documentation |
 
-**earth-service** (`services/earth/`, puerto 8767) es dueño del catálogo terrestre **mundial**, de la máscara M(x), de Sigma (Ledoit-Wolf) y del ranking TASI. No llama a planetary-service salvo que reciba `target_id` y esté definido `PLANETARY_URL`.
+The frontend calls `getTargetVector(id)` followed by `rankAnalogs({ targetVector, ... })`. It also uses `getTargets`, `getRegions`, `getFeatured`, `getCandidates`, and `health` from `js/api.js`. The historical monolith under `api/` is deprecated and is not the active catalog or ranking service.
 
-| Método | Ruta | Qué hace |
-| --- | --- | --- |
-| GET | `/health` | Estado |
-| GET | `/regions` | Continentes → países (ISO-3166 alpha-2) presentes en el catálogo |
-| GET | `/featured` | Sitios base / atajos (`featured=true`), análogos conocidos como línea de base y candidatos argentinos |
-| GET | `/candidates?continent=&country=` | Candidatos, filtro opcional (país = ISO alpha-2) |
-| GET | `/candidates/{id}` | Ficha con mediciones y fuentes |
-| POST | `/tasi` | Body: `{ target, weights, gamma, top, continent, country, apply_mask }` |
-| GET | `/tasi?target_id=&...` | Igual, si `PLANETARY_URL` está configurada |
-| GET | `/docs` | OpenAPI |
+## TASI: the implemented method
 
-El front **no** llama un servicio desde el otro: `getTargetVector(id)` y después `rankAnalogs({ targetVector, ... })` (`js/api.js`).
+The vector is **V = [G, T, E, Vo, O]**:
 
-El monolito `api/` (antes `GET /similar` en el puerto 8765) quedó deprecado.
+| Dimension | Meaning | Current implementation |
+|---|---|---|
+| G | Geology, mineralogy, and materials | Sourced geological map categories: composition and impact origin; not measured spectral mineralogy |
+| T | Terrain and topography | Relative relief, slope, and roughness on a common sampling grid |
+| E | Thermal environment and illumination | Shared temperature, diurnal range, and illumination metrics where available |
+| Vo | Volatiles, water, and ice | Shared precipitation and a documented ice indicator where comparable |
+| O | Operational constraints | Scores only with an equivalent metric on both bodies; Earth access information is available as context |
 
-## TASI (Terrestrial Analog Similarity Index)
+### Filtering, comparison, and aggregation
 
-Vector V = [G, T, E, Vo, O]:
+1. **Mask M(x).** With masking enabled, exclude an Earth candidate when `ndvi > 0.15` or `has_liquid_water = 1`. Unknown values do not exclude it; they generate availability flags. MODIS/AppEEARS mask measurements supplement the original catalog. See the [mask and ice methodology](docs/propuestas/vo-hielo.md).
+2. **Terrain S_T.** Compute Mahalanobis distance over relative relief, slope, and roughness, then `S_T = exp(-gamma * D_M)`. Covariance uses the Ledoit–Wolf method. Absolute elevation is not substituted for local terrain similarity.
+3. **Geology S_G.** Compare composition overlap at class and family levels, plus impact origin where both sides have it. Use the **mean of shared blocks**, and report block coverage separately. Missing blocks are neither zeros nor penalties. See the [implemented geological method](docs/propuestas/G.md). A spectral cosine is meaningful only when real comparable spectra exist; categorical map data are not presented as spectra.
+4. **Environment S_E and volatiles S_V.** Average `exp(-abs(x-y)/scale)` over shared metrics. Scales come from the Earth catalog. Zero liquid precipitation on the Moon or Mars is an explicitly documented convention, not a rain-gauge measurement.
+5. **Operations S_O.** Require an equivalent operational quantity on Earth and the target body. Terrestrial roads, airfields, and population do not provide a planetary counterpart. Their sourced values are shown as [campaign-planning context](docs/propuestas/practicidad.md).
+6. **Aggregate.** `TASI = 100 * sum(w_k * S_k) / sum(w_k)` over available components. Report the score from 0 to 100, component details, and coverage. A valid score of zero is distinct from an unavailable score.
 
-1. **Máscara M(x).** Se descarta un candidato terrestre si NDVI > 0,15 o si hay agua líquida continental en el punto (OSM Overpass). Si el NDVI no se pudo bajar, **no se descarta**; se marca `ndvi_unavailable`.
-2. **S_T.** Distancia de Mahalanobis sobre **relieve relativo, pendiente y rugosidad** (no la cota absoluta). `S_T = exp(−gamma · D_M)`, con Sigma estimada por Ledoit-Wolf (2004) a partir de celdas ASTER alrededor de los candidatos.
-3. **S_G.** Coseno espectral (CRISM vs ASTER/MODIS, etc.) **solo si hay espectros reales**. En este prototipo no hay; S_G queda nulo.
-4. **S_E / S_V.** Promedio de `exp(−|x−y|/escala)` en las métricas compartidas (temperatura, amplitud, iluminación; precipitación / indicador de hielo). Las escalas son desvíos del catálogo terrestre. La precipitación 0 mm en Luna/Marte es una convención documentada.
-5. **S_O.** Solo con una métrica operacional comparable entre el cuerpo objetivo y la Tierra. Si no existe, queda nulo (la accesibilidad de un sitio terrestre **no** se hace pasar por similitud con la Luna o Marte).
-6. **Suma.** `TASI = Σ w_k S_k` sobre componentes disponibles; los pesos se renormalizan. El puntaje se informa en 0–100. Se devuelve cobertura y desglose.
+The vegetation/water mask is a configurable screening rule, not a universal definition of a useful analog. Users can remove it. Sites without a comparable score are hidden by the default visual filter; disabling that filter reveals them as smaller, subdued markers without a pulse.
 
-### Fuentes verificadas (14 de noviembre de 2026, America/Buenos_Aires)
+### Evidence quality and limitations
 
-- **Lunar Landing Site API** (`https://lunarlandingsiteapi.up.railway.app/`): HTTP 404. Backend retirado. El catálogo lunar usa anclas IAU y valores LOLA/NASA ya publicados, sin inventar cotas.
-- **NASA Trek WMTS**: los Capabilities de LOLA shade/roughness y MOLA blend respondieron HTTP 200. Son teselas de imagen; **no** se muestrea un número de elevación desde un PNG. JMARS no ofreció un API HTTP público de consulta puntual en esta corrida.
-- **ORNL DAAC MOD13Q1** (NDVI): el endpoint público existía, pero en esta corrida el `dates` hizo timeout (0 bytes). El cliente está en `services/earth/clients/ornl_ndvi.py`; el catálogo deja NDVI en `null` + `unavailable` (la máscara no descarta por vegetación hasta que haya dato).
-- **OpenTopoData ASTER GDEM v3** (`aster30m`): cubre también polos (SRTM no). Grilla 7×7 a 120 m.
-- **Open-Meteo**: un solo pedido ERA5 (0,25°) por sitio para temperatura y precipitación 1991–2020. Se evitó ERA5-Land en el catálogo TASI porque en esta corrida devolvía nulos de lluvia y un segundo modelo disparaba HTTP 429. Las fichas estáticas de la Argentina en `data/sites.json` siguen documentando ERA5-Land (T) + ERA5 (lluvia) del primer prototipo.
-- **Natural Earth 50m admin-0**: continente e ISO-3166 alpha-2 por point-in-polygon. Si `ISO_A2` es `-99` (p. ej. el polígono de Noruega/Svalbard), se usa `ISO_A2_EH`. Rusia queda en el continente Europa porque así lo publica Natural Earth, incluidos Tolbachik y Popigai.
-- **NASA Earthdata / Copernicus CDSE**: clientes preparados para `EARTHDATA_USERNAME`/`PASSWORD` y `CDSE_*`. Sin credenciales no se inventa un ráster.
+- Values retain source, product/version, retrieval date, units, quality, and relevant comparability notes. Unverified values remain `null`.
+- The shared terrain grid is 7 × 7 samples at 120 m. Lunar LOLA and Martian HRSC–MOLA products have different native resolutions; interpolating a 200 m DEM onto this grid does not create finer detail.
+- Lunar surface temperature and Martian/Earth near-surface air temperature are different quantities. Their measurement context is retained in the source notes.
+- Published-range midpoints are labeled `derived_from_published_range`, not presented as time-weighted measurements. For example, the Jezero reference derives from the published MEDA 209–225 K range.
+- An ice-stability fraction is not proof of detected ice. Lunar PRP interpretation and planetary coverage limitations remain explicit. Unknown regions are not assigned zero ice.
+- Geological maps are coarse: approximately 1:5 million for the Moon and 1:20 million for Mars. Many Martian units do not identify a rock type. Jezero, Medusae Fossae, Meridiani, and Utopia retain unavailable categorical G when no shared block exists.
+- Earth cannot reproduce reduced gravity, the lunar vacuum, the thin Martian atmosphere, or their radiation environments. The app displays sourced physical reference values separately from similarity. Radiation quantities can differ in definition and context and are not site-specific risk measurements.
+- Basemap colors, visual resemblance, and published analog narratives do not become numeric scores. Scores always come from the API's implemented method.
 
-## Sitios del catálogo
+### Versioned measurement coverage
 
-**Tierra (fichas narrativas del mapa estático):** Campo de Piedra Pómez, Laguna Negra, Payún Matrú, Ischigualasto, Laguna de Antofagasta (menos estudiada).
+These are file-level counts as of **November 15, 2026**, not a claim that every quantity is comparable or displayed in every pair. Live catalog origin is reported by the APIs.
 
-**Tierra (catálogo TASI, mundial):** 60 candidatos con coordenadas citadas en desiertos, salares, campos volcánicos, cráteres de impacto, terrenos polares/periglaciales y tubos de lava, en todos los continentes (incluye sitios conocidos como Yungay/Atacama, Dry Valleys, Haughton, y otros menos usados como Laguna de Antofagasta, Da Qaidam, Tswaing, Bockfjorden, Undara, Pinacate). Identidades en `services/earth/data/sites_seed.json`; mediciones y país/ISO en `services/earth/data/catalog.json`.
+| File | Records | Non-null values | Content |
+|---|---:|---:|---|
+| `g-mapas.jsonl` | 666 | 556 | Geological map classes for 74 sites |
+| `o-tierra.jsonl` | 240 | 232 | Earth roads, airfields, and population |
+| `te-planetario.jsonl` | 72 | 67 | Planetary terrain and thermal features |
+| `vo-hielo.jsonl` | 169 | 55 | Raw ice/permafrost products and indicator availability |
+| `vo-mascara.jsonl` | 120 | 100 | MODIS vegetation and water screening |
 
-**Sitios featured** (atajos / líneas de base, `GET /featured` y `getFeatured()`): University Valley (Valles secos de McMurdo), cráter Haughton e isla Devon–FMARS (dos puntos distintos), Timanfaya (Lanzarote) y Teide (Tenerife), Kīlauea y Mauna Kea, Yungay (Atacama), Campo de Piedra Pómez, Payún Matrú, Laguna Diamante (caldera de Galán, Catamarca; no la de Mendoza) y Socompa (punto GVP en Argentina según Natural Earth). Varios son análogos ya famosos: quedan como referencia, no como «menos estudiados».
+## Catalog and coordinate conventions
 
-**Marte:** Jezero (Perseverance), Gale (Curiosity), Medusae Fossae, Pavonis Mons, Meridiani (Opportunity), Utopia Planitia (sitio Viking 2) y Arsia Mons.
+The Earth catalog has 60 candidates. Featured baselines include University Valley, Haughton, Devon/FMARS, Timanfaya, Teide, Kīlauea, Mauna Kea, Yungay/Atacama, Campo de Piedra Pómez, Payún Matrú, Laguna Diamante, and Socompa. Literature examples connect Campo de Piedra Pómez–Medusae Fossae, Laguna Negra–Jezero, Payún Matrú–Pavonis Mons, Ischigualasto–Gale, and Laguna de Antofagasta–Jezero. These are documented examples, not independently validated new discoveries.
 
-**Luna:** Marius Hills (pozo de colapso, LROC), borde de Shackleton (valores medios LOLA de Zuber et al. 2012) y anclas IAU de regiones Artemis III (Haworth, Malapert, de Gerlache, Amundsen, Nobile). El comunicado de NASA del 19 de agosto de 2022 [nombra las 13 regiones](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/) (Faustini Rim A, Peak Near Shackleton, Connecting Ridge, etc.) pero **no publica las coordenadas de los recuadros de 15×15 km**. Por eso las anclas IAU son el centro del cráter u homónimo, no el centro oficial del recuadro. En Shackleton, lat/lon son el *centro del círculo del borde* (Tabla 1 de Zuber), y la cota es la *altura media del borde* (1,3 km).
+**Mars:** Jezero, Gale, Medusae Fossae, Pavonis Mons, Meridiani, Utopia Planitia/Viking 2, and Arsia Mons.
 
-### Sitios del documento HexAstra (agregados el 14 de noviembre de 2026)
+**Moon:** Marius Hills pit, Shackleton rim, Haworth, Malapert, de Gerlache, Amundsen, and Nobile.
 
-Destinos y candidatos argentinos del documento impreso (§3 y §8) que faltaban. Las coordenadas llevan fuente en `coord_source`; las mediciones sin fuente quedan en `null` con la nota «a completar». Detalle y decisiones en `docs/unificacion.md` §8.
+Coordinate decisions remain in each site's `coord_source`:
 
-| Sitio | Cuerpo | lat, lon | Fuente de la coordenada |
-| --- | --- | --- | --- |
-| Marius Hills (pozo de colapso) | Luna | 14.0917°N, −56.7701° (303.2299°E) | [LROC Lunar Pits Atlas #1](https://lroc.im-ldi.com/atlases/pits/1); descubrimiento Haruyama et al. 2009, GRL, doi:10.1029/2009GL040635 |
-| Utopia Planitia (sitio Viking 2) | Marte | 48.27°N, 134.28°E | [NASA GISS Mars24](https://www.giss.nasa.gov/tools/mars24/help/landers.html); centro IAU 46.74°N 117.52°E en [USGS 6260](https://planetarynames.wr.usgs.gov/Feature/6260) |
-| Arsia Mons | Marte | 8.26°S, −120.09° (239.91°E) | [USGS Gazetteer 394](https://planetarynames.wr.usgs.gov/Feature/394), red MDIM 2.1 |
-| Meseta de Somuncurá | Tierra (AR) | 41.5833°S, 67.15°O | [Wikipedia ES](https://es.wikipedia.org/wiki/Meseta_de_Somuncur%C3%A1), **último recurso** (no está en GVP; el plan de manejo no trae coordenadas) |
-| Pali Aike (sector argentino) | Tierra (AR) | 51.995°S, 70.155°O | Ross et al. 2011, J. Volcanol. Geotherm. Res. 201:253–271 |
-| Campo del Cielo | Tierra (AR) | 27°38′S, 61°42′O | Earth Impact Database (PASSC, copia Wayback 2023) |
-| Cráteres de Río Cuarto | Tierra (AR) | 32°45′S, 64°15′O | Grant y Schultz 1993, LPSC XXIV, [NTRS 19940011723](https://ntrs.nasa.gov/citations/19940011723). Origen discutido; a confirmar en el PDF |
-| Dunas de Tatón (Fiambalá) | Tierra (AR) | 27.3436°S, 67.5386°O | Isla et al. 2021, Quaternary and Environmental Geosciences 12(2) (punto de muestreo) |
-| Volcán Llullaillaco | Tierra (AR) | 24.72°S, 68.53°O | [Smithsonian GVP 355110](https://volcano.si.edu/volcano.cfm?vn=355110) (cumbre 6.739 m) |
-| Base Marambio | Tierra (sin país en NE 50m) | 64.2418°S, 56.6232°O | [COMNAP Antarctic Facilities](https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities) |
-| Base Esperanza | Tierra (sin país en NE 50m) | 63.3970°S, 56.9981°O | COMNAP Antarctic Facilities |
+- Jezero and Gale use rover landing coordinates from NASA Mars24, not crater centers. Different geographic meanings are not averaged together.
+- Marius Hills uses the LROC Pits Atlas location, not the IAU center of the unrelated Marius crater.
+- Utopia uses the Viking 2 landing position. Arsia Mons uses the Gazetteer's MDIM 2.1 coordinate network.
+- Lunar IAU anchors represent named features. They are not claimed to be official centers of the 15 × 15 km candidate regions announced by NASA in 2022, or confirmed future landings.
+- Shackleton's coordinate and mean rim elevation follow the cited LOLA publication; a rim-center coordinate is not a crater-floor measurement.
+- Country and continent assignments use Natural Earth 50m point-in-polygon rules. Missing assignments remain missing. Antarctic bases without a matching polygon are not silently forced into Argentina's country filter.
+- Wikipedia/Wikidata coordinate fallbacks are explicitly identified. Río Cuarto's impact origin remains disputed; map-derived impact classification is not a geological ruling on that debate.
 
-- Jezero y Gale **mantienen** el punto de aterrizaje de Mars24. El documento usa el centro IAU del cráter (Jezero 18.41°N 77.69°E, USGS 14300; Gale 5.37°S 137.81°E, USGS 2071), que queda a ≈14 km y ≈51 km respectivamente; ahora se cita en `coord_source`.
-- T y E de los tres destinos nuevos se midieron con productos públicos y el mismo método que la Tierra (scripts en `services/planetary/scripts/`, dependencias en `requirements-ingest.txt`):
+See the [per-site source register](docs/resources/sources-by-site.csv) and the source fields in the catalogs and measurement files.
 
-| Destino | Relieve / pendiente / rugosidad | Temp. media / amplitud diurna | Fuente T | Fuente E |
-| --- | --- | --- | --- | --- |
-| Marius Hills | 47,09 m / 1,10° / 11,43 m | −54,53 °C / 295,38 K | LOLA LDEM 118 m (USGS) | Diviner GCP, Tbol de **superficie** (Williams et al. 2017) |
-| Utopia Planitia | 1,39 m / 0,00° / 0,32 m | −80,27 °C / 36,77 K | HRSC-MOLA 200 m (USGS) | Mars Climate Database v6.2, aire a 2 m (modelo) |
-| Arsia Mons | 46,31 m / 3,59° / 13,51 m | −72,71 °C / 65,73 K | HRSC-MOLA 200 m (USGS) | Mars Climate Database v6.2, aire a 2 m (modelo) |
+## Public deployment and API sharing
 
-  Grilla 7×7 a 120 m con valores bilineales, como en la Tierra. Validaciones: Bradbury Landing da −4.504,7 m (publicado: −4.501 m), y la MCD en Jezero da medias diarias de 207–222 K (MEDA midió 209–225 K). Iluminación e hielo siguen en `null`.
-- Las bases antárticas no caen dentro de ningún polígono de Natural Earth 50m y Nominatim no devuelve ISO: quedan sin país/continente (no se adivina) y aparecen solo en la búsqueda «Mundo entero».
-- La ingesta midió DEM ASTER y clima ERA5 para los 8 sitios terrestres nuevos; la covarianza Ledoit-Wolf pasó de n=1300 a n=1500, así que los puntajes T de todos los sitios se mueven levemente.
+**Definitive public URL: https://hexastra.pages.dev/**
 
-## Qué es dato real y qué es placeholder
+The website and its API run entirely on Cloudflare Pages and Pages Functions. The production configuration is `pages/wrangler.production.toml`; its project is `hexastra`. **No Mac, cloudflared tunnel, PostgreSQL server, or paid database is needed to use the published demo.**
 
-Valores verificados el **14 de noviembre de 2026** (America/Buenos_Aires), con `quality=measured` o `convention`:
+| Resource | Public URL |
+|---|---|
+| Browser-selected language | https://hexastra.pages.dev/ |
+| English interface | https://hexastra.pages.dev/?lang=en |
+| Spanish interface | https://hexastra.pages.dev/?lang=es |
+| Advanced mode in English | https://hexastra.pages.dev/classic.html?mode=advanced&lang=en |
+| Earth API health | https://hexastra.pages.dev/api/earth/health |
+| Planetary API health | https://hexastra.pages.dev/api/planetary/health |
+| Earth API documentation | https://hexastra.pages.dev/api/earth/docs |
+| Planetary API documentation | https://hexastra.pages.dev/api/planetary/docs |
 
-| Dato | Valor | Fuente |
-| --- | --- | --- |
-| Coords y clima terrestres 1991–2020, cotas SRTM | ver `data/sites.json` y `data/climate-era5-1991-2020.json` | Wikipedia/Wikidata, GVP, sitio de Ischigualasto, EPSC 2022-1152; Open-Meteo ERA5-Land (T) y ERA5 (lluvia); OpenTopoData SRTM30m |
-| Pendiente y rugosidad terrestres | p. ej. Piedra Pómez 3,41° / 6,47 m; Payún 14,78° / 29,33 m | SRTM 30 m, 9 puntos a 120 m de línea de base, misma fecha |
-| Jezero / Gale / Opportunity coords | 18.44°N 77.45°E; 4.59°S 137.44°E; 1.95°S 354.47°E | [NASA GISS Mars24](https://www.giss.nasa.gov/tools/mars24/help/landers.html) |
-| Elevación Gale | −4501 m | [NASA Facts MSL/Curiosity](https://mars.nasa.gov/internal_resources/824/) |
-| Medusae Fossae, Pavonis Mons | −2.17°, 195.80°E; 1.48°N, 247.04°E | USGS Gazetteer 3795 y 4620 |
-| Shackleton centro del borde y cota media | −89.655°, 129.174°E; **1300 m**; RMS del borde ≈ 1 m (spot de 5 m) | Zuber et al. 2012, Tabla 1 LOLA, [NTRS 20120013758](https://ntrs.nasa.gov/api/citations/20120013758/downloads/20120013758.pdf) |
-| Haworth, Malapert, de Gerlache, Amundsen, Nobile | centros IAU (primera red de cada ficha) | USGS Features 14502, 3603, 1439, 247, 4321 |
-| Precipitación Luna/Marte | 0 mm/año | Convención documentada (no hay lluvia líquida estable), no un pluviómetro |
-| Temperatura media de Marte (ficha global, no de sitio) | −59 °C | [NASA NSSDC Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html) — **no** se asigna a Jezero ni a Pavonis |
+### Standalone runtime
 
-**Derivados de un rango publicado** (`quality=derived_from_published_range`, `is_real=false`):
+`pages/lib/standalone.mjs` serves the verified catalogs and computes rankings from the versioned data in `data/cloudflare/`. It preserves the reference TASI method:
 
-- Jezero, temperatura media **−56,15 °C**: punto medio del rango 209–225 K de medias diarias a 1,45 m en el año marciano 36 (Munguira et al. 2024, doi:10.1029/2024JE008385). No es un promedio temporal ponderado.
-- Gale, amplitud diurna **60 °C**: punto medio del rango ~45–75 K de aire REMS (Martínez et al.).
+- Published input values, source records, geological comparisons, and terrain Mahalanobis distances come from the Python reference APIs.
+- Terrain gamma remains adjustable through `exp(-gamma * D_M)`.
+- Environment/volatile scales are recomputed from the selected region, **before masking**, as in the Python engine.
+- Weights are renormalized over available components; missing evidence is not treated as zero. Filtering, valid zero scores, coverage, and tie-breaking are preserved.
+- Repeated source dictionaries are omitted from the ranking response to keep it small. Complete sourced measurements remain at the candidate and target-vector endpoints.
+- The hosted demo accepts its 14 verified catalog vectors or their `target_id`. It rejects altered/custom vectors rather than silently applying a precomputed comparison to different inputs.
 
-**Placeholder (valor `null`)** entre otros: cotas MOLA de Jezero, Medusae, Pavonis y Meridiani; pendientes y rugosidad de Marte; temperaturas medias y amplitudes de la Luna (Williams et al. 2023 describen umbrales Diviner — PSR < 110 K, crestas en verano por lo general > ~120 K — pero no una media única de sitio que hayamos cargado); % de iluminación; indicador numérico de hielo; rugosidad LOLA no se usa por defecto en la similitud porque la escala (5 m) no es la de SRTM (120 m).
+`/health` reports `catalog_origin: cloudflare_snapshot`, the export date, and `requires_local_services: false`. This is a dated, sourced catalog release, not an assertion that imagery or scientific measurements are being ingested live.
 
-Los puntajes cualitativos de geología/relieve/sales/vulcanismo del mapa original siguen siendo juicios preliminares del primer prototipo y **no entran** al TASI.
+The runtime was checked against 60 captured Python API scenarios spanning all 14 targets, four presets, regional scales, gamma, masking, missing components, and zero weights. The fixtures are versioned in `pages/tests/fixtures/reference-parity.json`.
 
+### Update the data and publish
 
-## Compartir un link (Cloudflare Pages + túnel a esta Mac)
-
-El front estático se publica en Cloudflare Pages (gratis, una URL por rama y una por deploy). Los servicios Python siguen corriendo en la Mac y se exponen con túneles rápidos de `cloudflared`.
+Export from healthy reference APIs after reviewing the scientific data changes:
 
 ```bash
-npx wrangler@3 login                 # una sola vez
-./scripts/deploy_pages.sh            # publica la rama actual → https://<rama>.hexastra-analogos.pages.dev
-./scripts/share.sh https://<rama>.hexastra-analogos.pages.dev
-# imprime: https://<rama>.hexastra-analogos.pages.dev/?planetary=https://….trycloudflare.com&earth=https://….trycloudflare.com
+python3 scripts/export_pages_snapshot.py \
+  --planetary-url http://127.0.0.1:8766 \
+  --earth-url http://127.0.0.1:8767
+./services/run_tests.sh
+npx wrangler@3 login
+./scripts/deploy_pages.sh main
 ```
 
-- El link funciona **solo mientras `share.sh` corre y la Mac está prendida**. Las URLs de los túneles cambian en cada corrida: compartí el link nuevo.
-- `js/config.js` acepta `?planetary=` y `?earth=` solo para `https://*.trycloudflare.com` o la máquina local, y los recuerda en el navegador.
-- Sin túnel, la página publicada no llega a los servicios y cae al cliente local (`js/api-stub.js`).
-- El sitio en `*.pages.dev` es público para quien tenga el link.
+The exporter performs read-only HTTP requests. It does not load, rebuild, or export the shared database. It writes the public catalog, source records, vectors, comparison evidence, and a SHA-256 manifest. Review a changed snapshot and capture independent expectations with `python3 scripts/capture_parity_fixtures.py --earth-url http://127.0.0.1:8767` when the verified reference data changes. Do not rewrite expected results merely to hide a failure.
 
-## Capa `js/api.js` (contrato para el front)
+The deployment script stages only the frontend, assets, versioned data, and edge functions. It does not publish the video workspace, credentials, Python virtual environments, or private configuration. Scientific raster downloads and ingestion remain separate update tasks; the public site stays available when the development machine is off.
 
-Funciones: `getTargets(body)`, `getTargetVector(id)`, `getRegions()`, `getFeatured()`, `rankAnalogs({ targetVector, weights, gamma, top, continent, country })`. También `health()` y `getCandidates({ continent, country })`. El contrato completo está comentado al inicio de `js/api.js`. El CSS / `index.html` no se rediseñó; el buscador avanzado existente quedó cableado a esta capa para que siga andando.
+Cloudflare's Workers Free allowance, checked November 15, 2026, is **100,000 dynamic requests/day and 10 ms CPU/request**. Static-asset requests have separate free handling. This demo uses static catalog assets and a small JavaScript query/ranking runtime; it does not provision paid containers, D1, or a persistent database. Limits still apply; see [Workers limits](https://developers.cloudflare.com/workers/platform/limits/) and [static-asset billing](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/).
 
-## Archivos
+The earlier `pages/wrangler.globo.toml` and `scripts/share.sh` tunnel workflow is retained for development/reference deployments. It is not used by the definitive `hexastra.pages.dev` site. Private development credentials remain outside the repository.
 
-| Ruta | Contenido |
-| --- | --- |
-| `index.html`, `css/`, `js/app.js` | Mapa Leaflet y buscador avanzado (sin rediseño de estilos) |
-| `js/api.js`, `js/config.js` | Capa de llamadas a los dos servicios |
-| `contracts/feature_vector.schema.json` | Contrato del vector G/T/E/Vo/O |
-| `services/planetary/` | Microservicio Luna/Marte, puerto 8766 |
-| `services/earth/` | Microservicio terrestre mundial + TASI, puerto 8767 |
-| `services/earth/data/ne_50m_admin_0_countries.geojson` | Natural Earth 50m (país/continente) |
-| `run_all.sh`, `docker-compose.yml` | Arranque de los tres procesos |
-| `data/sites.json` | Fichas narrativas del primer prototipo (Argentina) |
-| Teselas | OSM, Esri, NASA GIBS, OpenPlanetary (Marte v0.2 y Luna v0.1), WhereOnMars MOLA |
+## Interface languages
 
-El mapa lunar en Web Mercator **comprime el polo sur**; las coordenadas están en la ficha. Las teselas de Luna v0.1 respondieron HTTP 200 en esta corrida.
+`js/i18n.js` and `js/locales/en.js` localize the immersive, guided, and advanced interfaces, including dialogs, accessibility labels, mission history, catalog descriptions, presets, explanations, map-layer help, and numeric/date formatting. Priority is:
 
-## Próximos pasos
+1. Explicit `?lang=en` or `?lang=es`.
+2. A manual preference stored as `hexastra.language`.
+3. The first supported browser language; English is the fallback.
 
-1. Reintentar NDVI (ORNL o Earthdata/AppEEARS con credenciales) y cachear valores reales para la máscara M(x).
-2. Muestrear DEM LOLA y MOLA numéricos (no teselas de color) para pendiente, relieve relativo y rugosidad **en la misma línea de base** que ASTER.
-3. Cargar medias de REMS (Gale) y MEDA (Jezero) y productos Diviner por región Artemis.
-4. Si aparece un archivo espectral real (CRISM / ASTER), habilitar S_G; si no, dejarlo nulo.
-5. Seguir sumando análogos poco estudiados, sobre todo en la Puna, y cargar resumen/demo en la ficha de Space Apps.
+The language selector updates the current page without discarding the mission or custom weights. Internal navigation preserves an explicit language choice. API identifiers, scientific values, geographic proper names, units, URLs, and original citation records are not rewritten as translated data. Original source records remain verbatim; surrounding interface explanations are localized.
 
-## Licencias y créditos
+## English presentation demos and video-production agent
 
-Datos de clima: Copernicus/ECMWF vía Open-Meteo. DEM: ASTER GDEM v3 vía OpenTopoData (y SRTM en las fichas estáticas originales). Límites políticos: Natural Earth (dominio público). Teselas: © OSM, Esri, NASA GIBS, OpenPlanetaryMap, WhereOnMars/Carto. LOLA: Zuber et al. 2012. Coordenadas de landers: NASA GISS. Gazetteer: USGS/IAU. Textos: equipo Hexastra, 2026. No fabricamos mediciones: si no hubo fuente, el número no se presenta como dato.
+The presentation recordings show the actual app in English, with no mocked API results:
+
+| Demo | GIF | MP4 |
+|---|---|---|
+| Guided mission: Mars → Arsia Mons → terrain → Argentina → result | https://hexastra.pages.dev/assets/demo/guided-en.gif | https://hexastra.pages.dev/assets/demo/guided-en.mp4 |
+| Advanced comparison: weights, filters, layers, and evidence | https://hexastra.pages.dev/assets/demo/advanced-en.gif | https://hexastra.pages.dev/assets/demo/advanced-en.mp4 |
+
+Record them again with Playwright Chromium and FFmpeg installed:
+
+```bash
+python3 scripts/record_demos.py --url https://hexastra.pages.dev --language en
+```
+
+The script captures real interactions, preserves map attribution, and exports looping GIFs below 10 MB plus MP4 copies. PDFs generally show a static image rather than playing a GIF; use the PNG poster with a public GIF/MP4 link when distributing a PDF. `--language es` records the Spanish interface. For video-compositor inputs matching the original 1280 × 720 recordings, add `--height 720`.
+
+The [video-production agent](tools/video-agent/README.md) includes the [agent brief](tools/video-agent/AGENT.md), the final reviewed Spanish 180-second plan, and the actual compositor/alignment/export source used for the refined Ignacio video. It prepares an external working directory; supplied PDFs, licensed narration, full media builds, and credentials are not bundled into the repository.
+
+## Original work, external resources, and submission permissions
+
+HexAstra's application integration, comparison workflows, and implementation of the team's proposed TASI index are team work developed with disclosed AI assistance. External datasets, libraries, basemaps, fonts, textures, publications, and production tools remain the work of their respective authors.
+
+**The resource register is not a certificate that every permission has been cleared.** Before checking **Confirm All Work is Original** in the submission form:
+
+1. List every external resource actually used in **NASA Data** and **Space Agency Partner & Other Data**, including code, text, images, fonts, and linked demonstration materials. Cite sources even when they are open source or freely available.
+2. Confirm the provenance and usage rights of the supplied logo and all presentation backgrounds/images. The PDF's Canva metadata identifies an authoring tool; it does not identify the license of every included asset.
+3. Check restrictions and redistribution terms for each resource, particularly Mars Climate Database, COMNAP data, and Esri imagery. A public URL or citation alone does not grant permission. Retain required licenses and attribution.
+4. Confirm the ElevenLabs plan and terms applicable **when the narration was generated**, and replace the audio if necessary.
+5. Complete the **Use of Super Intelligence** disclosure with the team's actual use of AI tools and human review. Do not invent usage records or claim that generated illustrations are scientific observations.
+
+The authoritative submission and reuse conditions are the [Space Apps legal terms](https://www.spaceappschallenge.org/legal/) and [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/). Listing a resource does not establish compatibility with all submission terms.
+
+### ElevenLabs narration
+
+Checked November 15, 2026: ElevenLabs advertises **Starter at USD 1 for the first month, then USD 6/month**, before applicable taxes, with commercial use. The account checkout and applicable terms determine the actual offer. See [Studio pricing](https://elevenlabs.io/studio) and the [publishing/license explanation](https://elevenlabs.io/docs/help-center/legal/can-i-publish-the-content-i-generate-on-the-platform).
+
+Paid-plan rights apply to content **generated during the paid subscription**, subject to the service terms, applicable product restrictions, and rights to the input material. Upgrading does not retroactively grant commercial rights to audio generated on the free plan. To use paid-plan rights for the current pitch narration, regenerate it while the subscription is active and retain the generation and subscription records. The free plan permits noncommercial publication with its required attribution, including `elevenlabs.io` or `11.ai` in the title. Beta services can have separate restrictions.
+
+The video's selected voice is **Ignacio — Compassionate and Sincere**. Its plan-specific permission remains unconfirmed until the account/generation record is checked. Paying for a voice plan does not resolve rights to unrelated presentation images or datasets. Audio generated during a paid subscription retains its commercial license after cancellation, subject to the applicable terms; see [subscription-end policy](https://elevenlabs.io/docs/help-center/account/general/what-happens-to-my-content-after-my-subscription-ends).
+
+### Resource register for the submission form
+
+Use the resource name below as **Link Text** and copy the complete URL. Shared NASA/partner products may be relevant to both data fields; explain their actual role. The CSV includes a short usage description for each entry.
+
+- [Submission resource register](docs/resources/submission-resources.csv): NASA data, partner/other resources, video/PDF tools, and AI assistance.
+- [Per-site source register](docs/resources/sources-by-site.csv): specific catalog, measurement, coordinate, and literature references.
+
+The links point to public resource pages, documentation, identifiers, or files. Downloading some scientific products requires an account. Publisher access controls and automated-request blocking do not establish that the underlying resource is private or freely redistributable. Follow each provider's terms.
+
+#### NASA Data
+
+| Link Text | Full URL |
+|---|---|
+| NASA GIBS | https://nasa-gibs.github.io/gibs-api-docs/ |
+| MODIS MOD13Q1 v6.1 | https://doi.org/10.5067/MODIS/MOD13Q1.061 |
+| MODIS MOD44W v6.1 | https://doi.org/10.5067/MODIS/MOD44W.061 |
+| NASA AppEEARS | https://appeears.earthdatacloud.nasa.gov/ |
+| NASA / METI ASTER GDEM v3 | https://www.opentopodata.org/ |
+| NASA LRO / LOLA — LDEM 118 m | https://planetarymaps.usgs.gov/mosaic/Lunar_LRO_LOLA_Global_LDEM_118m_Mar2014.tif |
+| NASA LRO / Diviner derived data | https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_gcp/ |
+| NASA LRO / Diviner polar resource product | https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab |
+| NASA Mars Odyssey / GRS water-equivalent hydrogen | https://pds-geosciences.wustl.edu/ody/ody-m-grs-5-elements-v1/odgm_xxxx/data/smoothed/h2o_sr_5x5.tab |
+| NASA Mars Global Surveyor MOLA / ESA Mars Express HRSC | https://astrogeology.usgs.gov/search/map/mars_mgs_mola_mex_hrsc_blended_dem_global_200m |
+| NASA GISS Mars24 — Landers | https://www.giss.nasa.gov/tools/mars24/help/landers.html |
+| NASA NSSDC — Earth Fact Sheet | https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html |
+| NASA NSSDC — Moon Fact Sheet | https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html |
+| NASA NSSDC — Mars Fact Sheet | https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html |
+| NASA Trek | https://trek.nasa.gov/ |
+| NASA SEDAC / CIESIN / ITOS — gROADS v1 | https://doi.org/10.7927/H4VD6WCT |
+| NASA SEDAC / CIESIN — GPWv4 Population Count rev. 11 | https://doi.org/10.7927/H4JW8BX5 |
+| NASA — Seven Possible Cave Skylights on Mars | https://science.nasa.gov/resource/seven-possible-cave-skylights-on-mars/ |
+| NASA — Artemis candidate landing regions (2022) | https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/ |
+| NASA NTRS — Shackleton / Zuber et al. 2012 | https://ntrs.nasa.gov/citations/20120013758 |
+| NASA NTRS — Río Cuarto | https://ntrs.nasa.gov/citations/19940011723 |
+| NASA — Pavonis Mons / Mars Global Surveyor | https://science.nasa.gov/photojournal/pavonis-mons/ |
+
+#### Space Agency Partner & Other Data
+
+| Link Text | Full URL |
+|---|---|
+| ESA Permafrost_cci L4 v5.0 — CEDA | https://catalogue.ceda.ac.uk/uuid/d235665772ec4b558e9a89ac85595e71/ |
+| Mars Climate Database — LMD / ESA / CNES | https://www-mars.lmd.jussieu.fr/mars/access.html |
+| MGS MOLA / Mars Express HRSC blended DEM 200 m — USGS | https://astrogeology.usgs.gov/search/map/mars_mgs_mola_mex_hrsc_blended_dem_global_200m |
+| Open-Meteo Historical Weather API | https://open-meteo.com/en/docs/historical-weather-api |
+| Copernicus / ECMWF ERA5 | https://confluence.ecmwf.int/pages/viewpage.action?pageId=488287070 |
+| OpenTopoData — ASTER GDEM | https://www.opentopodata.org/ |
+| Natural Earth | https://www.naturalearthdata.com/ |
+| Macrostrat API | https://macrostrat.org/api |
+| Macrostrat — Peters et al. 2018 | https://doi.org/10.1029/2018GC007467 |
+| USGS Geologic Map of Mars — SIM 3292 | https://pubs.usgs.gov/sim/3292/ |
+| USGS Unified Geologic Map of the Moon | https://astrogeology.usgs.gov/search/map/unified_geologic_map_of_the_moon_1_5m_2020 |
+| Impact Earth — Osinski et al. 2022 | https://doi.org/10.1016/j.earscirev.2022.104112 |
+| McSween, Taylor & Wyatt 2009 | https://doi.org/10.1126/science.1165871 |
+| OurAirports Open Data | https://davidmegginson.github.io/ourairports-data/ |
+| OpenStreetMap | https://www.openstreetmap.org/copyright |
+| Overpass API | https://wiki.openstreetmap.org/wiki/Overpass_API |
+| Nominatim | https://nominatim.org/ |
+| IAU / USGS Gazetteer of Planetary Nomenclature | https://planetarynames.wr.usgs.gov/ |
+| Smithsonian Global Volcanism Program | https://volcano.si.edu/ |
+| COMNAP Antarctic Facilities — PGC archive | https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities |
+| SCAR Composite Gazetteer of Antarctica | https://placenames.aq/ |
+| IGN Argentina — Active volcanoes | https://www.ign.gob.ar/NuestrasActividades/Geografia/DatosArgentina/VolcanesActivos |
+| UNESCO — Ischigualasto / Talampaya | https://whc.unesco.org/en/list/966/ |
+| Ischigualasto Provincial Park | https://www.ischigualasto.gob.ar/?page_id=507 |
+| Wikipedia | https://www.wikipedia.org/ |
+| Wikidata — Campo de Piedra Pómez | https://www.wikidata.org/wiki/Q23833026 |
+| UNSCEAR 2024 Report, volume II | https://www.unscear.org/unscear/uploads/documents/unscear-reports/UNSCEAR_2024_Report_Vol.II.pdf#page=52 |
+| Zhang et al. 2020 — Chang’e-4 lunar radiation | https://doi.org/10.1126/sciadv.aaz1334 |
+| Hassler et al. 2014 — Mars surface radiation | https://doi.org/10.1126/science.1244797 |
+| Ledoit & Wolf 2004 | https://www.ledoit.net/Well-conditioned2004.pdf |
+| Haruyama et al. 2009 — Lunar lava-tube skylight | https://doi.org/10.1029/2009GL040635 |
+| JAXA / ISAS — Lunar hole discovery | https://www.isas.jaxa.jp/j/topics/topics/2009/1105.shtml |
+| ESA Mars Express — Medusae Fossae water ice | https://www.esa.int/ESA_Multimedia/Images/2024/01/Mars_Express_radar_data_indicating_heaps_of_water_ice_at_Mars_s_equator |
+| Munguira et al. 2024 — Jezero meteorology | https://doi.org/10.1029/2024JE008385 |
+| Leaflet | https://leafletjs.com/ |
+| Three.js | https://threejs.org/ |
+| Earth3D — mitchcamza | https://github.com/mitchcamza/Earth3D |
+| Solar System Scope — Planet textures | https://www.solarsystemscope.com/textures/ |
+| OpenPlanetaryMap — Basemaps | https://openplanetarymap.org/docs/basemaps/ |
+| OpenPlanetaryMap / WhereOnMars / CARTO | https://github.com/openplanetary/opm-website/wiki/OPM-Basemaps |
+| Esri World Imagery | https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer |
+| Google Fonts — Montserrat | https://fonts.google.com/specimen/Montserrat |
+| Google Fonts — Open Sans | https://fonts.google.com/specimen/Open+Sans |
+| esbuild | https://esbuild.github.io/ |
+| FastAPI | https://fastapi.tiangolo.com/ |
+| Uvicorn | https://www.uvicorn.org/ |
+| Pydantic | https://docs.pydantic.dev/ |
+| HTTPX | https://www.python-httpx.org/ |
+| NumPy | https://numpy.org/ |
+| Psycopg 3 | https://www.psycopg.org/psycopg3/ |
+| PostgreSQL | https://www.postgresql.org/ |
+| PostGIS | https://postgis.net/ |
+| Rasterio | https://rasterio.readthedocs.io/ |
+| Pyogrio | https://pyogrio.readthedocs.io/ |
+| Shapely | https://shapely.readthedocs.io/ |
+| PyShp | https://github.com/GeospatialPython/pyshp |
+| GDAL | https://gdal.org/ |
+| pytest | https://docs.pytest.org/ |
+| eval_type_backport | https://pypi.org/project/eval-type-backport/ |
+| Docker | https://www.docker.com/ |
+| Cloudflare Pages | https://developers.cloudflare.com/pages/ |
+| Cloudflare Tunnel | https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/ |
+| Python | https://www.python.org/ |
+| Impeccable — design-review playbooks | https://github.com/pbakaus/impeccable |
+
+#### Video and PDF production — if submitted
+
+| Link Text | Full URL |
+|---|---|
+| Canva | https://www.canva.com/ |
+| ElevenLabs — Ignacio | https://elevenlabs.io/ |
+| FFmpeg | https://ffmpeg.org/ |
+| OpenCV | https://opencv.org/ |
+| Pillow | https://python-pillow.org/ |
+| faster-whisper | https://github.com/SYSTRAN/faster-whisper |
+| Playwright | https://playwright.dev/ |
+| Poppler | https://poppler.freedesktop.org/ |
+| ReportLab | https://www.reportlab.com/ |
+| Google Fonts — Mulish | https://fonts.google.com/specimen/Mulish |
+| Google Fonts — League Spartan | https://fonts.google.com/specimen/League+Spartan |
+
+#### AI assistance — also disclose in Use of Super Intelligence
+
+| Link Text | Full URL |
+|---|---|
+| OpenAI Codex | https://openai.com/codex/ |
+| Anthropic Claude | https://www.anthropic.com/claude |
+| Grok | https://grok.com/ |
+| OpenAI Whisper models | https://github.com/openai/whisper |
+| edge-tts | https://github.com/rany2/edge-tts |
+
+### Scope and attribution notes
+
+- **Solar System Scope:** Earth, cloud, Mars, and Moon textures under CC BY 4.0. See [full visual credits](assets/globe/CREDITS.md). Textures are not scientific measurements.
+- **Three.js:** MIT license retained in `js/vendor/THREE-LICENSE.txt`. Other dependencies retain their own licenses.
+- **Earth3D:** visual reference; HexAstra implements its own integration, projection, selection, and TASI panels. Its demonstration analytics are not incorporated.
+- **Impeccable:** design-review playbooks were consulted; its design-system decisions do not override HexAstra's brand. Credit: https://github.com/pbakaus/impeccable (Apache-2.0).
+- **Natural Earth:** public-domain boundaries. **OpenStreetMap:** attribution and ODbL obligations apply.
+- **Macrostrat:** attribute the API and underlying geological map sources recorded in the measurement provenance.
+- **Mars Climate Database:** scientific-use conditions apply; do not label it an unrestricted CC-licensed dataset.
+- **COMNAP:** the cited archive has educational/noncommercial conditions and requires attribution; review compatibility with the intended submission and reuse.
+- **Esri imagery:** provider-specific terms and attribution apply; it is not public-domain imagery.
+- **PDF/video:** the PDF was provided by the team and authored with Canva. Image and logo provenance still needs confirmation. Narration uses ElevenLabs. The montage's music was synthesized locally rather than downloaded as a third-party track; this does not establish rights to unrelated supplied imagery.
+- **AI assistance:** Codex and Claude assisted with development, documentation, narration scripts, and production automation. The team supplied a Grok research record for pitch preparation; confirm its final scope. ElevenLabs synthetic narration and local Whisper speech alignment were used in video production. State actual assistance and human review in the submission's SI field.
+- **Not ingested as datasets:** CRISM spectra, Sentinel products, CSA radar, JAXA GSMaP, and CONAE data are not claimed merely because they appear in the challenge's resource list. The retired Lunar Landing Site API is not a data source for current results.
+
+## Repository guide
+
+| Path | Purpose |
+|---|---|
+| `index.html`, `js/immersive.js`, `css/immersive.css` | Immersive application |
+| `classic.html`, `js/app.js`, `js/easy.js` | Classic advanced and guided interfaces |
+| `js/globe.mjs`, `js/globe-data.mjs` | 3D rendering and coordinate projection |
+| `js/api.js`, `js/config.js` | API client and service configuration |
+| `services/planetary/` | Moon/Mars catalog, vectors, references, ingestion |
+| `services/earth/` | Earth catalog, masking, TASI, and ingestion |
+| `contracts/feature_vector.schema.json` | Shared API vector contract |
+| `data/measurements/` | Versioned sourced measurements |
+| `db/` | Database schema, integration, snapshot export, and tests |
+| `pages/`, `data/cloudflare/`, `scripts/deploy_pages.sh` | Standalone Cloudflare site, versioned data, and APIs |
+| `scripts/export_pages_snapshot.py` | Read-only export from verified reference APIs |
+| `scripts/record_demos.py`, `assets/demo/` | Real English presentation recordings |
+| `tools/video-agent/` | Reproducible pitch-production agent and source |
+| `js/i18n.js`, `js/locales/en.js` | Browser/manual English–Spanish localization |
+| `docs/desafio.md` | Saved official challenge text |
+| `docs/marca.md`, `DESIGN.md`, `PRODUCT.md` | Brand, interface, and product specifications |
+| `docs/propuestas/G.md` | Implemented categorical geology method |
+| `docs/propuestas/practicidad.md` | Earth-access data and interpretation |
+| `docs/propuestas/vo-hielo.md` | Mask and ice-product definitions and limitations |
+| `docs/resources/` | External resource and source registers |
+| `AGENTS.md`, `CLAUDE.md` | Contributor and agent rules |
+
+Documentation filenames and provenance identifiers remain stable so existing code and measurement references continue to resolve. Outdated debugging audits, temporary integration reports, unfinished reconciliation plans, and their dedicated visual-review captures have been removed; the current behavior and durable methodology are documented here and in the linked guides.

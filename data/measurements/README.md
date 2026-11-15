@@ -1,33 +1,36 @@
-# Mediciones por agente (`*.jsonl`)
+# Versioned measurements (`*.jsonl`)
 
-Cada agente agrega **su propio** archivo `<agente>.jsonl`, por ejemplo `vo-hielo.jsonl` u `o-tierra.jsonl`, más el script reproducible que lo genera. Nadie edita los catálogos base (`services/*/data/catalog.json`) ni el archivo de otro agente. La integración (base de datos y snapshots) la hace el orquestador con:
+Each data contributor adds **their own** `<agent>.jsonl` file, such as `vo-hielo.jsonl` or `o-tierra.jsonl`, together with the reproducible script that generates it. Do not edit base catalogs (`services/*/data/catalog.json`) or another contributor's file. The coordinator performs database/snapshot integration:
 
 ```bash
-docker compose up -d db                      # PostGIS hexastra-db en 127.0.0.1:55432
-services/.venv/bin/python db/load.py         # reconstruye la base: catálogos base + estos archivos
-services/.venv/bin/python db/export.py       # snapshots services/*/data/catalog.merged.json
+docker compose up -d db                      # PostGIS: hexastra-db at 127.0.0.1:55432
+services/.venv/bin/python db/load.py         # Rebuild from base catalogs and measurements
+services/.venv/bin/python db/export.py       # Export services/*/data/catalog.merged.json snapshots
 HEXASTRA_DATABASE_URL=postgresql://hexastra:hexastra-local@127.0.0.1:55432/hexastra ./run_all.sh
 ```
 
-## Formato (una línea JSON por medición)
+These integration commands rebuild/export the selected database. Do not run them against the shared demonstration database without integration authorization. A documentation change does not authorize database writes.
+
+## Format
+
+Use one JSON object per line. This is an illustrative schema example, not an instruction to invent a measurement:
 
 ```json
-{"site_id": "pali-aike", "feature": "ndvi", "value": 0.08, "unit": "unitless",
- "quality": "measured", "is_real": true,
- "source": "MODIS MOD13Q1 v061 vía NASA AppEEARS, media 2015–2024, consultado 2026-11-14. https://appeears.earthdatacloud.nasa.gov/",
- "note": null, "method": "services/earth/scripts/ingest_ndvi.py", "retrieved_at": "2026-11-14"}
+{"site_id":"pali-aike","feature":"ndvi","value":null,"unit":"unitless","quality":"unavailable","is_real":false,"source":"No verified product value available.","note":"a completar","method":"services/earth/scripts/ingest_mask.py","retrieved_at":"2026-11-14"}
 ```
 
-Campos obligatorios: `site_id`, `feature`, `value`, `unit`, `quality`, `is_real`, `source`, `method`, `retrieved_at`. Opcionales: `note`, `comparable`, `replaces_base` y `replaces_reason`.
+Required fields: `site_id`, `feature`, `value`, `unit`, `quality`, `is_real`, `source`, `method`, and `retrieved_at`. Optional fields include `note`, `comparable`, `replaces_base`, and `replaces_reason`. Retain the original field names and source strings: these are data contracts and provenance, not documentation to translate.
 
-## Reglas (las valida `db/measurements.py`; si no se cumplen, `db/load.py` falla)
+## Validation rules
 
-- `value: null` → `quality` `placeholder` o `unavailable`, `is_real: false` y una `note` con «a completar».
-- Con valor → `quality` ∈ `measured`, `derived`, `modeled`, `convention`, `derived_from_published_range`, y `source` con URL (salvo `convention`).
-- `site_id` tiene que existir en algún catálogo base.
-- No se pisa un valor del catálogo base sin `"replaces_base": true` y `"replaces_reason"`.
-- Dos archivos no pueden escribir el mismo `(site_id, feature)`: si pasa, decide el orquestador.
-- Una feature nueva se declara una sola vez en `<agente>.features.json` (`{"id": {"service": "earth"|"planetary", "unit": …, "name_es": …, "description": …}}`).
-- Una feature que vale para la Tierra y para la Luna/Marte (misma definición en los dos lados, p. ej. las `g_*`) se declara con `"service": ["earth", "planetary"]` y aparece en los dos catálogos.
+`db/measurements.py` validates these rules; `db/load.py` fails on invalid input:
 
-Antes del PR, corré `./services/run_tests.sh`: incluye `db/tests`, que valida todos los archivos de esta carpeta.
+- A `null` value requires `quality` of `placeholder` or `unavailable`, `is_real: false`, and a note containing the required literal `a completar` (pending verification).
+- A non-null value requires `quality` in `measured`, `derived`, `modeled`, `convention`, or `derived_from_published_range`, and a source URL except for documented conventions.
+- The `site_id` must exist in a base catalog.
+- Replacing a base value requires `"replaces_base": true` and `"replaces_reason"`.
+- Two files must not write the same `(site_id, feature)` pair. The coordinator resolves a conflict.
+- Declare each new feature once in `<agent>.features.json`, using `{"id":{"service":"earth"|"planetary","unit":...,"name_es":...,"description":...}}`.
+- A feature with the same definition on Earth and Moon/Mars, such as `g_*`, uses `"service": ["earth", "planetary"]` and appears in both catalogs.
+
+Before opening a PR, run `./services/run_tests.sh`. Its `db/tests` suite validates every measurement file in this directory.

@@ -1,3 +1,3 @@
-# Reglas para agentes
+# Agent rules
 
-Las reglas de este repo (objetivo del desafío, reglas de datos, fuentes oficiales primero y forma de trabajo) están en [`CLAUDE.md`](CLAUDE.md) y valen para cualquier agente, sea Claude, Codex u otro. El texto oficial del desafío está en [`docs/desafio.md`](docs/desafio.md).
+The repository rules—challenge objective, data integrity, official sources first, and development workflow—are in [`CLAUDE.md`](CLAUDE.md). They apply to every agent, including Claude, Codex, and others. The official challenge text is in [`docs/desafio.md`](docs/desafio.md).

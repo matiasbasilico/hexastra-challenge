@@ -117,4 +117,7 @@ def test_tasi_endpoint_returns_why_breaks_missing():
     assert res.status_code == 200
     for m in res.json()["matches"]:
         assert "why" in m and "breaks" in m and isinstance(m["missing"], list)
-        assert "Geología (G)" in m["missing"]
+        assert "Geología (G)" not in m["missing"]
+        assert m["components"]["G"]["data_available"] is True
+        assert m["components"]["G"]["score"] is None
+        assert "Operación (O)" not in m["missing"]

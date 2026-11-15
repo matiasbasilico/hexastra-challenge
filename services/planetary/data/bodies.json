@@ -11,15 +11,25 @@
       "surface_pressure_pa": {"value": 101400, "source": "NASA NSSDC Earth Fact Sheet: 1014 mb. https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
       "day_length_h": {"value": 24.0, "source": "NASA NSSDC Earth Fact Sheet, length of day 24.0000 h. https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
       "mean_temp_c": {"value": 15, "source": "NASA NSSDC Earth Fact Sheet, average temperature 288 K (15 C). https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html", "quality": "measured"},
-      "surface_dose_msv_day": {"value": null, "source": null, "quality": "placeholder", "note": "a completar: dosis de radiación cósmica a nivel del mar con fuente primaria (p. ej. UNSCEAR)."}
+      "surface_dose_msv_day": {
+        "value": 0.0009041095890410959,
+        "source": "UNSCEAR 2024 Report, vol. II, anexo B, sección III.B.2(b), párr. 191 (p. 48), modelo PARMA: 0,33 mSv/año sin blindaje de edificios. https://www.unscear.org/unscear/uploads/documents/unscear-reports/UNSCEAR_2024_Report_Vol.II.pdf#page=52 Consulta: 2026-11-14 (America/Argentina/Buenos_Aires).",
+        "quality": "modeled",
+        "note": "Dosis efectiva exterior, promedio mundial ponderado por población; conversión: 0,33 / 365 mSv/día (año de 365 días). No es una medición a nivel del mar ni del sitio elegido. Varía con altitud, latitud y ciclo solar. Dosis efectiva terrestre y dosis equivalente instrumental de Luna/Marte son magnitudes distintas: comparación orientativa, sin cocientes de riesgo ni participación en TASI. Se usa UNSCEAR porque los recursos oficiales del desafío no dan esta referencia dosimétrica de población."
+      }
     },
     "moon": {
       "name_es": "Luna",
       "gravity_m_s2": {"value": 1.62, "source": "NASA NSSDC Moon Fact Sheet, surface gravity. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "measured"},
       "surface_pressure_pa": {"value": 3e-10, "source": "NASA NSSDC Moon Fact Sheet: surface pressure (night) 3 x 10^-15 bar. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "measured", "note": "Valor nocturno; la ficha no da el diurno. En la práctica, vacío."},
-      "day_length_h": {"value": 708.7, "source": "NASA NSSDC Moon Fact Sheet: synodic period 29.53 days (= 708.7 h). https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "derived"},
+      "day_length_h": {"value": 708.72, "source": "NASA NSSDC Moon Fact Sheet: synodic period 29.53 days; 29,53 × 24 = 708,72 h. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html Consulta: 2026-11-14 (America/Argentina/Buenos_Aires).", "quality": "derived", "note": "Día solar medio: de un mediodía al siguiente, no solo las horas de luz. No es el período de rotación sideral de 655,720 h; la iluminación local depende del relieve y la latitud."},
       "surface_temp_range_k": {"value": [95, 390], "source": "NASA NSSDC Moon Fact Sheet: diurnal temperature range (equator) 95 K to 390 K. https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html", "quality": "measured"},
-      "surface_dose_msv_day": {"value": null, "source": null, "quality": "placeholder", "note": "a completar: Zhang et al. (2020), Science Advances, doi:10.1126/sciadv.aaz1334 (Chang'e-4 LND) o CRaTER/LRO; la cifra de 1,369 mSv/día solo se encontró en prensa, no en la fuente primaria."}
+      "surface_dose_msv_day": {
+        "value": 1.369,
+        "source": "Chang'e-4/LND, Zhang et al. (2020), Science Advances 6, eaaz1334, doi:10.1126/sciadv.aaz1334, Discusión: 1369 μSv/día = 1,369 mSv/día. https://pmc.ncbi.nlm.nih.gov/articles/PMC7518862/ Consulta: 2026-11-14 (America/Argentina/Buenos_Aires).",
+        "quality": "measured",
+        "note": "Dosis equivalente de partículas cargadas de rayos cósmicos galácticos (GCR), no dosis absorbida en silicio ni dosis efectiva humana. Medida en el cráter von Kármán, cara oculta, durante el 3–12 de enero y el 31 de enero–10 de febrero de 2019; se excluyeron los intervalos afectados por el rover y el control térmico. Mínimo solar; no representa todo lugar ni todo momento lunar, ni eventos solares. El instrumento está instalado en el módulo de descenso."
+      }
     },
     "mars": {
       "name_es": "Marte",

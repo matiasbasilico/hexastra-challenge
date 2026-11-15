@@ -18,13 +18,12 @@
     ? { planetaryUrl: "http://127.0.0.1:8766", earthUrl: "http://127.0.0.1:8767" }
     : { planetaryUrl: root.location.origin + "/api/planetary", earthUrl: root.location.origin + "/api/earth" });
 
-  // A URL saved by an earlier local visit (127.0.0.1) only works on the owner's machine.
+  // Cada visita publicada empieza por el proxy de este dominio. Un túnel viejo
+  // guardado en el navegador no debe sobrevivir al reinicio de los servicios.
+  // applyShareLink vuelve a aplicar solo los overrides explícitos de esta URL.
   if (!servedLocally) {
     ["HEXASTRA_PLANETARY_URL", "HEXASTRA_EARTH_URL"].forEach(function (key) {
-      try {
-        const saved = root.localStorage.getItem(key);
-        if (saved && LOCAL_HOST.test(new URL(saved).hostname)) root.localStorage.removeItem(key);
-      } catch (e) { /* private mode or invalid URL */ }
+      try { root.localStorage.removeItem(key); } catch (e) { /* modo privado */ }
     });
   }
 

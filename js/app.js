@@ -194,6 +194,22 @@
     state.earthMap = earth;
     state.marsMap = mars;
     state.layers = { osm, esri, gibsTrueColor, gibsLst, opm, mola, marsShaded, opmMoon };
+    if (window.HexastraGlobe) {
+      state.globe = window.HexastraGlobe.attach(earth, {
+        getContext: async (marker) => {
+          const site = marker.hexastraSite;
+          if (!site) return null;
+          const target = state.target;
+          try { await ensureDetails(site.id, target); } catch (e) { /* La ficha informa los datos ausentes. */ }
+          if (target && state.target?.id !== target.id) return null;
+          return { site, target, match: matchFor(site.id).match };
+        },
+      });
+      document.querySelectorAll('.layers-panel input[id^="layer-"]').forEach(input => {
+        if (['layer-opm', 'layer-mola', 'layer-shaded'].includes(input.id)) return;
+        input.addEventListener('change', () => state.globe.setMode(false));
+      });
+    }
     const resizeMaps = () => { earth.invalidateSize(); mars.invalidateSize(); };
     window.addEventListener("resize", resizeMaps);
     setTimeout(resizeMaps, 200);
@@ -295,16 +311,6 @@
     state.targetMarker.bindTooltip(t.short_name || t.name, { permanent: true, direction: "top", offset: [0, -12] });
     setRightBody(t.body);
     safeFly(state.marsMap, clampLatLng(t.lat, t.lon), t.body === "moon" ? 4 : 5, flyOpts(0.8));
-    refreshWeightsFor(t);
-  }
-
-  // Al cambiar de destino, los pesos solo se habilitan para los componentes con dato de ese destino.
-  async function refreshWeightsFor(t) {
-    if (!state.api || !$("#finder-features").children.length) return;
-    try {
-      if (!state.vectors[t.id]) state.vectors[t.id] = await state.api.getTargetVector(t.id);
-    } catch (e) { return; }
-    if (state.target === t) renderWeights(currentWeightsSource());
   }
 
   function chooseTarget(t) {
@@ -328,7 +334,8 @@
     state.sites[site.id] = Object.assign({}, state.sites[site.id] || {}, site);
     if (state.earthMarkers[site.id] || site.lat == null || site.lon == null || !state.earthMap) return;
     const m = L.marker([site.lat, site.lon], { icon: earthIconFor(site.id), title: site.name });
-    m.on("click", () => selectSite(site.id));
+    m.hexastraSite = site;
+      m.on("click", () => { selectSite(site.id); setAdvancedView('detail'); });
     m.bindTooltip(site.short_name || site.name);
     m.addTo(state.earthMap);
     state.earthMarkers[site.id] = m;
@@ -380,7 +387,7 @@
         " (" + sites.length + " sitios)</h3>" +
       ranked.concat(rest).map((site) => siteButton(site)).join("");
     box.querySelectorAll(".site-btn").forEach((btn) => {
-      btn.addEventListener("click", () => selectSite(btn.getAttribute("data-id"), true));
+      btn.addEventListener("click", () => { selectSite(btn.getAttribute("data-id"), true); setAdvancedView('detail'); });
     });
   }
 
@@ -495,7 +502,7 @@
     const unit = unitText(item.unit);
     const q = QUALITY_LABELS[item.quality];
     const n = Number(item.value);
-    const shown = Number.isNaN(n) ? escapeHtml(item.value) : escapeHtml(n.toLocaleString("es-AR", { maximumFractionDigits: 2 }));
+    const shown = Number.isNaN(n) ? escapeHtml(item.value) : escapeHtml(n.toLocaleString(globalThis.HexastraI18n?.locale || "es-AR", { maximumFractionDigits: 2 }));
     return "<td><span class='cmp-value'>" + shown + (unit ? (unit === "%" || unit === "°" ? "" : " ") + escapeHtml(unit) : "") + "</span>" +
       (q ? " <span class='tag " + q[1] + "'>" + escapeHtml(q[0]) + "</span>" : "") + "</td>";
   }
@@ -618,31 +625,20 @@
 
   /* ---------- Buscador (TASI) ---------- */
 
-  // Componentes con dato del lado del destino (vector de planetary). Sin vector todavía: se habilitan todos.
-  function componentAvailable(k) {
-    const v = state.target && state.vectors[state.target.id];
-    if (!v) return true;
-    const comps = v.components || {};
-    const c = comps[k] || (k === "V" ? comps.Vo : null) || {};
-    return !!c.available;
-  }
-
   function tasiWeightsFromUI() {
     const weights = {};
     document.querySelectorAll("#finder-features input[data-w]").forEach((rng) => {
-      weights[rng.dataset.w] = rng.disabled ? 0 : (Number(rng.value) || 0) / 100;
+      weights[rng.dataset.w] = (Number(rng.value) || 0) / 100;
     });
     return weights;
   }
 
-  // Porcentaje efectivo de cada peso después de renormalizar sobre los componentes habilitados.
+  // Preferencia elegida sobre las cinco dimensiones; el servicio informa el peso usado en cada par.
   function refreshEffectiveWeights() {
     const w = tasiWeightsFromUI();
     const total = Object.values(w).reduce((a, b) => a + b, 0);
     document.querySelectorAll("#finder-features [data-wv]").forEach((el) => {
       const k = el.dataset.wv;
-      const rng = document.querySelector('#finder-features input[data-w="' + k + '"]');
-      if (rng && rng.disabled) { el.textContent = "sin datos todavía"; return; }
       el.textContent = total > 0 ? Math.round((w[k] / total) * 100) + " %" : "0 %";
     });
   }
@@ -651,12 +647,11 @@
     const box = $("#finder-features");
     box.innerHTML = COMPONENT_KEYS.map((k) => {
       const label = escapeHtml(explain().COMPONENT_LABELS[k]);
-      const ok = componentAvailable(k);
       const w = Number((weights || {})[k]) || 0;
       return (
-        '<div class="feat-row' + (ok ? "" : " is-off") + '">' +
+        '<div class="feat-row">' +
           '<label for="w-' + k + '">' + label + "</label>" +
-          '<input type="range" id="w-' + k + '" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '"' + (ok ? "" : " disabled") + ">" +
+          '<input type="range" id="w-' + k + '" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '">' +
           '<span data-wv="' + k + '"></span>' +
         "</div>"
       );
@@ -674,11 +669,6 @@
   function presetWeights(id) {
     const p = ((state.method && state.method.presets) || []).find((x) => x.id === id);
     return (p && p.weights) || (state.method && state.method.default_weights) || {};
-  }
-
-  function currentWeightsSource() {
-    const mission = $("#finder-mission");
-    return mission && mission.value ? presetWeights(mission.value) : tasiWeightsFromUI();
   }
 
   // Región: un solo control con «Todo el mundo», cada continente y sus países (de /regions).
@@ -736,7 +726,7 @@
     const gamma = $("#finder-gamma");
     const gval = $("#finder-gamma-val");
     if (state.method && state.method.default_gamma != null) gamma.value = state.method.default_gamma;
-    const sync = () => { gval.textContent = Number(gamma.value).toFixed(1).replace(".", ","); };
+    const sync = () => { gval.textContent = Number(gamma.value).toLocaleString(globalThis.HexastraI18n?.locale || "es-AR", {minimumFractionDigits:1, maximumFractionDigits:1}); };
     gamma.addEventListener("input", sync);
     sync();
     const ndvi = $("#finder-mask-ndvi");
@@ -867,7 +857,19 @@
       });
       // Arranque: el primer par documentado (sitio + su destino marcados); si no hay, el primer destino de la API.
       const firstExample = state.examples.find((e) => state.sites[e.earth_id] && (e.target_ids || []).length);
-      if (firstExample) {
+      const incoming=new URLSearchParams(location.search);
+      const incomingTarget=state.targets.find(t=>t.id===incoming.get('target'));
+      const incomingPreset=(state.method.presets || []).find(p=>p.id===incoming.get('preset'));
+      if(incomingTarget){
+        $('#finder-target').value=incomingTarget.id;
+        if(incomingPreset){$('#finder-mission').value=incomingPreset.id;renderWeights(incomingPreset.weights);}
+        const incomingRegion=window.HexastraNavigation.advancedRegion(incoming.get('region'));
+        if(Array.from($('#finder-region').options).some(o=>o.value===incomingRegion))$('#finder-region').value=incomingRegion;
+        if(incoming.has('mask'))$('#finder-mask').checked=incoming.get('mask')!=='false';
+        focusTarget(incomingTarget);
+        if(incomingPreset)await runSearch();
+        if(state.sites[incoming.get('site')])selectSite(incoming.get('site'));
+      } else if (firstExample) {
         selectSite(firstExample.earth_id, true);
       } else {
         const first = state.targets.find((x) => x.id === $("#finder-target").value);
@@ -895,7 +897,7 @@
       "<table class='easy-table'><thead><tr><th scope='col'>Enfoque</th>" +
       COMPONENT_KEYS.map((k) => "<th scope='col'>" + k + "</th>").join("") + "</tr></thead><tbody>" + presets + "</tbody></table>" +
       "<p class='muted'>γ por defecto: " + escapeHtml(String(m.default_gamma).replace(".", ",")) +
-      ". Umbral de NDVI de la máscara: " + escapeHtml(String(m.ndvi_threshold).replace(".", ",")) +
+      ". Umbral de NDVI de la máscara: " + escapeHtml(Number(m.ndvi_threshold).toLocaleString(globalThis.HexastraI18n?.locale || "es-AR")) +
       ". Catálogo: " + escapeHtml(String(catalog.n_sites)) + " sitios (origen " + escapeHtml(catalog.origin || "a completar") + ").</p>"
     );
   }
@@ -920,11 +922,32 @@
   }
 
   // Menús plegables (pesos, opciones, capas): se cierran con Escape o al tocar afuera; uno abierto a la vez.
+  function setAdvancedView(view){
+    document.body.dataset.advancedView=view;
+    document.querySelectorAll('[data-advanced-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.advancedView===view)));
+    requestAnimationFrame(()=>window.HexastraApp?.invalidateMaps());
+  }
   function bindMenus() {
     const menus = () => Array.from(document.querySelectorAll(".adv-menu, .layers-menu"));
+    function positionMenu(d){
+      if(!d.open)return;
+      const panel=d.querySelector('.adv-menu-panel, .layers-panel'),anchor=d.querySelector('summary').getBoundingClientRect();
+      if(!panel)return;
+      const width=innerWidth,height=innerHeight,r=panel.getBoundingClientRect(),edge=12;
+      const below=anchor.bottom+8,above=anchor.top-r.height-8;
+      const top=below+r.height<=height-edge?below:above>=edge?above:Math.max(edge,(height-r.height)/2);
+      panel.style.left=Math.max(edge,Math.min(anchor.left,width-r.width-edge))+'px';
+      panel.style.top=Math.max(edge,Math.min(top,height-r.height-edge))+'px';
+    }
     menus().forEach((d) => d.addEventListener("toggle", () => {
-      if (d.open) menus().forEach((o) => { if (o !== d) o.open = false; });
+      if (d.open) {menus().forEach((o) => { if (o !== d) o.open = false; });positionMenu(d);}
     }));
+    document.querySelectorAll('[data-close-menu]').forEach(b=>b.addEventListener('click',()=>{const d=b.closest('details');d.open=false;d.querySelector('summary').focus();}));
+    document.querySelectorAll('[data-advanced-view]').forEach(b=>b.addEventListener('click',()=>setAdvancedView(b.dataset.advancedView)));
+    setAdvancedView('maps');
+    $('#advanced-globe-link').href=window.HexastraNavigation.modeURL(location.href,'globe');
+    window.addEventListener('resize',()=>requestAnimationFrame(()=>menus().forEach(positionMenu)));
+    document.addEventListener('scroll',()=>menus().forEach(positionMenu),true);
     document.addEventListener("click", (e) => {
       menus().forEach((d) => { if (d.open && !d.contains(e.target)) d.open = false; });
     });
@@ -978,4 +1001,8 @@
     },
     getMethod: function () { return state.method; },
   };
+  window.addEventListener('hexastra:languagechange',()=>{
+    if(state.selectedId)renderSitePanel(state.selectedId);
+    renderSiteList();
+  });
 })();

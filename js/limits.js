@@ -8,8 +8,8 @@
   const ROWS = [
     { key: "gravity_m_s2", label: "Gravedad, m/s²", convert: (v) => v },
     { key: "surface_pressure_pa", label: "Presión en superficie, mbar", convert: (v) => v / 100 },
-    { key: "surface_dose_msv_day", label: "Radiación cósmica en superficie, mSv/día", convert: (v) => v },
-    { key: "day_length_h", label: "Duración del día, h", convert: (v) => v },
+    { key: "surface_dose_msv_day", label: "Radiación cósmica en superficie, mSv/día", convert: (v) => v, digits: 3 },
+    { key: "day_length_h", label: "Duración del día solar, h", convert: (v) => v, digits: 1 },
   ];
 
   function escapeHtml(s) {
@@ -18,16 +18,16 @@
   }
 
   /** Número en es-AR; los muy chicos en notación científica (3×10⁻¹²). */
-  function formatValue(v) {
+  function formatValue(v, maximumFractionDigits) {
     if (v == null || Number.isNaN(Number(v))) return null;
     const n = Number(v);
-    if (n !== 0 && Math.abs(n) < 0.001) {
+    if (n !== 0 && Math.abs(n) < 0.01) {
       const exp = Math.floor(Math.log10(Math.abs(n)));
       const mant = Math.round((n / Math.pow(10, exp)) * 10) / 10;
-      return escapeHtml(String(mant).replace(".", ",")) + "×10<sup>" + String(exp).replace("-", "−") + "</sup>";
+      return escapeHtml((globalThis.HexastraI18n?.language === "en" ? String(mant) : String(mant).replace(".", ","))) + "×10<sup>" + String(exp).replace("-", "−") + "</sup>";
     }
-    const digits = Math.abs(n) >= 100 ? 0 : Math.abs(n) >= 10 ? 1 : 2;
-    return escapeHtml(n.toLocaleString("es-AR", { maximumFractionDigits: digits, useGrouping: Math.abs(n) >= 10000 }));
+    const digits = maximumFractionDigits ?? (Math.abs(n) >= 100 ? 0 : Math.abs(n) >= 10 ? 1 : 2);
+    return escapeHtml(n.toLocaleString(globalThis.HexastraI18n?.locale || "es-AR", { maximumFractionDigits: digits, useGrouping: Math.abs(n) >= 10000 }));
   }
 
   function linkify(text) {
@@ -46,7 +46,7 @@
     rows.innerHTML = ROWS.map((row) => {
       const cells = BODIES.map(([id, name]) => {
         const item = (bodies[id] || {})[row.key];
-        const shown = item && item.value != null && !Array.isArray(item.value) ? formatValue(row.convert(Number(item.value))) : null;
+        const shown = item && item.value != null && !Array.isArray(item.value) ? formatValue(row.convert(Number(item.value)), row.digits) : null;
         if (item && item.source && shown != null) sources.push({ body: name, label: row.label, source: item.source, note: item.note });
         if (shown == null) {
           pending.push({ body: name, label: row.label, note: (item && item.note) || "a completar: la API no trae este valor." });
@@ -78,6 +78,9 @@
   }
 
   async function boot() {
+    const button = document.getElementById("btn-limites");
+    const dialog = document.getElementById("limits-dialog");
+    if (button && dialog) button.addEventListener("click", () => dialog.showModal());
     const ready = window.HEXASTRA_API_READY;
     const api = ready && typeof ready.then === "function" ? await ready.catch(() => window.HexastraAPI) : window.HexastraAPI;
     try {

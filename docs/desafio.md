@@ -1,6 +1,8 @@
-# Desafío oficial — fuente de verdad
+# Official challenge — source of truth
 
-Texto copiado tal cual de la página del desafío de NASA Space Apps 2026 (pestañas *Details* y *Resources*), guardado el 14 de noviembre de 2026. Ante cualquier duda sobre el objetivo, manda este texto. Las reglas operativas para agentes están en [`CLAUDE.md`](../CLAUDE.md).
+The text below was copied from the NASA Space Apps 2026 challenge page (*Details* and *Resources* tabs) on November 14, 2026. It is the authoritative reference for the project objective. Agent operating rules are in [`CLAUDE.md`](../CLAUDE.md).
+
+Official source: https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/
 
 ---
 
@@ -55,7 +57,7 @@ For data and resources related to this challenge, refer to the Resources tab at 
 
 ---
 
-## Resources (pestaña oficial)
+## Resources (official tab)
 
 NASA does not endorse any non-U.S. Government entity and is not responsible for information contained on non-U.S. Government websites. For non-U.S. Government websites, participants must comply with any data use parameters of that specific website.
 
