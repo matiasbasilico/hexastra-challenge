@@ -12,3 +12,8 @@ __pycache__/
 
 # Hallmark: registro local del rediseño (capturas y hallazgos)
 .hallmark/
+
+# Descargas crudas grandes (se regeneran con los scripts de ingesta)
+services/earth/data/raw/cci_cache/
+services/planetary/data/raw/cache/
+services/earth/data/raw/appeears/*.task.json
