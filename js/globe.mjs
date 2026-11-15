@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { latLonToXYZ, matchDialogHTML } from './globe-data.mjs';
+import { createPlanetCards } from './planet-cards.mjs';
 
 function openMatch(context) {
   let dialog = document.getElementById('match-dialog');
@@ -276,4 +277,4 @@ export function attach(map, options = {}) {
   return { setMode, sync, focus, resize, openMatch };
 }
 
-if (typeof window !== 'undefined') window.HexastraGlobe = { attach, openMatch };
+if (typeof window !== 'undefined') window.HexastraGlobe = { attach, openMatch, createPlanetCards };

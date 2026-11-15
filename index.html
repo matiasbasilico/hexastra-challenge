@@ -2,7 +2,7 @@
 <html lang="es-AR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>HexAstra: análogos terrestres de la Luna y Marte</title>
   <meta name="description" content="HexAstra, NASA Space Apps Challenge 2026: buscá lugares de la Tierra que se parecen a sitios de la Luna y de Marte, con datos citados y lo que la Tierra no puede imitar.">
   <meta name="theme-color" content="#070915">
@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="css/immersive.css">
   <link rel="stylesheet" href="css/globe.css">
 </head>
-<body class="immersive">
+<body class="immersive" data-comparable-only="true">
   <main id="world-app" aria-label="Explorador de análogos terrestres">
     <div class="world-stage" id="world-map" role="application" aria-label="Tierra 3D con sitios del catálogo"></div>
     <header class="orbit-header">
@@ -39,9 +39,13 @@
       <button type="button" id="open-help" aria-haspopup="dialog"><span aria-hidden="true">ⓘ</span> El proyecto</button>
     </nav>
     <p class="orbit-status" id="world-status" role="status">Conectando con los catálogos…</p>
+    <button type="button" class="orbit-filter" id="toggle-comparable" aria-pressed="true" title="Mostrar también los sitios sin puntaje en esta misión"><span aria-hidden="true">✓</span><span id="comparable-label">Solo comparables</span></button>
     <aside class="sites-float floating-panel" id="sites-panel" hidden aria-labelledby="sites-title">
       <div class="float-heading"><div><p class="float-kicker">Explorar</p><h2 id="sites-title">Sitios en la Tierra</h2></div><button type="button" id="close-sites" aria-label="Cerrar lista de sitios">×</button></div>
-      <label class="site-search"><span class="visually-hidden">Buscar sitio o país</span><input type="search" id="site-query" placeholder="Buscar sitio o país…" autocomplete="off"></label>
+      <div class="site-tools">
+        <label class="site-search"><span class="visually-hidden">Buscar sitio o país</span><input type="search" id="site-query" placeholder="Buscar sitio o país…" autocomplete="off"></label>
+        <button type="button" id="toggle-comparable-list" class="site-filter-toggle" aria-pressed="true" aria-label="Mostrar solo sitios comparables">Comparables</button>
+      </div>
       <div id="world-sites" class="world-sites"></div>
     </aside>
     <aside class="compare-float floating-panel" id="compare-panel" hidden aria-labelledby="compare-title">
@@ -52,15 +56,35 @@
     </aside>
     <dialog id="mission-dialog" class="orbit-dialog" aria-labelledby="mission-title">
       <div class="float-heading"><div><p class="float-kicker">Tu exploración</p><h2 id="mission-title">Elegí la misión</h2></div><button type="button" data-close-dialog aria-label="Cerrar configuración">×</button></div>
-      <p class="dialog-lead">Buscamos qué lugares de la Tierra se parecen a tu destino, por dimensión y con datos.</p>
+      <p class="dialog-lead">Elegí el mundo que querés explorar. Encontramos sus análogos en la Tierra.</p>
       <form id="mission-form">
-        <fieldset class="body-options"><legend>Cuerpo del destino</legend><label><input type="radio" name="body" value="mars" checked> Marte</label><label><input type="radio" name="body" value="moon"> Luna</label></fieldset>
-        <label class="orbit-field">Destino<select id="world-target" required disabled></select></label>
-        <label class="orbit-field">Qué querés comparar<select id="world-preset" required disabled></select></label>
+        <fieldset class="body-options">
+          <legend>Tu destino</legend>
+          <label class="planet-card planet-card-mars">
+            <input type="radio" name="body" value="mars" checked>
+            <span class="planet-check" aria-hidden="true">✓</span>
+            <span class="planet-visual" aria-hidden="true"></span>
+            <span class="planet-card-name">Marte</span>
+            <span class="planet-card-caption">Exploración marciana</span>
+          </label>
+          <label class="planet-card planet-card-moon">
+            <input type="radio" name="body" value="moon">
+            <span class="planet-check" aria-hidden="true">✓</span>
+            <span class="planet-visual" aria-hidden="true"></span>
+            <span class="planet-card-name">Luna</span>
+            <span class="planet-card-caption">Destinos lunares</span>
+          </label>
+        </fieldset>
+        <label class="orbit-field mission-main-field">Sitio de destino<select id="world-target" required disabled></select></label>
+        <label class="orbit-field mission-main-field">Enfoque de la misión<select id="world-preset" required disabled></select></label>
         <p class="preset-description" id="preset-description"></p>
-        <label class="orbit-field">Buscar en<select id="world-region"><option value="">Todo el mundo</option></select></label>
-        <label class="orbit-mask"><input type="checkbox" id="world-mask" checked> Aplicar la máscara de vegetación y agua líquida</label>
-        <p class="dialog-note">Los puntos permanecen visibles. El puntaje se calcula solo con los componentes comparables; los sitios descartados y los datos que faltan se identifican.</p>
+        <details class="mission-refine">
+          <summary>Región y filtros</summary>
+          <label class="orbit-field">Buscar en<select id="world-region"><option value="">Todo el mundo</option></select></label>
+          <label class="orbit-mask"><input type="checkbox" id="world-mask" checked> Aplicar la máscara de vegetación y agua líquida</label>
+          <label class="orbit-mask"><input type="checkbox" id="world-comparable-only" checked> Mostrar solo sitios con puntaje para esta misión</label>
+          <p class="dialog-note">Podés mostrar todos los sitios quitando «Solo comparables». El puntaje usa solo datos comparables; lo que falta o se descarta se identifica.</p>
+        </details>
         <button type="submit" id="apply-mission" class="orbit-primary" disabled>Explorar esta misión <span aria-hidden="true">↗</span></button>
       </form>
     </dialog>

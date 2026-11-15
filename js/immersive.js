@@ -3,8 +3,8 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const H=window.HexastraImmersiveData;
-  const state={api:null,sites:[],targets:[],method:null,regions:null,target:null,preset:null,region:'',mask:true,selected:null,ranking:null,rankings:new Map(),vectors:new Map(),details:new Map(),markers:new Map(),revision:0,pairRevision:0};
-  let earth,globe,destination,destinationLayer,destinationMarker;
+  const state={api:null,sites:[],targets:[],method:null,regions:null,target:null,preset:null,region:'',mask:true,onlyComparable:true,selected:null,ranking:null,rankings:new Map(),vectors:new Map(),details:new Map(),markers:new Map(),revision:0,pairRevision:0};
+  let earth,globe,destination,destinationLayer,destinationMarker,planetCards;
   const reduced=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function status(text,error=false){$('world-status').textContent=text;$('world-status').classList.toggle('is-error',error);}
   function openDialog(id){const d=$(id);if(!d.open)d.showModal();}
@@ -28,16 +28,38 @@
     const match=H.pairFromRanking(state.ranking,site.id).match;
     const rank=match?.score!=null?(state.ranking.matches || []).indexOf(match)+1:0;
     const leading=rank>0 && rank<=5 && Number.isFinite(match?.score) && match.score>0;
+    const uncompared=!Number.isFinite(match?.score);
     const active=state.selected?.id===site.id;
     const kind=site.highlight_less_studied || site.known_level==='lesser-known'?'menos':'earth';
-    return L.divIcon({className:'',html:`<span class="pin ${rank && active?'rank':kind}${active?' active':''}${leading?' is-leading':''}" style="--pulse-delay:${-180*Math.max(0,rank-1)}ms">${active?rank || '':''}</span>`,iconSize:[28,28],iconAnchor:[14,14]});
+    return L.divIcon({className:'',html:`<span class="pin ${rank && active?'rank':kind}${active?' active':''}${leading?' is-leading':''}${uncompared?' is-uncompared':''}" style="--pulse-delay:${-180*Math.max(0,rank-1)}ms">${active?rank || '':''}</span>`,iconSize:[28,28],iconAnchor:[14,14]});
+  }
+  function isComparable(site){return Number.isFinite(H.pairFromRanking(state.ranking,site.id).match?.score);}
+  function rankingStatus(){
+    if(!state.ranking)return;
+    const n=(state.ranking.matches || []).filter(m=>Number.isFinite(m.score)).length;
+    const leaders=(state.ranking.matches || []).slice(0,5).filter(m=>Number.isFinite(m.score) && m.score>0).length;
+    status(`${state.onlyComparable?n:state.sites.length} de ${state.sites.length} sitios visibles · ${n} ${n===1?'comparable':'comparables'}${leaders?` · ${leaders} ${leaders===1?'mejor TASI':'mejores TASI'} con pulso`:''}`);
+  }
+  function setComparableFilter(enabled,validateSelection=true){
+    state.onlyComparable=enabled;document.body.dataset.comparableOnly=String(enabled);
+    $('toggle-comparable').setAttribute('aria-pressed',String(enabled));
+    $('toggle-comparable-list').setAttribute('aria-pressed',String(enabled));
+    $('toggle-comparable-list').title=enabled?'Mostrar el catálogo completo':'Mostrar solo sitios comparables';
+    $('comparable-label').textContent=enabled?'Solo comparables':'Todos los sitios';
+    $('toggle-comparable').firstElementChild.textContent=enabled?'✓':'◉';
+    $('toggle-comparable').title=enabled?'Mostrar también los sitios sin puntaje en esta misión':'Ocultar los sitios sin puntaje en esta misión';
+    $('world-comparable-only').checked=enabled;
+    if(validateSelection && enabled && state.ranking && state.selected && !isComparable(state.selected))setComparisonOpen(false);
+    updateIcons();renderSites();rankingStatus();
   }
   function updateIcons(){state.markers.forEach((marker,id)=>marker.setIcon(siteIcon(state.sites.find(s=>s.id===id))));}
   function renderSites(){
     const query=$('site-query').value.trim().toLocaleLowerCase('es');
     const ranking=state.ranking?.matches || [];
     const scores=new Map(ranking.map(m=>[m.site.id,m.score]));
-    const sites=state.sites.filter(s=>`${s.name} ${s.country_name || s.country || ''}`.toLocaleLowerCase('es').includes(query)).slice().sort((a,b)=>(scores.get(b.id)??-1)-(scores.get(a.id)??-1));
+    const visible=state.sites.filter(s=>!state.onlyComparable || isComparable(s));
+    $('site-count').textContent=state.onlyComparable?`${visible.length}/${state.sites.length}`:state.sites.length;
+    const sites=visible.filter(s=>`${s.name} ${s.country_name || s.country || ''}`.toLocaleLowerCase('es').includes(query)).slice().sort((a,b)=>(scores.get(b.id)??-1)-(scores.get(a.id)??-1));
     $('world-sites').innerHTML=sites.length?sites.map(site=>`<button type="button" class="world-site" data-id="${H.escape(site.id)}" aria-pressed="${state.selected?.id===site.id}"><strong>${H.escape(site.short_name || site.name)}</strong><small>${H.escape(site.country_name || site.country || site.continent || '')}${site.highlight_less_studied || site.known_level==='lesser-known'?' · Menos estudiado':''}</small><span class="site-score">${scores.get(site.id)!=null?H.escape(window.HexastraExplain.formatScore(scores.get(site.id))):'—'}</span></button>`).join(''):'<p class="empty-note">No hay sitios con ese nombre o país.</p>';
   }
   function targetOptions(body){
@@ -48,7 +70,9 @@
   function openMission(){
     if(state.target){document.querySelector(`input[name="body"][value="${state.target.body}"]`).checked=true;targetOptions(state.target.body);$('world-target').value=state.target.id;}
     if(state.preset)$('world-preset').value=state.preset.id;
-    $('world-region').value=state.region;$('world-mask').checked=state.mask;describePreset();openDialog('mission-dialog');
+    $('world-region').value=state.region;$('world-mask').checked=state.mask;$('world-comparable-only').checked=state.onlyComparable;describePreset();openDialog('mission-dialog');
+    if(!planetCards)planetCards=window.HexastraGlobe?.createPlanetCards?.($('mission-dialog'));
+    planetCards?.render();
   }
   function describePreset(){const p=(state.method?.presets || []).find(p=>p.id===$('world-preset').value);$('preset-description').textContent=p?.lead_es || '';}
   async function vectorFor(target){
@@ -71,10 +95,9 @@
     try{
       const ranking=await rankingFor(state.target,state.preset,state.region,state.mask);
       if(revision!==state.revision)return;
-      state.ranking=ranking;updateIcons();renderSites();
-      const n=(ranking.matches || []).filter(m=>m.score!=null).length;
-      const leaders=(ranking.matches || []).slice(0,5).filter(m=>Number.isFinite(m.score) && m.score>0).length;
-      status(`${state.sites.length} sitios · ${n} comparables en esta misión${leaders?` · ${leaders} mejores TASI con pulso`:''}`);
+      state.ranking=ranking;
+      if(state.onlyComparable && state.selected && !isComparable(state.selected))setComparisonOpen(false);
+      updateIcons();renderSites();rankingStatus();
     }catch(e){if(revision===state.revision)status(`No se pudo calcular TASI. ${e.message}`,true);}
   }
   function focusEarth(site){
@@ -113,6 +136,7 @@
     const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason.message);
     const pair=H.pairFromRanking(ranking,id);
     $('compare-content').innerHTML=H.comparisonHTML({site,target,...pair,detail,vector,outside:H.outsideRegion(site,region),error:ranking?null:errors.join(' ') || 'No se pudo obtener la comparación.'},window.HexastraExplain);
+    if(H.outsideRegion(site,region))$('compare-content').querySelector('.compare-warning')?.insertAdjacentHTML('afterend','<button type="button" class="compare-reset-filter" data-reset-region>Comparar sin filtro de región ↗</button>');
     if(errors.length && ranking)$('compare-content').insertAdjacentHTML('beforeend',`<p class="compare-warning">Algunos detalles no están disponibles: ${H.escape(errors.join(' '))}</p>`);
   }
   function renderMethod(){
@@ -132,6 +156,12 @@
     $('site-query').addEventListener('input',renderSites);
     $('world-sites').addEventListener('click',e=>{const button=e.target.closest('[data-id]');if(button)selectSite(button.dataset.id);});
     $('close-comparison').addEventListener('click',closeComparison);
+    $('toggle-comparable').addEventListener('click',()=>setComparableFilter(!state.onlyComparable));
+    $('toggle-comparable-list').addEventListener('click',()=>setComparableFilter(!state.onlyComparable));
+    $('compare-content').addEventListener('click',e=>{
+      if(!e.target.closest('[data-reset-region]') || !state.selected)return;
+      const id=state.selected.id;state.region='';$('world-region').value='';refreshRanking();selectSite(id);
+    });
     $('open-mission').addEventListener('click',openMission);$('open-settings').addEventListener('click',openMission);
     $('open-help').addEventListener('click',()=>{
       renderMethod();
@@ -151,6 +181,7 @@
     $('mission-form').addEventListener('submit',e=>{
       e.preventDefault();const target=state.targets.find(t=>t.id===$('world-target').value);if(!target)return;
       state.target=target;state.preset=state.method.presets.find(p=>p.id===$('world-preset').value);state.region=$('world-region').value;state.mask=$('world-mask').checked;
+      setComparableFilter($('world-comparable-only').checked,false);
       document.body.dataset.body=target.body;
       $('mission-label').textContent=`${target.body==='moon'?'Luna':'Marte'} · ${target.short_name || target.name}`;
       $('mission-dialog').close();refreshRanking();if(state.selected)selectSite(state.selected.id);
