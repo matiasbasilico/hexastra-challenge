@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/easy.css">
   <link rel="stylesheet" href="css/immersive.css">
+  <link rel="stylesheet" href="css/mission.css">
   <link rel="stylesheet" href="css/globe.css">
 </head>
 <body class="immersive" data-comparable-only="true">
@@ -54,38 +55,59 @@
       <section class="destination-frame" aria-label="Mapa del destino seleccionado"><div class="destination-label" id="destination-label"></div><div id="destination-map" aria-label="Mapa de Luna o Marte" role="application"></div></section>
       <div class="compare-scroll" id="compare-content" aria-live="polite"></div>
     </aside>
-    <dialog id="mission-dialog" class="orbit-dialog" aria-labelledby="mission-title">
-      <div class="float-heading"><div><p class="float-kicker">Tu exploración</p><h2 id="mission-title">Elegí la misión</h2></div><button type="button" data-close-dialog aria-label="Cerrar configuración">×</button></div>
-      <p class="dialog-lead">Elegí el mundo que querés explorar. Encontramos sus análogos en la Tierra.</p>
+    <dialog id="mission-dialog" class="orbit-dialog mission-wizard" data-mission-step="0" aria-labelledby="mission-title">
+      <div class="float-heading"><div><p class="float-kicker" id="mission-step-label">Tu exploración · Paso 1 de 3</p><h2 id="mission-title" tabindex="-1">Elegí tu mundo</h2></div><button type="button" data-close-dialog aria-label="Cerrar configuración">×</button></div>
+      <ol class="mission-progress" aria-label="Pasos de la misión">
+        <li><button type="button" data-mission-go="0" aria-current="step"><span>01</span> Mundo</button></li>
+        <li><button type="button" data-mission-go="1" disabled><span>02</span> Destino</button></li>
+        <li><button type="button" data-mission-go="2" disabled><span>03</span> Enfoque</button></li>
+      </ol>
       <form id="mission-form">
-        <fieldset class="body-options">
-          <legend>Tu destino</legend>
-          <label class="planet-card planet-card-mars">
-            <input type="radio" name="body" value="mars" checked>
-            <span class="planet-check" aria-hidden="true">✓</span>
-            <span class="planet-visual" aria-hidden="true"></span>
-            <span class="planet-card-name">Marte</span>
-            <span class="planet-card-caption">Exploración marciana</span>
-          </label>
-          <label class="planet-card planet-card-moon">
-            <input type="radio" name="body" value="moon">
-            <span class="planet-check" aria-hidden="true">✓</span>
-            <span class="planet-visual" aria-hidden="true"></span>
-            <span class="planet-card-name">Luna</span>
-            <span class="planet-card-caption">Destinos lunares</span>
-          </label>
-        </fieldset>
-        <label class="orbit-field mission-main-field">Sitio de destino<select id="world-target" required disabled></select></label>
-        <label class="orbit-field mission-main-field">Enfoque de la misión<select id="world-preset" required disabled></select></label>
-        <p class="preset-description" id="preset-description"></p>
-        <details class="mission-refine">
-          <summary>Región y filtros</summary>
-          <label class="orbit-field">Buscar en<select id="world-region"><option value="">Todo el mundo</option></select></label>
-          <label class="orbit-mask"><input type="checkbox" id="world-mask" checked> Aplicar la máscara de vegetación y agua líquida</label>
-          <label class="orbit-mask"><input type="checkbox" id="world-comparable-only" checked> Mostrar solo sitios con puntaje para esta misión</label>
-          <p class="dialog-note">Podés mostrar todos los sitios quitando «Solo comparables». El puntaje usa solo datos comparables; lo que falta o se descarta se identifica.</p>
-        </details>
-        <button type="submit" id="apply-mission" class="orbit-primary" disabled>Explorar esta misión <span aria-hidden="true">↗</span></button>
+        <section class="mission-step mission-world-step" data-mission-page="0">
+          <p class="dialog-lead">La exploración empieza acá. ¿A dónde querés ir?</p>
+          <fieldset class="body-options">
+            <legend class="visually-hidden">Tu destino</legend>
+            <label class="planet-card planet-card-mars">
+              <input type="radio" name="body" value="mars" checked>
+              <span class="planet-check" aria-hidden="true">✓</span>
+              <span class="planet-visual" aria-hidden="true"></span>
+              <span class="planet-card-name">Marte</span>
+              <span class="planet-card-caption">Exploración marciana</span>
+            </label>
+            <label class="planet-card planet-card-moon">
+              <input type="radio" name="body" value="moon">
+              <span class="planet-check" aria-hidden="true">✓</span>
+              <span class="planet-visual" aria-hidden="true"></span>
+              <span class="planet-card-name">Luna</span>
+              <span class="planet-card-caption">Destinos lunares</span>
+            </label>
+          </fieldset>
+        </section>
+        <section class="mission-step mission-destination-step" data-mission-page="1" hidden>
+          <div class="mission-target-choice">
+            <p class="mission-selection" id="mission-world-label"></p>
+            <label class="orbit-field">Sitio de destino<select id="world-target" required disabled></select></label>
+          </div>
+          <article id="mission-target-info" class="mission-target-info" aria-live="polite"></article>
+        </section>
+        <section class="mission-step mission-focus-step" data-mission-page="2" hidden>
+          <p class="mission-selection" id="mission-selection-label"></p>
+          <label class="orbit-field">¿Qué querés poner a prueba?<select id="world-preset" required disabled aria-describedby="preset-description"></select></label>
+          <p class="preset-description" id="preset-description"></p>
+          <details class="mission-refine">
+            <summary>Región y filtros</summary>
+            <div class="mission-filter-grid">
+              <label class="orbit-field">Buscar en<select id="world-region"><option value="">Todo el mundo</option></select></label>
+              <label class="orbit-mask"><input type="checkbox" id="world-mask" checked> Máscara de vegetación y agua líquida</label>
+              <label class="orbit-mask"><input type="checkbox" id="world-comparable-only" checked> Solo sitios comparables</label>
+            </div>
+            <p class="dialog-note">Desactivá «Solo sitios comparables» para ver también los sitios sin puntaje.</p>
+          </details>
+        </section>
+        <div class="mission-actions">
+          <button type="button" id="mission-back" hidden>← Atrás</button>
+          <button type="submit" id="apply-mission" class="orbit-primary" disabled><span id="mission-next-label">Elegir destino</span><span aria-hidden="true">↗</span></button>
+        </div>
       </form>
     </dialog>
     <dialog id="help-dialog" class="orbit-dialog help-dialog" aria-labelledby="help-title">
@@ -133,6 +155,7 @@
   <script src="js/vendor/globe.bundle.js"></script>
   <script src="js/limits.js"></script>
   <script src="js/immersive-data.js"></script>
+  <script src="js/mission.js"></script>
   <script src="js/immersive.js"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   const $=id=>document.getElementById(id);
   const H=window.HexastraImmersiveData;
   const state={api:null,sites:[],targets:[],method:null,regions:null,target:null,preset:null,region:'',mask:true,onlyComparable:true,selected:null,ranking:null,rankings:new Map(),vectors:new Map(),details:new Map(),markers:new Map(),revision:0,pairRevision:0};
-  let earth,globe,destination,destinationLayer,destinationMarker,planetCards;
+  let earth,globe,destination,destinationLayer,destinationMarker,planetCards,missionFlow;
   const reduced=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function status(text,error=false){$('world-status').textContent=text;$('world-status').classList.toggle('is-error',error);}
   function openDialog(id){const d=$(id);if(!d.open)d.showModal();}
@@ -70,7 +70,7 @@
   function openMission(){
     if(state.target){document.querySelector(`input[name="body"][value="${state.target.body}"]`).checked=true;targetOptions(state.target.body);$('world-target').value=state.target.id;}
     if(state.preset)$('world-preset').value=state.preset.id;
-    $('world-region').value=state.region;$('world-mask').checked=state.mask;$('world-comparable-only').checked=state.onlyComparable;describePreset();openDialog('mission-dialog');
+    $('world-region').value=state.region;$('world-mask').checked=state.mask;$('world-comparable-only').checked=state.onlyComparable;describePreset();missionFlow?.reset();openDialog('mission-dialog');
     if(!planetCards)planetCards=window.HexastraGlobe?.createPlanetCards?.($('mission-dialog'));
     planetCards?.render();
   }
@@ -179,7 +179,8 @@
     document.querySelectorAll('input[name="body"]').forEach(r=>r.addEventListener('change',()=>targetOptions(r.value)));
     $('world-preset').addEventListener('change',describePreset);
     $('mission-form').addEventListener('submit',e=>{
-      e.preventDefault();const target=state.targets.find(t=>t.id===$('world-target').value);if(!target)return;
+      e.preventDefault();if(missionFlow && !missionFlow.isLastStep()){missionFlow.next();return;}
+      const target=state.targets.find(t=>t.id===$('world-target').value);if(!target)return;
       state.target=target;state.preset=state.method.presets.find(p=>p.id===$('world-preset').value);state.region=$('world-region').value;state.mask=$('world-mask').checked;
       setComparableFilter($('world-comparable-only').checked,false);
       document.body.dataset.body=target.body;
@@ -201,7 +202,9 @@
       $('world-preset').innerHTML=(method.presets || []).map(p=>`<option value="${H.escape(p.id)}">${H.escape(p.title_es || p.id)}</option>`).join('');$('world-preset').disabled=!method.presets?.length;
       $('world-region').innerHTML='<option value="">Todo el mundo</option>'+(regions.continents || []).map(c=>`<optgroup label="${H.escape(c.name)}"><option value="continent:${H.escape(c.name)}">${H.escape(c.name)} · continente</option>${(c.countries || []).map(p=>`<option value="country:${H.escape(p.iso)}">${H.escape(p.name)}</option>`).join('')}</optgroup>`).join('');
       if(!state.target){status('El catálogo no tiene destinos disponibles.',true);renderSites();return;}
-      targetOptions(state.target.body);$('world-target').value=state.target.id;$('apply-mission').disabled=false;
+      targetOptions(state.target.body);$('world-target').value=state.target.id;
+      missionFlow=window.HexastraMission.create({getState:()=>state,coordinates:H.coordinates,onStep:()=>planetCards?.render()});
+      $('apply-mission').disabled=false;
       document.body.dataset.body=state.target.body;
       $('mission-label').textContent=`${state.target.body==='moon'?'Luna':'Marte'} · ${state.target.short_name || state.target.name}`;
       renderSites();refreshRanking();
