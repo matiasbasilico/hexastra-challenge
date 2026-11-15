@@ -4,7 +4,7 @@
   const $=id=>document.getElementById(id);
   const H=window.HexastraImmersiveData;
   const state={missionActive:false,api:null,sites:[],targets:[],method:null,regions:null,target:null,preset:null,region:'',mask:true,onlyComparable:true,selected:null,ranking:null,rankings:new Map(),vectors:new Map(),details:new Map(),markers:new Map(),revision:0,pairRevision:0};
-  let earth,globe,destination,destinationLayer,destinationMarker,planetCards,missionFlow,missionHintTimer,missionHintExpiry;
+  let earth,globe,destination,destinationLayer,destinationMarker,destinationTargetId,planetCards,missionFlow,missionHintTimer,missionHintExpiry;
   const reduced=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function status(text,error=false){$('world-status').textContent=text;$('world-status').classList.toggle('is-error',error);}
   function openDialog(id){const d=$(id);if(!d.open)d.showModal();}
@@ -127,6 +127,11 @@
     earth.setView([site.lat,site.lon],3,{animate:false});globe?.focus();
   }
   function showDestination(target){
+    // Otro punto terrestre conserva el mismo mapa, sus teselas y el zoom del usuario.
+    if(destination && destinationTargetId===target.id){
+      requestAnimationFrame(()=>destination.invalidateSize({pan:false}));
+      return;
+    }
     if(!destination)destination=L.map('destination-map',{zoomControl:true,minZoom:1,maxZoom:8,attributionControl:true}).setView([0,0],1);
     if(destinationLayer)destination.removeLayer(destinationLayer);
     if(destinationMarker)destination.removeLayer(destinationMarker);
@@ -139,6 +144,7 @@
     destination.setView(ll,moon?3:4,{animate:false});
     $('destination-label').textContent=`${moon?'Luna':'Marte'} · ${target.short_name || target.name}`;
     $('compare-body').textContent=moon?'Luna':'Marte';
+    destinationTargetId=target.id;
     requestAnimationFrame(()=>destination.invalidateSize({pan:false}));
   }
   async function selectSite(id){

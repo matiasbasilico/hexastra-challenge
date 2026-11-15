@@ -87,7 +87,7 @@ body.immersive { --compare-width: 460px; --float-margin: 32px; background: var(-
 
 .comparison-open .orbit-intro, .sites-open .orbit-intro { display: none; }
 .comparison-open .orbit-status { max-width: 26ch; }
-.compare-float { position: absolute; z-index: 650; right: var(--float-margin); top: 116px; bottom: 40px; width: var(--compare-width); min-height: 0; display: grid; grid-template-rows: auto auto 190px minmax(0, 1fr); overflow: hidden; }
+.compare-float { position: absolute; z-index: 650; right: var(--float-margin); top: 116px; bottom: 40px; width: var(--compare-width); min-height: 0; display: grid; grid-template-rows: auto auto clamp(120px, 24dvh, 240px) minmax(0, 1fr); overflow: hidden; }
 .compare-float .float-heading { padding-bottom: var(--space-xs); }
 .compare-float .float-heading h2 { font-size: var(--text-lg); }
 .compare-place { padding: 0 var(--space-lg) var(--space-md); font-size: var(--text-xs); color: var(--hx-texto-2); }
