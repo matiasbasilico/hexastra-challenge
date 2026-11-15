@@ -73,6 +73,12 @@ def test_water_stats_separates_centre_and_neighbourhood():
     assert row["value"] == 0 and "entorno 3x3" in row["note"]
 
 
+def test_ocean_pixel_is_null_not_zero():
+    st = {"centre": {"2015": 0, "2016": 0, "2017": 1}, "neigh": {}}
+    row = mask.water_row("s", st)
+    assert row["value"] is None and row["quality"] == "unavailable" and "a completar" in row["note"]
+
+
 def test_neighbourhood_is_3x3_around_site():
     pts = mask.neighbourhood({"id": "s", "lat": -20.0, "lon": -67.0})
     assert len(pts) == 9 and pts[4]["id"] == "s__0_0"

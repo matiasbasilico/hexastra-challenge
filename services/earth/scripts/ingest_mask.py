@@ -52,6 +52,7 @@ WATER_LAYERS = ("water_mask", "seven_class")
 WATER_START, WATER_END = "01-01-2015", "12-31-2023"
 INLAND_WATER = {3, 5}
 EPHEMERAL = {4}
+OCEAN = {0, 6, 7}
 PIXEL_M = 231.66  # MODIS 250 m sinusoidal pixel
 EARTH_R = 6371008.8
 
@@ -198,12 +199,28 @@ def water_row(site_id: str, stat: Optional[Dict]) -> Dict:
                     "Sin clase válida de MOD44W en el píxel: a completar.")
     years = sorted(centre)
     classes = [centre[y] for y in years]
+    ocean = sum(1 for c in classes if c in OCEAN)
+    if ocean * 2 >= len(classes):
+        return _row(site_id, "has_liquid_water", None, "boolean_as_0_1", "unavailable", src,
+                    "El píxel del punto es océano/mar en %d de %d años (clases %s): la coordenada del catálogo cae "
+                    "en el mar o en la costa, no en el sitio. a completar: revisar la coordenada." % (
+                        ocean, len(classes), ",".join(str(c) for c in classes)))
     neigh = stat["neigh"]
     neigh_inland = sum(1 for y in years if neigh.get(y, set()) & INLAND_WATER)
     ephemeral = sum(1 for c in classes if c in EPHEMERAL)
     note = "Clases seven_class del píxel %s-%s: %s. Años con agua continental en el entorno 3x3 (~375 m): %d de %d. Años efímeros en el píxel: %d." % (
         years[0], years[-1], ",".join(str(c) for c in classes), neigh_inland, len(years), ephemeral)
     return _row(site_id, "has_liquid_water", flag, "boolean_as_0_1", "measured", src, note)
+
+
+def mark_replaces(row: Dict, site: Dict) -> Dict:
+    """Flag rows that overwrite a non-null value of the base catalogue (one source, one method for all sites)."""
+    base = ((site.get("features") or {}).get(row["feature"]) or {})
+    if base.get("value") is None or row["value"] is None:
+        return row
+    reason = ("Reemplaza el valor base (%s, fuente: %s) por el producto oficial NASA usado en los 60 sitios, "
+              "para que la máscara tenga una sola fuente y un solo criterio." % (base["value"], base.get("source", "")[:60]))
+    return {**row, "replaces_base": True, "replaces_reason": reason}
 
 
 def build() -> List[Dict]:
@@ -214,8 +231,8 @@ def build() -> List[Dict]:
     water = water_stats(parse_csv((RAW / "water.csv").read_text(encoding="utf-8")))
     rows = []
     for s in sites:
-        rows.append(ndvi_row(s["id"], ndvi.get(s["id"])))
-        rows.append(water_row(s["id"], water.get(s["id"])))
+        for row in (ndvi_row(s["id"], ndvi.get(s["id"])), water_row(s["id"], water.get(s["id"]))):
+            rows.append(mark_replaces(row, s))
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     return rows
