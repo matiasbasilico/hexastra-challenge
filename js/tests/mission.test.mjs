@@ -55,3 +55,11 @@ test('las tarjetas conservan los enfoques publicados por la API, incluidos futur
   assert.match(cards,/Explicación &lt;verificada&gt;/);assert.doesNotMatch(cards,/<nuevo>|<verificada>/);
   assert.equal(M.presetCardsHTML([],null),'');
 });
+
+test('la misión elige el mayor resultado válido de la API sin confundir cero con ausencia',()=>{
+  const rows=[{site:{id:'sin'},score:null},{site:{id:'cero'},score:0},{site:{id:'mejor'},score:92},{site:{id:'otro'},score:60}];
+  assert.equal(M.bestMatch({matches:rows}).site.id,'mejor');
+  assert.equal(M.bestMatch({matches:rows.slice(0,2)}).site.id,'cero');
+  assert.equal(M.bestMatch({matches:[{site:{id:'sin'},score:null}]}),null);
+  assert.equal(rows[0].site.id,'sin');
+});

@@ -68,6 +68,7 @@
         <strong>${escape(v.title)}</strong><span class="preset-card-full">${escape(p.lead_es || v.intro)}</span><span class="preset-card-brief">${escape(v.intro)}</span></label>`;
     }).join('');
   }
+  function bestMatch(ranking){return (ranking?.matches || []).reduce((best,m)=>m.site?.id && Number.isFinite(m.score) && (!best || m.score>best.score)?m:best,null);}
   function create({getState,coordinates,onStep}) {
     const $=id=>document.getElementById(id),dialog=$('mission-dialog');
     let step=0,furthest=0;
@@ -135,7 +136,7 @@
       describeTarget,
     };
   }
-  const api={create,targetContext,targetHTML,presetCardsHTML};
+  const api={create,targetContext,targetHTML,presetCardsHTML,bestMatch};
   if(typeof module!=='undefined' && module.exports)module.exports=api;
   else root.HexastraMission=api;
 })(typeof window!=='undefined'?window:globalThis);

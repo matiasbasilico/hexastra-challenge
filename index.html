@@ -17,9 +17,10 @@
   <link rel="stylesheet" href="css/easy.css">
   <link rel="stylesheet" href="css/immersive.css">
   <link rel="stylesheet" href="css/mission.css">
+  <link rel="stylesheet" href="css/tasi-help.css">
   <link rel="stylesheet" href="css/globe.css">
 </head>
-<body class="immersive" data-comparable-only="true">
+<body class="immersive" data-comparable-only="false">
   <main id="world-app" aria-label="Explorador de análogos terrestres">
     <div class="world-stage" id="world-map" role="application" aria-label="Tierra 3D con sitios del catálogo"></div>
     <header class="orbit-header">
@@ -29,7 +30,7 @@
       </a>
       <button type="button" class="orbit-mission" id="open-mission" aria-haspopup="dialog">
         <span class="orbit-body-dot" aria-hidden="true"></span>
-        <span><span class="orbit-control-label">Comparar con</span><strong id="mission-label">Cargando destinos…</strong></span>
+        <span><span class="orbit-control-label" id="mission-control-label">Tu exploración</span><strong id="mission-label">Elegir misión</strong></span>
         <span aria-hidden="true">↗</span>
       </button>
     </header>
@@ -40,12 +41,12 @@
       <button type="button" id="open-help" aria-haspopup="dialog"><span aria-hidden="true">ⓘ</span> El proyecto</button>
     </nav>
     <p class="orbit-status" id="world-status" role="status">Conectando con los catálogos…</p>
-    <button type="button" class="orbit-filter" id="toggle-comparable" aria-pressed="true" title="Mostrar también los sitios sin puntaje en esta misión"><span aria-hidden="true">✓</span><span id="comparable-label">Solo comparables</span></button>
+    <button type="button" class="orbit-filter" id="toggle-comparable" hidden aria-pressed="true" title="Mostrar también los sitios sin puntaje en esta misión"><span aria-hidden="true">✓</span><span id="comparable-label">Solo comparables</span></button>
     <aside class="sites-float floating-panel" id="sites-panel" hidden aria-labelledby="sites-title">
       <div class="float-heading"><div><p class="float-kicker">Explorar</p><h2 id="sites-title">Sitios en la Tierra</h2></div><button type="button" id="close-sites" aria-label="Cerrar lista de sitios">×</button></div>
       <div class="site-tools">
         <label class="site-search"><span class="visually-hidden">Buscar sitio o país</span><input type="search" id="site-query" placeholder="Buscar sitio o país…" autocomplete="off"></label>
-        <button type="button" id="toggle-comparable-list" class="site-filter-toggle" aria-pressed="true" aria-label="Mostrar solo sitios comparables">Comparables</button>
+        <button type="button" id="toggle-comparable-list" hidden class="site-filter-toggle" aria-pressed="true" aria-label="Mostrar solo sitios comparables">Comparables</button>
       </div>
       <div id="world-sites" class="world-sites"></div>
     </aside>
@@ -117,7 +118,8 @@
     <dialog id="help-dialog" class="orbit-dialog help-dialog" aria-labelledby="help-title">
       <div class="float-heading"><div><p class="float-kicker">El proyecto</p><h2 id="help-title">La Tierra como laboratorio</h2></div><button type="button" data-close-dialog aria-label="Cerrar explicación">×</button></div>
       <div class="onboarding-intro" hidden>
-        <p>Encontrá lugares de la Tierra para poner a prueba misiones a la Luna y Marte.</p>
+        <p>Somos HexAstra. Participamos en NASA Space Apps 2026 y buscamos lugares de la Tierra para preparar la exploración de la Luna y Marte con datos abiertos.</p>
+        <div class="onboarding-links"><a href="https://www.spaceappschallenge.org/2026/find-a-team/hexastra/" target="_blank" rel="noopener">Nuestro equipo ↗</a><a href="https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/" target="_blank" rel="noopener">El desafío ↗</a></div>
         <ol>
           <li><span aria-hidden="true">01</span><div><strong>Prepará tu misión</strong><p>Elegí un cuerpo celeste, un destino y qué querés probar.</p></div></li>
           <li><span aria-hidden="true">02</span><div><strong>Explorá el globo</strong><p>Girá la Tierra. El pulso destaca hasta cinco sitios con mayor similitud.</p></div></li>
@@ -169,6 +171,7 @@
   <script src="js/limits.js"></script>
   <script src="js/immersive-data.js"></script>
   <script src="js/mission.js"></script>
+  <script src="js/tasi-help.js"></script>
   <script src="js/immersive.js"></script>
 </body>
 </html>

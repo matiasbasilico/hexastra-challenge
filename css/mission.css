@@ -204,3 +204,12 @@
   .mission-progress button { padding-inline: 4px; gap: 4px; }
   .mission-progress button .mission-progress-name { font-size: 11px; }
 }
+.onboarding-links { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: 12px; }
+@media (max-height: 700px) {
+  .onboarding-links { margin-top: 8px; font-size: 11px; }
+  .onboarding-intro ol { gap: 8px; }
+}
+@media (max-height: 500px) and (min-width: 480px) { .onboarding-links { margin-top: 6px; } }
+.orbit-filter[hidden], .site-filter-toggle[hidden], .mission-map-hint[hidden] { display: none; }
+.immersive:not(.has-mission) .orbit-body-dot { background: var(--hx-cian); }
+.mission-map-hint { position: absolute; z-index: 620; width: min(216px, calc(100% - 24px)); padding: 10px 12px; pointer-events: none; border: 1px solid var(--hx-cian); border-radius: var(--hx-radio); color: var(--hx-texto); background: var(--hx-noche-2); font: 400 11px/1.5 var(--font-body); }

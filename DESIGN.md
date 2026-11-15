@@ -163,3 +163,10 @@ Consulta de las tres fuentes: 14/11/2026 (America/Argentina/Buenos_Aires). Conte
 - JAXA/ISAS, [hallazgo con SELENE/Kaguya](https://www.isas.jaxa.jp/j/topics/topics/2009/1105.shtml): publicación del 05/11/2009 sobre el pozo de Marius Hills. Consulta de estas cuatro fuentes: 14/11/2026 (America/Argentina/Buenos_Aires).
 
 La primera visita abre una versión breve del cartel del proyecto con tres instrucciones y un botón para elegir la misión. Al cerrarla se guarda `hexastra.onboarding.v1=seen` en el almacenamiento local de ese navegador y origen. La ayuda completa sigue accesible desde el proyecto. El onboarding no bloquea la interacción cuando se lo cierra y respeta la configuración de movimiento reducido.
+
+
+La entrada al globo no aplica ninguna misión: el encabezado dice «Elegir misión», el catálogo permanece visible y el ranking no se calcula hasta terminar los tres pasos. Al lanzar, se selecciona el mayor TASI válido de esa respuesta, se centra el globo y se abre su ficha. Un aviso temporal junto a otro punto visible indica cómo cambiar; se oculta al interactuar y no reaparece sobre una selección manual.
+
+El rótulo «índice TASI» abre una explicación accesible por mouse, foco y toque. Se muestran G, T, E, Vo y O, su definición y el estado real de la comparación, incluidos puntajes de cero. El popup usa la misma respuesta de la API, mantiene los nulos como ausentes y se cierra con Escape sin cerrar la ficha.
+
+La bienvenida presenta a HexAstra y enlaza las páginas oficiales del [equipo](https://www.spaceappschallenge.org/2026/find-a-team/hexastra/) y el [desafío](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/). Son enlaces aportados por el equipo; no se inventan integrantes ni biografías.
