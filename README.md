@@ -5,6 +5,7 @@ Prototipo de mapa interactivo y **servicios TASI** para el [NASA Space Apps Chal
 Equipo **Hexastra**, sede Buenos Aires. Interfaz en español rioplatense.
 Integrantes:
 Matias Basilico
+Juan Martín Verna
 
 La idea: caracterizar terrenos **argentinos** (y un catálogo terrestre **mundial** de terrenos análogos) con datos citados, y compararlos con sitios de **Marte** y de la **Luna**. El desafío pide justificar la analogía, decir dónde se corta, y no quedarse en los análogos ya famosos (Atacama, Islandia, Hawái, Antártida). La ficha narrativa del primer prototipo sigue centrada en la Argentina; el buscador TASI busca en todo el mundo y se puede filtrar por continente y país.
 
