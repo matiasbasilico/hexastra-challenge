@@ -2,7 +2,7 @@
 (function(root){
   'use strict';
   const dimensions=[
-    ['G','Geología','Composición geológica y mineralógica.'],
+    ['G','Geología','Tipo de roca y origen por impacto. Cobertura por bloques.'],
     ['T','Terreno','Relieve, pendientes y rugosidad.'],
     ['E','Clima e iluminación','Temperatura, extremos e iluminación.'],
     ['V','Volátiles e hielo','Agua, hielo y otros recursos volátiles.'],
@@ -14,10 +14,12 @@
       const c=match?.components?.[key] || (key==='V'?match?.components?.Vo:null);
       const available=!!c?.available && Number.isFinite(c.score);
       const score=available?c.score.toLocaleString('es-AR',{maximumFractionDigits:1}):null;
-      return {key,name,description,available,score};
+      const context=c?.data_available && !available;
+      const status=available?`Con dato · ${score}/100`:context?(key==='O'?'Acceso terrestre · fuera del puntaje':'Datos parciales · fuera del puntaje'):'Sin dato comparable';
+      return {key,name,description:context && key==='O'?'Acceso terrestre: rutas, aeródromos y población. No se suma al TASI.':description,available,score,status};
     });
     const count=rows.filter(r=>r.available).length;
-    return `<h3>¿Qué compara TASI?</h3><p class="tasi-popover-coverage">${count} de 5 dimensiones con dato en este par</p><ul>${rows.map(r=>`<li class="${r.available?'has-data':'no-data'}"><span class="tasi-dimension" aria-hidden="true">${r.key==='V'?'V<sub>o</sub>':r.key}</span><div><strong>${r.name}</strong><span class="tasi-dimension-status">${r.available?`Con dato · ${escape(r.score)}/100`:'Sin dato comparable'}</span><p>${r.description}</p></div></li>`).join('')}</ul><p class="tasi-popover-note">Los pesos se ajustan a los componentes comparables. Un dato faltante no se considera cero.</p>`;
+    return `<h3>¿Qué compara TASI?</h3><p class="tasi-popover-coverage">${count} de 5 dimensiones con dato en este par</p><ul>${rows.map(r=>`<li class="${r.available?'has-data':'no-data'}"><span class="tasi-dimension" aria-hidden="true">${r.key==='V'?'V<sub>o</sub>':r.key}</span><div><strong>${r.name}</strong><span class="tasi-dimension-status">${escape(r.status)}</span><p>${r.description}</p></div></li>`).join('')}</ul><p class="tasi-popover-note">Los pesos se ajustan a los componentes comparables. Un dato faltante no se considera cero.</p>`;
   }
   let panel,active,pinned=false,timer,observer;
   const isOpen=()=>panel && !panel.hidden;

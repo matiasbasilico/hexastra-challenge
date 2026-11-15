@@ -1,6 +1,6 @@
 # Propuesta G — geología, mineralogía y materiales
 
-Agente G, 14 nov 2026. Estado: **G v0 categórico cargado para los 74 sitios** (`data/measurements/g-mapas.jsonl`). No cambia `services/earth/tasi.py`: la fórmula de S_G (§6) y su cableado siguen necesitando el OK del usuario.
+Agente G, 14 nov 2026. Actualización 15 nov 2026: **G v0 integrado al TASI**, autorizado por el usuario al pedir integrar ambos datasets. Implementación en `services/earth/geology.py`: opción (i), promedio de bloques compartidos con cobertura explícita, para respetar la regla de no convertir faltantes en cero ni penalizarlos. El texto de §6 se conserva como propuesta histórica; la recomendación (ii) no es la fórmula activa. Se preservan los datos y sus fuentes sin escribir en la base compartida.
 
 Decisiones del usuario (14 nov): correr los 74 sitios en este mismo PR; que las features `g_*` sirvan para los tres cuerpos; sumar las clases «volcánico indiviso» y «sedimentario indiviso»; avanzar con la fase 2 (eje composicional en el infrarrojo térmico).
 

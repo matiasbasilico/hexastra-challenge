@@ -62,8 +62,10 @@ def test_vector_schema_and_no_invented_g_or_o():
         assert key in vec["components"]
         assert "available" in vec["components"][key]
         assert "score_ready" in vec["components"][key]
-    assert vec["components"]["G"]["available"] is False
-    assert vec["components"]["G"]["score_ready"] is False
+    assert vec["components"]["G"]["available"] is True
+    assert vec["components"]["G"]["score_ready"] is True
+    assert vec["components"]["G"]["metrics"]["g_impacto"]["value"] == 1
+    assert vec["components"]["G"]["representation"] == "geology_categories_v0"
     assert vec["components"]["O"]["available"] is False
     # T must not include absolute elevation in the vector labels
     labels = vec["components"]["T"].get("vector_labels") or []
@@ -121,7 +123,7 @@ def test_document_target_values_are_sourced_or_marked_null(site_id):
     feats = site_by_id(site_id)["features"]
     for key, item in feats.items():
         if item["value"] is None:
-            assert item["quality"] == "placeholder", key
+            assert item["quality"] in ("placeholder", "unavailable"), key
             assert "a completar" in item["note"], key
             continue
         assert item["quality"] in ALLOWED_QUALITY, key
@@ -158,7 +160,7 @@ def test_document_target_vector_responds(site_id):
     assert t["score_ready"] is True
     assert t["vector_labels"] == ["relative_relief_m", "slope_deg", "roughness_m"]
     assert all(v is not None for v in t["vector"])
-    assert vec["components"]["G"]["available"] is False
+    assert vec["components"]["G"]["available"] is (site_id in ("marius-hills", "arsia-mons"))
     assert vec["components"]["O"]["available"] is False
 
 

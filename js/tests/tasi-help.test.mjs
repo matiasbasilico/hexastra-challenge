@@ -12,3 +12,8 @@ test('el popup de un par sin datos no hereda números ni agrega componentes a TA
   const html=H.explanationHTML(null);assert.match(html,/0 de 5 dimensiones/);assert.doesNotMatch(html,/Con dato ·/);
   const aliased=H.explanationHTML({components:{Vo:{available:true,score:80}}});assert.match(aliased,/1 de 5 dimensiones/);
 });
+
+test('el acceso terrestre y la geología parcial tienen información pero no simulan similitud',()=>{
+ const html=H.explanationHTML({components:{G:{available:false,data_available:true,score:null},O:{available:false,data_available:true,score:null}}});
+ assert.match(html,/0 de 5 dimensiones/);assert.match(html,/Acceso terrestre · fuera del puntaje/);assert.match(html,/Datos parciales · fuera del puntaje/);assert.doesNotMatch(html,/Con dato ·/);
+});

@@ -1,6 +1,6 @@
 # Propuesta: índice de practicidad P (0–100), aparte del puntaje
 
-**Estado:** propuesta del agente O-Tierra. Nada de esto está conectado al puntaje ni al front. Lo decide el usuario.
+**Estado actualizado (15 nov 2026):** los datos crudos de acceso terrestre ya se muestran en la ficha inmersiva, con sus fuentes y fuera del TASI, autorizado por el usuario. El índice P, sus umbrales, el gráfico y el orden por practicidad siguen siendo una propuesta: no están conectados al front ni al puntaje.
 
 ## Qué se propone
 

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://hexastra.local/contracts/feature_vector.schema.json",
   "title": "Hexastra planetary/earth feature vector",
-  "description": "Contrato compartido entre planetary-service y earth-service. No hay imports Python compartidos: solo este JSON Schema. Cada componente trae valor, unidad, fuente y bandera real/placeholder. G (espectro) y O (operacional comparable) quedan unavailable si no hay dato real.",
+  "description": "Contrato compartido entre planetary-service y earth-service. Cada componente trae valor, unidad, fuente y calidad. G v0 usa categorías de mapas geológicos y reporta cobertura de composición e impacto; no son espectros. O requiere contraparte comparable para puntuar; el acceso terrestre se presenta como contexto fuera de TASI.",
   "type": "object",
   "required": [
     "id",

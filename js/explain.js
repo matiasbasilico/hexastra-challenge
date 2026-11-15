@@ -43,8 +43,8 @@
     KEYS.forEach(function (k) {
       if (!(k in comps)) return;
       const s = componentScore(comps[k]);
-      if (s == null) missing.push(COMPONENT_LABELS[k]);
-      else scored.push({ k: k, s: s });
+      if (s == null && !comps[k]?.data_available) missing.push(COMPONENT_LABELS[k]);
+      else if (s != null) scored.push({ k: k, s: s });
     });
     scored.sort(function (a, b) { return b.s - a.s; });
     const line = function (x) {
@@ -55,7 +55,7 @@
     if (!why && scored.length) why = "Lo más parecido es " + line(scored[0]) + ".";
     if (!breaks && scored.length > 1) breaks = "Lo menos parecido es " + line(scored[scored.length - 1]) + ".";
     if (!breaks && scored.length === 1) breaks = "Hay un solo componente con dato: no alcanza para decir en qué se separa.";
-    const given = m && Array.isArray(m.missing) && m.missing.length ? m.missing : null;
+    const given = m && Array.isArray(m.missing) ? m.missing : null;
     const list = given ? given.map(function (k) { return labelMissing ? labelMissing(k) : k; }) : missing;
     return { why: why || "", breaks: breaks || "", missing: list };
   }

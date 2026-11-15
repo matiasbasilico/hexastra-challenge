@@ -9,7 +9,9 @@
     ['Iluminación','illumination_pct','E','illumination_pct'], ['Precipitación anual','precip_mm','Vo','precip_mm'],
     ['Indicador de hielo','water_ice_indicator','Vo','water_ice_indicator']
   ];
-  const units = {degC:'°C',deg:'°',percent:'%', 'mm/year':'mm/año',m:'m',mm:'mm',index_0_1:'',unitless:''};
+  const geologyRows=[['Basáltico','basaltico'],['Silícico','silicico'],['Sedimentario clástico','clastico'],['Sedimentario químico','quimico'],['Cristalino','cristalino'],['Hielo','hielo'],['Volcánico sin detalle','volc_indiviso'],['Sedimentario sin detalle','sed_indiviso']].map(([label,key])=>[label,'g_lito_'+key,'G','g_lito_'+key]).concat([['Origen por impacto (0/1)','g_impacto','G','g_impacto']]);
+  const operationRows=[['Ruta más cercana','dist_road_km'],['Aeródromo más cercano','dist_airport_km'],['Aeropuerto con vuelos regulares','dist_airport_scheduled_km'],['Población a 50 km','population_50km']];
+  const units = {degC:'°C',deg:'°',percent:'%', 'mm/year':'mm/año',m:'m',mm:'mm',km:'km',persons:'personas',fraction:'(fracción 0–1)',boolean:'',index_0_1:'',unitless:''};
   const qualities = {measured:'medido',derived:'derivado',modeled:'modelado',convention:'convención',derived_from_published_range:'de rango publicado'};
   function coordinates(site) {
     if (site?.lat == null || site?.lon == null) return 'Coordenadas a completar';
@@ -40,7 +42,25 @@
     return `<td>${escape(value)} ${escape(units[item.unit] ?? item.unit ?? '')}<br><small>${escape(qualities[item.quality] || item.quality || '')}</small></td>`;
   }
   function dataTable(detail, vector) {
-    return `<table class="cmp-table"><thead><tr><th>Métrica</th><th>Tierra</th><th>Destino</th></tr></thead><tbody>${rows.map(([label,key,comp,metric])=>`<tr><th scope="row">${escape(label)}</th>${valueCell(detail?.features?.[key])}${valueCell(vector?.components?.[comp]?.metrics?.[metric])}</tr>`).join('')}</tbody></table>`;
+    const allRows=rows.concat(geologyRows.filter(([,key,,metric])=>detail?.features?.[key]?.value!=null || vector?.components?.G?.metrics?.[metric]?.value!=null));
+    return `<table class="cmp-table"><thead><tr><th>Métrica</th><th>Tierra</th><th>Destino</th></tr></thead><tbody>${allRows.map(([label,key,comp,metric])=>`<tr><th scope="row">${escape(label)}</th>${valueCell(detail?.features?.[key])}${valueCell(vector?.components?.[comp]?.metrics?.[metric])}</tr>`).join('')}</tbody></table>`;
+  }
+  function operationsHTML(match, detail) {
+    const comp=match?.components?.O;
+    const metrics=comp?.detail?.metrics || detail?.features || {};
+    const present=operationRows.filter(([,key])=>metrics[key]?.value!=null && metrics[key]?.source && metrics[key]?.is_real!==false && ['derived','measured'].includes(metrics[key]?.quality));
+    if(!present.length)return '';
+    return `<h3>Operación (O) · acceso terrestre</h3><p class="coverage-note">Datos para preparar una campaña. Las distancias son en línea recta; no miden el trayecto ni los permisos de acceso. Sin equivalente en Marte o la Luna, quedan fuera del TASI.</p><table class="cmp-table"><thead><tr><th>Métrica</th><th>Tierra</th></tr></thead><tbody>${present.map(([label,key])=>`<tr><th scope="row">${escape(label)}</th>${valueCell(metrics[key])}</tr>`).join('')}</tbody></table><div class="compare-source">${present.map(([label,key])=>`<p><strong>${escape(label)}.</strong> ${sourceHTML(metrics[key].source)}${metrics[key].note?' '+escape(metrics[key].note):''}</p>`).join('')}</div>`;
+  }
+  function coverageHTML(match) {
+    const g=match?.components?.G,o=match?.components?.O;
+    let text='';
+    if(g?.detail?.representation==='geology_categories_v0' && g?.data_available){
+      const n=g.detail.coverage?.n_available || 0;
+      text+=`<strong>Geología (G).</strong> ${g.available?`${escape(n)} de 2 bloques comparables: tipo de roca y origen por impacto. Mapas regionales; no son espectros.`:'Datos parciales disponibles; sin un bloque comparable en ambos sitios, queda fuera del puntaje.'}`;
+    }
+    if(o?.data_available)text+=`${text?'<br>':''}<strong>Operación (O).</strong> Acceso terrestre documentado en el detalle; fuera del puntaje de similitud.`;
+    return text?`<p class="coverage-note">${text}</p>`:'';
   }
   function comparisonHTML({site,target,match,discarded,detail,vector,error,loading,outside}, explain) {
     let summary;
@@ -55,15 +75,14 @@
         <section class="compare-explanation"><h3>En qué no</h3><p>${escape(ex.breaks || 'La API no detalla esta diferencia.')}</p></section>
         ${ex.missing.length?`<div class="easy-missing">${ex.missing.map(k=>`<span class="easy-chip easy-chip-warn">Dato a completar: ${escape(k)}</span>`).join('')}</div>`:''}`;
     } else summary=`<p class="compare-warning">Sin puntaje para este par. ${outside?'El sitio está fuera de la región elegida para esta misión.':discarded?'El sitio fue descartado por la máscara de esta misión.':'No hay datos comparables con este destino y estos filtros.'}</p>`;
-    const metricSources=rows.flatMap(([,key,comp,metric])=>[
+    const metricSources=rows.concat(geologyRows).flatMap(([,key,comp,metric])=>[
       {label:`Tierra · ${key}`,item:detail?.features?.[key]},
       {label:`Destino · ${metric}`,item:vector?.components?.[comp]?.metrics?.[metric]}
     ]).filter(x=>x.item?.source);
-    return summary + `<details class="compare-more"><summary>Datos lado a lado</summary><p class="coverage-note">Tierra: ${escape(coordinates(site))}<br>Destino: ${escape(coordinates(target))}</p>${dataTable(detail,vector)}</details>
-      <details class="compare-more"><summary>Fuentes y contexto</summary><div class="compare-source"><p><strong>Tierra.</strong> ${sourceHTML(site?.coord_source)}</p><p><strong>Destino.</strong> ${sourceHTML(target?.coord_source)}</p>${metricSources.map(({label,item})=>`<p><strong>${escape(label)}.</strong> ${sourceHTML(item.source)}${item.note?' '+escape(item.note):''}</p>`).join('')}</div></details>
+    return summary + coverageHTML(match) + `<details class="compare-more"><summary>Detalle de los datos y fuentes</summary><p class="coverage-note">Tierra: ${escape(coordinates(site))}<br>Destino: ${escape(coordinates(target))}</p>${dataTable(detail,vector)}${operationsHTML(match,detail)}<h3 class="compare-source-title">Fuentes y contexto</h3><div class="compare-source"><p><strong>Tierra.</strong> ${sourceHTML(site?.coord_source)}</p><p><strong>Destino.</strong> ${sourceHTML(target?.coord_source)}</p>${metricSources.map(({label,item})=>`<p><strong>${escape(label)}.</strong> ${sourceHTML(item.source)}${item.note?' '+escape(item.note):''}</p>`).join('')}</div></details>
       ${target?.body==='moon'?'<p class="coverage-note">Mapa lunar en Mercator: los sitios polares se dibujan en el borde de 85°; las coordenadas de la ficha son las reales.</p>':''}`;
   }
-  const api={escape,coordinates,rankingKey,rankingRequest,pairFromRanking,outsideRegion,comparisonHTML,sourceHTML};
+  const api={escape,coordinates,rankingKey,rankingRequest,pairFromRanking,outsideRegion,comparisonHTML,sourceHTML,operationsHTML,coverageHTML};
   root.HexastraImmersiveData=api;
   if(typeof module!=='undefined' && module.exports) module.exports=api;
 })(typeof window!=='undefined'?window:this);

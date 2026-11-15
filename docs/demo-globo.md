@@ -13,7 +13,7 @@ HEXASTRA_PAGES_CONFIG=pages/wrangler.globo.toml ./scripts/deploy_pages.sh
 Mantener abiertas las APIs y los túneles desde este worktree (puertos exclusivos de esta demo):
 
 ```bash
-HEXASTRA_PAGES_CONFIG=pages/wrangler.globo.toml PLANETARY_PORT=19522 EARTH_PORT=19523 ./scripts/share.sh https://hexastra-globo-inmersivo.pages.dev
+HEXASTRA_PAGES_CONFIG=pages/wrangler.globo.toml PLANETARY_PORT=19542 EARTH_PORT=19543 ./scripts/share.sh https://hexastra-globo-inmersivo.pages.dev
 ```
 
 El comando actualiza el proxy del proyecto nuevo. Los enlaces públicos de las APIs son `/api/planetary` y `/api/earth` sobre el mismo dominio; no hace falta compartir parámetros ni direcciones locales. Al reiniciar los túneles, el comando actualiza sus URLs en KV y se conserva el enlace del front.
@@ -24,7 +24,7 @@ La demo actual consulta la base ya integrada en modo de solo lectura. Antes de a
 
 ```bash
 source ~/.config/hexastra/globo-inmersivo-demo.env
-HEXASTRA_PAGES_CONFIG=pages/wrangler.globo.toml PLANETARY_PORT=19522 EARTH_PORT=19523 ./scripts/share.sh https://hexastra-globo-inmersivo.pages.dev
+HEXASTRA_PAGES_CONFIG=pages/wrangler.globo.toml PLANETARY_PORT=19542 EARTH_PORT=19543 ./scripts/share.sh https://hexastra-globo-inmersivo.pages.dev
 ```
 
 Esa configuración contiene la conexión fuera del repositorio y activa `default_transaction_read_only=on`. El arranque no carga ni exporta la base compartida. `/api/earth/health` y `/api/planetary/health` informan `catalog_origin: postgres` para distinguir este catálogo del archivo base.

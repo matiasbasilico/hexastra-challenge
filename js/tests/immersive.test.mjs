@@ -38,3 +38,16 @@ test('las fuentes y errores de la API no pueden inyectar contenido HTML',()=>{
  const html=H.comparisonHTML({site:{coord_source:'<img src=x onerror=alert(1)>'},target:{},error:'<script>bad</script>'},explain);
  assert.doesNotMatch(html,/<script>|<img/);assert.match(html,/&lt;script&gt;/);assert.match(html,/&lt;img/);
 });
+
+test('geología y acceso documentados sustituyen el pendiente sin inventar un puntaje operacional',()=>{
+ const metric={value:0,unit:'km',quality:'derived',source:'https://nasa.gov/data',is_real:true,comparable:false};
+ const match={score:65,missing:[],components:{G:{available:true,data_available:true,score:100,detail:{representation:'geology_categories_v0',coverage:{n_available:1,n_possible:2}}},O:{available:false,data_available:true,score:null,detail:{metrics:{dist_road_km:metric}}}}};
+ const html=H.comparisonHTML({site:{},target:{},match},explain);
+ assert.doesNotMatch(html,/Dato a completar/);assert.match(html,/1 de 2 bloques/);assert.match(html,/Operación \(O\) · acceso terrestre/);assert.match(html,/0 km/);assert.match(html,/fuera del TASI/);assert.match(html,/Detalle de los datos y fuentes/);
+});
+
+test('los datos de geología incluyen valores y fuentes de ambos cuerpos',()=>{
+ const metric={value:1,unit:'fraction',quality:'derived',source:'https://usgs.gov/map',is_real:true};
+ const html=H.comparisonHTML({site:{},target:{},detail:{features:{g_lito_basaltico:metric}},vector:{components:{G:{metrics:{g_lito_basaltico:metric}}}}},explain);
+ assert.match(html,/Basáltico/);assert.match(html,/fracción 0–1/);assert.match(html,/usgs.gov/);
+});
