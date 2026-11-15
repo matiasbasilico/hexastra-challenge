@@ -188,6 +188,17 @@
       $('mission-dialog').close();refreshRanking();if(state.selected)selectSite(state.selected.id);
     });
     document.addEventListener('keydown',e=>{if(e.key!=='Escape' || document.querySelector('dialog[open]'))return;if(!$('sites-panel').hidden){setSitesOpen(false);$('open-sites').focus();}else if(!$('compare-panel').hidden)closeComparison();});
+    const onboardingKey='hexastra.onboarding.v1';
+    $('help-dialog').addEventListener('close',()=>{
+      if(!$('help-dialog').classList.contains('is-onboarding'))return;
+      try{localStorage.setItem(onboardingKey,'seen');}catch(e){/* El recorrido sigue disponible sin almacenamiento. */}
+      $('help-dialog').classList.remove('is-onboarding');$('help-dialog').querySelector('.onboarding-intro').hidden=true;
+    });
+    $('onboarding-start').addEventListener('click',()=>{$('help-dialog').close();openMission();});
+    let sawOnboarding=false;
+    try{sawOnboarding=localStorage.getItem(onboardingKey)==='seen';}catch(e){/* Primera visita también en modo privado. */}
+    if(!sawOnboarding){$('help-dialog').classList.add('is-onboarding');$('help-dialog').querySelector('.onboarding-intro').hidden=false;$('open-help').click();}
+
     try{
       state.api=await(window.HEXASTRA_API_READY || Promise.resolve(window.HexastraAPI));
       const [candidates,moon,mars,method,regions]=await Promise.all([state.api.getCandidates(),state.api.getTargets('moon'),state.api.getTargets('mars'),state.api.getMethod(),state.api.getRegions()]);
@@ -204,7 +215,7 @@
       if(!state.target){status('El catálogo no tiene destinos disponibles.',true);renderSites();return;}
       targetOptions(state.target.body);$('world-target').value=state.target.id;
       missionFlow=window.HexastraMission.create({getState:()=>state,coordinates:H.coordinates,onStep:()=>planetCards?.render()});
-      $('apply-mission').disabled=false;
+      $('apply-mission').disabled=false;$('onboarding-start').disabled=false;renderMethod();
       document.body.dataset.body=state.target.body;
       $('mission-label').textContent=`${state.target.body==='moon'?'Luna':'Marte'} · ${state.target.short_name || state.target.name}`;
       renderSites();refreshRanking();

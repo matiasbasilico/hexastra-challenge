@@ -94,11 +94,6 @@
   .mission-target-history { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 6px; padding-top: 6px; }
   .mission-target-history p, .mission-target-history time, .mission-target-history > span { font-size: 10px; margin: 0; }
   .mission-target-note, .mission-target-sources { margin-top: 4px; font-size: 9px; }
-  .mission-focus-step { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr); column-gap: 16px; align-items: start; }
-  .mission-focus-step > .mission-selection { grid-column: 1; }
-  .mission-focus-step > .orbit-field { grid-column: 1; }
-  #mission-form .preset-description { grid-column: 1; margin: 8px 0 0; font-size: 11px; }
-  #mission-form .mission-refine { grid-column: 2; grid-row: 1 / span 3; padding-top: 0; }
   .mission-refine > summary { padding-block: 2px; font-size: 11px; }
   .mission-filter-grid { margin-top: 6px; gap: 6px; }
   #mission-dialog .orbit-field { font-size: 11px; gap: 4px; }
@@ -129,4 +124,79 @@
   #mission-dialog[open], #mission-form { gap: 6px; }
   .mission-progress button { min-height: 26px; }
   .mission-destination-step { grid-template-columns: minmax(0, .65fr) minmax(0, 1.65fr); gap: 12px; }
+}
+
+.mission-progress button { white-space: normal; min-width: 0; }
+.mission-progress button .mission-progress-name { font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
+.mission-focus-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.mission-focus-tabs button { flex: 1; min-height: 40px; padding: 8px; font-size: 12px; background: transparent; }
+.mission-focus-tabs button[aria-selected="true"] { border-color: var(--hx-cian); color: var(--hx-cian); background: var(--color-selected); }
+.mission-preset-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border: 0; padding: 0; margin: 0; }
+.preset-card { position: relative; display: grid; align-content: start; gap: 8px; padding: 16px; min-width: 0; border: 1px solid var(--hx-linea); border-radius: var(--hx-radio); background: var(--hx-noche); cursor: pointer; }
+.preset-card input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.preset-card svg { width: 36px; height: 36px; color: var(--hx-cian); }
+.preset-card strong { font: 600 14px/1.3 var(--font-display); color: var(--hx-texto); }
+.preset-card > span:not(.preset-card-check) { font: 400 12px/1.5 var(--font-body); color: var(--hx-texto-2); }
+.preset-card-check { position: absolute; top: 10px; right: 10px; width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--hx-linea); border-radius: 50%; font-size: 11px; color: transparent; }
+.preset-card:has(input:checked) { border-color: var(--hx-cian); background: var(--color-selected); }
+.preset-card:has(input:checked) .preset-card-check { color: var(--hx-noche); background: var(--hx-cian); border-color: var(--hx-cian); }
+.preset-card:hover { border-color: var(--hx-cian); }
+.preset-card:focus-within { outline: 2px solid var(--hx-cian); outline-offset: 3px; }
+.preset-card .preset-card-brief { display: none; }
+#mission-form .mission-refine { border: 0; padding: 0; }
+.mission-filter-context { margin-bottom: 16px; font-size: 13px; color: var(--hx-cian); }
+@media (max-height: 700px) {
+  .mission-focus-tabs { margin-bottom: 12px; }
+  .mission-preset-options { gap: 8px; }
+  .preset-card { padding: 12px; gap: 6px; }
+  .preset-card svg { width: 28px; height: 28px; }
+  .preset-card strong { font-size: 12px; }
+  .preset-card .preset-card-full { display: none; }
+  .preset-card .preset-card-brief { display: block; font-size: 11px !important; }
+}
+@media (max-height: 500px) and (min-width: 480px) {
+  .mission-focus-tabs { margin-bottom: 8px; }
+  .mission-focus-tabs button { min-height: 30px; padding: 4px; font-size: 11px; }
+  .mission-preset-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .preset-card { padding: 8px; gap: 4px; }
+  .preset-card svg { width: 24px; height: 24px; }
+  .preset-card-check { width: 12px; height: 12px; top: 6px; right: 6px; font-size: 9px; }
+  .preset-card strong { font-size: 11px; }
+  .preset-card .preset-card-brief { font-size: 10px !important; }
+  .mission-filter-context { margin-bottom: 4px; font-size: 11px; }
+}
+
+/* La bienvenida reutiliza el cartel del proyecto con un recorrido breve en la primera visita. */
+#help-dialog.is-onboarding { width: min(600px, calc(100% - 32px - var(--safe-left) - var(--safe-right))); padding: 24px; overflow: visible; }
+#help-dialog.is-onboarding[open] { display: grid; gap: 16px; }
+#help-dialog.is-onboarding > :not(.float-heading):not(.onboarding-intro) { display: none; }
+#help-dialog.is-onboarding > .float-heading { position: static; padding: 0; background: transparent; }
+#help-dialog.is-onboarding h2 { font-size: 24px; }
+.onboarding-intro > p { font-size: 14px; line-height: 1.6; color: var(--hx-texto-2); }
+.onboarding-intro ol { list-style: none; display: grid; gap: 16px; padding: 0; margin: 20px 0; }
+.onboarding-intro li { display: flex; align-items: start; gap: 12px; }
+.onboarding-intro li > span { display: grid; place-items: center; width: 30px; height: 30px; flex: none; color: var(--hx-cian); background: var(--color-selected); border: 1px solid var(--hx-linea); border-radius: 50%; font-size: 11px; }
+.onboarding-intro strong { font: 600 14px/1.4 var(--font-display); }
+.onboarding-intro li p { margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--hx-texto-2); }
+.onboarding-intro .orbit-primary { font-size: 14px; padding-inline: 16px; }
+@media (max-height: 700px) {
+  #help-dialog.is-onboarding { padding: 16px; }
+  #help-dialog.is-onboarding[open] { gap: 12px; }
+  #help-dialog.is-onboarding h2 { font-size: 20px; }
+  #help-dialog.is-onboarding .float-kicker { font-size: 11px; }
+  .onboarding-intro > p { font-size: 12px; line-height: 1.5; }
+  .onboarding-intro ol { margin: 12px 0; gap: 10px; }
+  .onboarding-intro strong { font-size: 12px; }
+  .onboarding-intro li p { font-size: 11px; }
+}
+@media (max-height: 500px) and (min-width: 480px) {
+  #help-dialog.is-onboarding { padding: 10px; width: min(720px, calc(100% - 16px - var(--safe-left) - var(--safe-right))); max-height: calc(100dvh - 16px - var(--safe-top) - var(--safe-bottom)); }
+  #help-dialog.is-onboarding[open] { gap: 8px; }
+  #help-dialog.is-onboarding h2 { font-size: 18px; }
+  #help-dialog.is-onboarding .float-heading > button { min-height: 32px; width: 32px; }
+  .onboarding-intro ol { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 10px 0; }
+  .onboarding-intro li { display: block; }
+  .onboarding-intro li > span { display: none; }
+  .onboarding-intro li p { font-size: 10px; }
+  .onboarding-intro .orbit-primary { min-height: 36px; font-size: 12px; }
 }
