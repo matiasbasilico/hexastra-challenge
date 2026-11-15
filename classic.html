@@ -103,12 +103,29 @@
           <div class="map-label"><h2>Tierra</h2></div>
           <details class="layers-menu">
             <summary>Capas</summary>
-            <div class="layers-panel">
-              <label><input type="checkbox" id="layer-esri" checked> Satélite (Esri)</label>
-              <label><input type="checkbox" id="layer-osm"> Mapa (OpenStreetMap)</label>
-              <label><input type="checkbox" id="layer-gibs-tc"> NASA GIBS, color verdadero</label>
-              <label><input type="checkbox" id="layer-gibs-lst"> NASA GIBS, temperatura de superficie</label>
-              <label class="layers-date">Fecha de GIBS <input type="date" id="gibs-date" value="2026-11-10"></label>
+            <div class="layers-panel earth-layers-panel">
+              <div class="adv-menu-heading"><h2>Capas de la Tierra</h2><button type="button" data-close-menu aria-label="Cerrar capas de la Tierra">×</button></div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-esri" aria-describedby="layer-esri-help" checked> Satélite (Esri)</label>
+                <p id="layer-esri-help">Observá formas y texturas del paisaje: cráteres, dunas y coladas de lava.</p>
+              </div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-osm" aria-describedby="layer-osm-help"> Mapa (OpenStreetMap)</label>
+                <p id="layer-osm-help">Ubicá caminos, localidades y accesos para preparar una visita al sitio.</p>
+              </div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-gibs-tc" aria-describedby="layer-gibs-tc-help"> NASA GIBS, color verdadero</label>
+                <p id="layer-gibs-tc-help">Compará paisaje, vegetación, nieve y nubes con imágenes MODIS de la fecha elegida.</p>
+              </div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-gibs-lst" aria-describedby="layer-gibs-lst-help"> NASA GIBS, temperatura de superficie</label>
+                <p id="layer-gibs-lst-help">Explorá contrastes térmicos del suelo durante el día. Es <a href="https://science.nasa.gov/earth/earth-observatory/global-maps/land-surface-temperature/" target="_blank" rel="noopener">temperatura de la superficie</a>, no del aire.</p>
+              </div>
+              <div class="layer-date-control">
+                <label class="layers-date">Fecha de las capas NASA <input type="date" id="gibs-date" value="2026-11-10" aria-describedby="layer-date-help"></label>
+                <p id="layer-date-help">Se aplica a color verdadero y temperatura.</p>
+              </div>
+              <p class="layers-terrain-guide">Para comparar relieve, pendiente y rugosidad, consultá sus valores en la ficha del sitio.</p>
             </div>
           </details>
           <div id="map-earth" class="map"></div>
