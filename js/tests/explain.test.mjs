@@ -176,9 +176,7 @@ test("avanzado minimalista: tres desplegables, pesos y opciones plegados, capas 
   assert.ok(!/<details class="adv-menu"[^>]*open/.test(html), "los menús arrancan cerrados");
   assert.equal((html.match(/<details class="layers-menu"/g) || []).length, 2, "un menú Capas por mapa");
   const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
-  assert.match(app, /Sin contraparte/);
   assert.match(app, /function refreshEffectiveWeights\(/);
-  assert.match(app, /function componentAvailable\(/);
 });
 
 test("los archivos del prototipo viejo ya no están en data/", () => {

@@ -311,16 +311,6 @@
     state.targetMarker.bindTooltip(t.short_name || t.name, { permanent: true, direction: "top", offset: [0, -12] });
     setRightBody(t.body);
     safeFly(state.marsMap, clampLatLng(t.lat, t.lon), t.body === "moon" ? 4 : 5, flyOpts(0.8));
-    refreshWeightsFor(t);
-  }
-
-  // Al cambiar de destino, los pesos solo se habilitan para los componentes con dato de ese destino.
-  async function refreshWeightsFor(t) {
-    if (!state.api || !$("#finder-features").children.length) return;
-    try {
-      if (!state.vectors[t.id]) state.vectors[t.id] = await state.api.getTargetVector(t.id);
-    } catch (e) { return; }
-    if (state.target === t) renderWeights(currentWeightsSource());
   }
 
   function chooseTarget(t) {
@@ -635,31 +625,20 @@
 
   /* ---------- Buscador (TASI) ---------- */
 
-  // Componentes con dato del lado del destino (vector de planetary). Sin vector todavía: se habilitan todos.
-  function componentAvailable(k) {
-    const v = state.target && state.vectors[state.target.id];
-    if (!v) return true;
-    const comps = v.components || {};
-    const c = comps[k] || (k === "V" ? comps.Vo : null) || {};
-    return !!c.available;
-  }
-
   function tasiWeightsFromUI() {
     const weights = {};
     document.querySelectorAll("#finder-features input[data-w]").forEach((rng) => {
-      weights[rng.dataset.w] = rng.disabled ? 0 : (Number(rng.value) || 0) / 100;
+      weights[rng.dataset.w] = (Number(rng.value) || 0) / 100;
     });
     return weights;
   }
 
-  // Porcentaje efectivo de cada peso después de renormalizar sobre los componentes habilitados.
+  // Preferencia elegida sobre las cinco dimensiones; el servicio informa el peso usado en cada par.
   function refreshEffectiveWeights() {
     const w = tasiWeightsFromUI();
     const total = Object.values(w).reduce((a, b) => a + b, 0);
     document.querySelectorAll("#finder-features [data-wv]").forEach((el) => {
       const k = el.dataset.wv;
-      const rng = document.querySelector('#finder-features input[data-w="' + k + '"]');
-      if (rng && rng.disabled) { el.textContent = k==='O'?'Fuera del TASI':'Sin contraparte'; return; }
       el.textContent = total > 0 ? Math.round((w[k] / total) * 100) + " %" : "0 %";
     });
   }
@@ -668,12 +647,11 @@
     const box = $("#finder-features");
     box.innerHTML = COMPONENT_KEYS.map((k) => {
       const label = escapeHtml(explain().COMPONENT_LABELS[k]);
-      const ok = componentAvailable(k);
       const w = Number((weights || {})[k]) || 0;
       return (
-        '<div class="feat-row' + (ok ? "" : " is-off") + '">' +
+        '<div class="feat-row">' +
           '<label for="w-' + k + '">' + label + "</label>" +
-          '<input type="range" id="w-' + k + '" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '"' + (ok ? "" : " disabled") + ">" +
+          '<input type="range" id="w-' + k + '" min="0" max="100" step="5" value="' + Math.round(w * 100) + '" data-w="' + k + '">' +
           '<span data-wv="' + k + '"></span>' +
         "</div>"
       );
@@ -691,11 +669,6 @@
   function presetWeights(id) {
     const p = ((state.method && state.method.presets) || []).find((x) => x.id === id);
     return (p && p.weights) || (state.method && state.method.default_weights) || {};
-  }
-
-  function currentWeightsSource() {
-    const mission = $("#finder-mission");
-    return mission && mission.value ? presetWeights(mission.value) : tasiWeightsFromUI();
   }
 
   // Región: un solo control con «Todo el mundo», cada continente y sus países (de /regions).
