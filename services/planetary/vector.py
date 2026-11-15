@@ -40,17 +40,11 @@ def _component(metrics: Dict[str, Dict[str, Any]], labels: Optional[list] = None
 
 def feature_vector(site: Dict[str, Any]) -> Dict[str, Any]:
     flags = []
-    # G — no CRISM/M3 spectra in this catalog
-    G = {
-        "available": False,
-        "score_ready": False,
-        "reason": "No sourced spectral / mineralogy vector (CRISM, M3, etc.) is stored for this site. S_G is not computed.",
-        "vector": [],
-        "vector_labels": [],
-        "metrics": {},
-        "source": None,
-        "quality_flags": ["spectra_unavailable"],
-    }
+    # G v0 — mapped lithology and impact origin; these are categories, not spectra.
+    g_keys = ["g_lito_" + k for k in ("basaltico", "silicico", "clastico", "quimico", "cristalino", "hielo", "volc_indiviso", "sed_indiviso")] + ["g_impacto"]
+    g_metrics = {k: _feat(site, k) for k in g_keys}
+    G = _component(g_metrics, g_keys, reason_if_empty="Sin geología verificable en el mapa para este destino.", quality_flags=["categorical_map_not_spectrum", "map_scale_1_5M_moon_1_20M_mars"])
+    G["representation"] = "geology_categories_v0"
     # T — relative relief / slope / roughness only (no absolute elevation)
     t_metrics = {
         "relative_relief_m": _feat(site, "relative_relief"),

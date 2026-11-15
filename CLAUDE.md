@@ -1,83 +1,85 @@
-# HexAstra — reglas del repo para todos los agentes
+# HexAstra — repository rules for every agent
 
-Este archivo lo leen todos los agentes que trabajan en el repo (orquestador, subagentes y worktrees de Orca). Si una instrucción puntual choca con estas reglas, mandan estas reglas; ante una duda que no resuelven, preguntá al usuario en vez de suponer.
+Every agent working in this repository, including coordinators, subagents, and Orca worktrees, must read this file. If a task-specific instruction conflicts with these rules, these rules take precedence; when they do not resolve an uncertainty, ask the user rather than assume.
 
-## 1. Objetivo principal (no perderlo de vista)
+## 1. Primary objective
 
-NASA Space Apps 2026 — *Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars*. Texto oficial completo y lista de recursos: [`docs/desafio.md`](docs/desafio.md).
+NASA Space Apps 2026 — *Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars*. The full official text and resource list are in [`docs/desafio.md`](docs/desafio.md).
 
-> Usar datos abiertos de NASA y de otras agencias espaciales para **identificar y caracterizar análogos terrestres nuevos** de las posibles bases lunares permanentes y de los sitios de aterrizaje y exploración en Marte, y presentarlo como mapa, visualización u otra herramienta.
+> Use open NASA and other space-agency data to **identify and characterize new terrestrial analogs** for candidate permanent lunar bases and Martian landing/exploration sites, and present the findings as a map, visualization, or other tool.
 
-Toda tarea tiene que acercarnos a esto. Lo que el desafío pide explícitamente:
+Every task must move the project toward this objective. The challenge explicitly asks us to:
 
-- **Ir más allá de lo visual:** justificar la analogía con datos, por dimensión.
-- **Decir qué se parece, cuánto y qué no.** Un sitio puede ser buen análogo geológico y malo térmico.
-- **Buscar análogos poco estudiados**, no redescubrir Atacama, Haughton, Islandia, Hawái o la Antártida (esos sirven como línea de base).
-- **Combinar varios datasets** y **cuidar la escala** (un cráter o un valle, no un desierto entero).
-- **Conectar con la exploración:** qué se puede probar ahí (instrumentos, operaciones, recursos, riesgos).
-- **Reconocer los límites de la Tierra:** gravedad, vacío lunar, atmósfera marciana fina, radiación. Se muestran como brecha cuantificada, no entran al puntaje.
+- **Go beyond appearance:** justify each analogy with data, by dimension.
+- **Explain what matches, how closely, and what differs.** A site can be a strong geological analog and a poor thermal analog.
+- **Seek less-studied analogs**, rather than rediscover Atacama, Haughton, Iceland, Hawaii, or Antarctica; these provide baselines.
+- **Combine datasets and respect scale:** a crater or valley, not an entire desert.
+- **Connect the analogy to exploration:** instruments, operations, resources, and risks that can be tested there.
+- **Recognize Earth's limits:** gravity, lunar vacuum, thin Martian atmosphere, and radiation. Display quantified differences separately from similarity scoring.
 
-Dimensiones del desafío y cómo las cubre la matriz V = [G, T, E, Vo, O] (`contracts/feature_vector.schema.json`):
+Challenge dimensions and their representation in **V = [G, T, E, Vo, O]** (`contracts/feature_vector.schema.json`):
 
-| Dimensión del desafío | Componente |
+| Challenge dimension | Component |
 |---|---|
-| Geología, mineralogía, materiales | **G** |
-| Terreno, elevación, pendiente, rugosidad, cráteres | **T** |
-| Temperatura, iluminación, extremos | **E** |
-| Agua, hielo, permafrost, recursos; polvo y viento | **Vo** |
-| Aterrizaje, movilidad, operaciones, construcción | **O** |
-| Biología/habitabilidad, cuevas/subsuelo | todavía sin componente propio: proponer antes de inventar uno |
+| Geology, mineralogy, materials | **G** |
+| Terrain, elevation, slope, roughness, craters | **T** |
+| Temperature, illumination, extremes | **E** |
+| Water, ice, permafrost, resources; dust and wind | **Vo** |
+| Landing, mobility, operations, construction | **O** |
+| Biology/habitability, caves/subsurface | No dedicated component yet; propose one before adding it |
 
-## 2. Decisiones tomadas (no reabrir sin el usuario)
+## 2. Established decisions
 
-- **Puntaje: solo TASI** (`services/earth/tasi.py`). No implementar la fórmula S del documento impreso (Gauss + promedio geométrico).
-- **MVP: el mapa de puntos actual** (Leaflet). No grilla H3, no Cesium, no migrar a Next/MapLibre.
-- **No tocar** el monorepo `~/Desarrollo/nasa/nasa` (ni su Postgres en el puerto 5432) ni las carpetas viejas.
-- **Base de datos:** PostgreSQL + PostGIS propio del repo (contenedor `hexastra-db`, `127.0.0.1:55432`, `docker compose up -d db`). Se reconstruye entera desde archivos versionados con `db/load.py` (catálogos base + `data/measurements/*.jsonl`). Las APIs leen de ahí cuando `HEXASTRA_DATABASE_URL` está definida; si no, del snapshot `catalog.merged.json` (`db/export.py`) o del catálogo base. `/health` informa `catalog_origin`.
-- **Comparativa lado a lado, siempre:** el núcleo de la interfaz es la vista Tierra | destino (Marte o Luna) con los dos mapas a la vez. El punto del destino elegido y el del sitio terrestre seleccionado se ven marcados y resaltados en su mapa, sincronizados (elegir uno mueve y resalta el otro), con la ficha que explica qué se parece y qué no. Vale para el modo fácil y el avanzado; ningún rediseño puede sacarla ni esconderla.
-- **Componentes de similitud sin contraparte:** G y O sólo puntúan si hay un valor comparable en los dos lados (destino y sitio terrestre). Cargar datos de un solo lado está bien, pero cambiar fórmulas de `tasi.py` requiere propuesta y OK del usuario.
-- **Publicación:** front en Cloudflare Pages (`scripts/deploy_pages.sh`); servicios en la Mac vía túnel `cloudflared` (`scripts/share.sh`). El sitio es público con link.
-- **Identidad visual:** todo lo visual respeta [`docs/marca.md`](docs/marca.md) y sus tokens [`css/brand.css`](css/brand.css): fondo azul noche, acento cian, Montserrat + Open Sans, logo en `assets/brand/` sin modificar, puntaje de violeta a óxido y cuerpos con su color. Ninguna herramienta o tema de diseño (Hallmark incluido) reemplaza la paleta, la tipografía ni el logo; se puede tomar estructura, no identidad.
+Do not reopen these decisions without the user:
 
-## 3. Reglas de datos (críticas)
+- **Score: TASI only** (`services/earth/tasi.py`). Do not implement the printed document's S formula, which combines a Gaussian comparison with a geometric mean.
+- **MVP: API-driven point map.** Earth uses Three.js 3D, visually inspired by Earth3D and authorized on November 14, 2026. Leaflet retains the 2D Earth view and planetary maps. Selecting a globe point opens its TASI comparison. No H3 grid, Cesium, or migration to Next/MapLibre.
+- **Do not modify** the `~/Desarrollo/nasa/nasa` monorepo, its PostgreSQL instance on port 5432, or the older project folders.
+- **Database:** this repository's PostgreSQL/PostGIS container is `hexastra-db`, at `127.0.0.1:55432` (`docker compose up -d db`). Authorized integration rebuilds it from versioned base catalogs and `data/measurements/*.jsonl` using `db/load.py`. APIs use PostgreSQL when `HEXASTRA_DATABASE_URL` is set; otherwise they use a `catalog.merged.json` snapshot from `db/export.py`, or the base catalog. `/health` reports `catalog_origin`.
+- **Immersive variant, authorized November 14, 2026:** `index.html` opens with the full Earth globe and its points. Mission, list, help, and comparison controls reveal floating panels. Selecting a site opens Earth | destination, with both positions marked and synchronized, plus the analogy and limits. Desktop places them side by side; mobile places the globe above the destination/details without overlap. This is the user's requested exception to showing a comparison immediately on arrival. `classic.html` preserves the previous guided and advanced interfaces.
+- **Similarity without a counterpart:** G and O score only when both the target and Earth site have comparable values. One-sided data can be loaded, but changing `tasi.py` formulas requires a proposal and the user's approval.
+- **Publishing, updated with user authorization on November 15, 2026:** the definitive demonstration is https://hexastra.pages.dev/. Cloudflare Pages Functions serve versioned API evidence and calculate rankings without a Mac, tunnel, or database. `scripts/deploy_pages.sh` uses `pages/wrangler.production.toml` by default. Python services remain the development/reference implementation; `scripts/share.sh` is an optional legacy development workflow. Preserve parity and provenance when refreshing the snapshot.
+- **Visual identity:** follow [`docs/marca.md`](docs/marca.md) and [`css/brand.css`](css/brand.css): midnight-blue background, cyan accent, Montserrat + Open Sans, unchanged `assets/brand/` logo, violet-to-rust score scale, and semantic body colors. Design tools, including Hallmark, may inform structure but must not replace the palette, typography, or logo.
 
-1. **Nunca inventar** coordenadas, elevaciones, temperaturas, espectros ni ningún valor. Tampoco "promediar" fuentes que no coinciden.
-2. **Todo valor lleva fuente** en `source`: dataset, producto/versión, URL y fecha de consulta (America/Buenos_Aires). Wikipedia solo como último recurso y marcada así.
-3. **Lo que no se pudo verificar va `null`** con `quality: "placeholder"` (o `"unavailable"`) y nota "a completar". Un sitio sin coordenada verificada no entra; se lista en el reporte.
-4. `quality` honesta: `measured` (medición), `derived` (calculado de una medición), `modeled` (modelo/reanálisis: ERA5, MCD), `convention` (convención documentada), `derived_from_published_range`, `placeholder`/`unavailable`.
-5. **Comparabilidad:** misma definición en la Tierra y en Luna/Marte (p. ej. T = grilla 7×7 a 120 m). Si la escala o la magnitud difiere (DEM de 200 m, temperatura de superficie vs. aire), se dice en `note`.
-6. TASI renormaliza pesos sobre los componentes con dato y reporta cobertura: respetarlo, no rellenar para "subir" puntajes.
-7. **Validar contra un valor publicado** cada pipeline nuevo antes de cargar (ej.: Bradbury Landing −4.501 m; Jezero MEDA 209–225 K).
-8. Ningún secreto en el repo ni en el chat: credenciales en `~/.netrc` (Earthdata) o `~/.config/hexastra/*.env`.
+## 3. Data integrity
 
-## 4. Fuentes: primero las oficiales del desafío
+1. **Never invent** coordinates, elevations, temperatures, spectra, or other values. Do not average conflicting sources to conceal disagreement.
+2. **Every value needs `source`:** dataset, product/version, URL, and retrieval date in America/Buenos_Aires. Wikipedia is a labeled last resort.
+3. **Unverified values remain `null`**, with `quality: "placeholder"` or `"unavailable"` and the required pending-data note, `"a completar"`. Do not admit a site without a verified coordinate; list it in the report.
+4. Use honest `quality`: `measured`, `derived`, `modeled` (such as ERA5 or MCD), `convention`, `derived_from_published_range`, or `placeholder`/`unavailable`.
+5. **Comparability:** use the same definition on Earth and the target, such as a 7 × 7 terrain grid at 120 m. Document scale or quantity differences in `note`, including 200 m DEMs or surface versus air temperature.
+6. TASI renormalizes weights over available components and reports coverage. Preserve this behavior; never fill gaps to increase scores.
+7. **Validate each new pipeline against a published value** before integration, for example Bradbury Landing at −4501 m or Jezero MEDA at 209–225 K.
+8. Never expose secrets in the repository or conversation. Store Earthdata credentials in `~/.netrc` and other private settings in `~/.config/hexastra/*.env`.
 
-Usar en este orden. Una fuente externa solo si la oficial no tiene el dato, y documentando por qué.
+## 4. Source priority
 
-1. **Recursos oficiales del desafío** ([`docs/desafio.md`](docs/desafio.md)):
-   - NASA Earthdata Search / Worldview (Tierra: MODIS, ASTER, NASADEM, EMIT, SMAP…).
-   - NASA PDS y LRO (LROC, LOLA, Diviner — incluidos sus productos polares y de recursos —, LEND, Mini-RF); PDS de Marte (MOLA, CRISM, THEMIS, GRS/neutrones…).
-   - CSA: RCM, RADARSAT-1 (radar, banda C).
-   - ESA: Copernicus Data Space (Sentinel), ESA Open Science Catalog (p. ej. permafrost CCI).
-   - JAXA: G-Portal (precipitación GSMaP, nieve, vegetación).
-2. Productos de agencias o institutos derivados de esas misiones (USGS Astrogeology, IAU/USGS Gazetteer, Mars Climate Database LMD/ESA/CNES, NASA GISS Mars24).
-3. Fuentes abiertas reconocidas (Smithsonian GVP, Earth Impact Database, Natural Earth, OpenStreetMap, GHSL, COMNAP, papers con DOI).
-4. Wikipedia: último recurso, marcada en `coord_source`/`source`.
+Use sources in this order. Use an external source only when the official source lacks the required data, and document the reason.
 
-Respetar las condiciones de uso de cada sitio no gubernamental.
+1. **Official challenge resources** ([saved text](docs/desafio.md)):
+   - NASA Earthdata Search / Worldview: MODIS, ASTER, NASADEM, EMIT, SMAP, and related Earth products.
+   - NASA PDS and LRO: LROC, LOLA, Diviner, including polar/resource products, LEND, Mini-RF; Martian MOLA, CRISM, THEMIS, GRS/neutron products.
+   - CSA: RCM and RADARSAT-1 C-band radar.
+   - ESA: Copernicus Data Space/Sentinel and ESA Open Science Catalog, including Permafrost_cci.
+   - JAXA: G-Portal precipitation/GSMaP, snow, and vegetation products.
+2. Mission-derived agency/institute products: USGS Astrogeology, IAU/USGS Gazetteer, LMD/ESA/CNES Mars Climate Database, NASA GISS Mars24.
+3. Recognized open resources: Smithsonian GVP, Earth Impact Database, Natural Earth, OpenStreetMap, GHSL, COMNAP, and papers with DOI identifiers.
+4. Wikipedia, only as a last resort and labeled in `coord_source` or `source`.
 
-## 5. Cómo trabajan los agentes
+Respect every non-governmental provider's usage conditions. A source's presence on the challenge resource list does not establish that the application has ingested it. See the README's external-resource register for actual use.
 
-- **Un agente, una tarea, un worktree, un PR.** Nada de commits en `main`, merges ni force-push. Commits chicos y descriptivos en español (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
-- **Datos nuevos:** cada agente escribe sus mediciones en `data/measurements/<agente>.jsonl` con su script de ingesta reproducible (formato y reglas: [`data/measurements/README.md`](data/measurements/README.md)). No edita los catálogos base ni el archivo de otro agente, ni corre `db/export.py`; no corre `db/load.py` contra la base compartida (los tests usan una base temporal propia). La integración la hace el orquestador.
-- **Tests:** `./services/run_tests.sh` en verde, más tests nuevos que validen esquema, fuentes y nulos de lo que agregaste.
-- **Reporte final de cada agente:** qué cargó (tabla sitio × feature × valor × fuente), qué quedó `null` y por qué, validaciones hechas, dudas para el usuario.
-- **No apagar** la demo que corre en 8765/8766/8767; usar otros puertos para verificar.
+## 5. Development workflow
 
-## 6. Arranque rápido
+- **One agent, one task, one worktree, one PR.** No commits on `main`, merges, or force pushes. Write small, descriptive commits in Spanish using `feat:`, `fix:`, `docs:`, `test:`, or `chore:`.
+- **New data:** each agent owns `data/measurements/<agent>.jsonl` and its reproducible ingestion script. Follow the [measurement rules](data/measurements/README.md). Do not edit base catalogs, another agent's data, or run `db/export.py`. Do not run `db/load.py` against the shared database; tests use their own temporary database. The coordinator performs integration.
+- **Tests:** keep `./services/run_tests.sh` passing, with meaningful schema, provenance, and null-handling tests for new data.
+- **Final report:** provide the loaded site × feature × value × source table, remaining nulls and reasons, validation results, and unresolved questions.
+- **Do not stop** the demonstration on ports 8765/8766/8767. Use other ports for verification.
 
-- Servicios + front: `./run_all.sh` (8765 front, 8766 planetary, 8767 earth).
-- Base: `docker compose up -d db && services/.venv/bin/python db/load.py`; servicios contra la base con `HEXASTRA_DATABASE_URL=postgresql://hexastra:hexastra-local@127.0.0.1:55432/hexastra ./run_all.sh`.
-- Tests: `./services/run_tests.sh` (planetary, earth y `db/tests`).
-- Link para compartir: `./scripts/deploy_pages.sh` y `./scripts/share.sh <url-de-pages>`.
-- Plan, decisiones y fuentes por sitio: `docs/unificacion.md` (§8) y `README.md`.
+## 6. Quick reference
+
+- Start frontend/services: `./run_all.sh` (8765 frontend, 8766 planetary, 8767 Earth).
+- Database integration: `docker compose up -d db`, then `services/.venv/bin/python db/load.py` only for the authorized database. Set `HEXASTRA_DATABASE_URL` to run against PostgreSQL.
+- Tests: `./services/run_tests.sh` (planetary, Earth, and `db/tests`).
+- Share: `./scripts/deploy_pages.sh` and `./scripts/share.sh <pages-url>`. See the README for the immersive deployment configuration and dedicated ports.
+- Current architecture, decisions, source register, and coordinate conventions: [`README.md`](README.md). Measurement definitions: [`data/measurements/README.md`](data/measurements/README.md) and `docs/propuestas/`.

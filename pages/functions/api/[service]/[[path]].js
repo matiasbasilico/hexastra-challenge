@@ -1,6 +1,7 @@
-// Same-origin proxy: /api/planetary/... and /api/earth/... -> the Mac, through the
-// current cloudflared quick tunnel. scripts/share.sh writes each tunnel URL to KV,
-// so the public link never changes even though tunnel URLs do.
+import { standalone } from "../../../lib/standalone.mjs";
+
+// Production serves a standalone, verified catalog on Cloudflare.
+// Optional legacy/development configurations can still use the tunnel proxy below.
 const SERVICES = new Set(["planetary", "earth"]);
 const TUNNEL = /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/;
 const HOP_BY_HOP = ["host", "connection", "cf-connecting-ip", "cf-ipcountry", "cf-ray", "cf-visitor", "x-forwarded-proto", "x-real-ip"];
@@ -13,6 +14,7 @@ function unavailable(service, reason) {
 }
 
 export async function onRequest({ request, params, env }) {
+  if (env.HEXASTRA_RUNTIME === "standalone") return standalone({ request, params, env });
   const service = params.service;
   if (!SERVICES.has(service)) {
     return new Response(JSON.stringify({ ok: false, error: "Servicio desconocido" }), { status: 404 });

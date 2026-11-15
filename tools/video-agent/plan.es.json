@@ -1,0 +1,583 @@
+{
+  "voz": "Ignacio - Compassionate and Sincere (ElevenLabs)",
+  "velocidad": "+4%",
+  "duracion_total_s": 180,
+  "fundido_s": 0.5,
+  "pronunciacion": {
+    "Arsia Mons": "Ársia Mons",
+    "Diviner": "Diváiner",
+    "Mars Odyssey": "Mars Ódisi"
+  },
+  "nota": "TASI presentado como creación del equipo. Apertura centrada en costos, riesgos y simplificar la selección; no afirma ahorros medidos ni primacía histórica. Ignacio, presentación quieta, 180 s.",
+  "planos": [
+    {
+      "id": "gancho",
+      "src": "v2/shots/capas-mapa2d.png",
+      "ref": 3200,
+      "dur": 9,
+      "cam": [
+        [
+          0,
+          986,
+          1050,
+          1050
+        ],
+        [
+          2.7,
+          986,
+          1050,
+          1020
+        ],
+        [
+          4.2,
+          1480,
+          1050,
+          1980
+        ],
+        [
+          9,
+          1480,
+          1050,
+          1940
+        ]
+      ],
+      "enlace": {
+        "de": [
+          986,
+          1056
+        ],
+        "a": [
+          1973,
+          1056
+        ],
+        "t0": 2.6,
+        "t1": 4.4
+      },
+      "chips": [
+        {
+          "t0": 0.5,
+          "t1": 8.7,
+          "lado": "izq",
+          "etiqueta": "TIERRA",
+          "color": "celeste",
+          "texto": "Puna de Catamarca",
+          "ancho_max": 700
+        },
+        {
+          "t0": 3.4,
+          "t1": 8.7,
+          "lado": "der",
+          "etiqueta": "MARTE",
+          "color": "marte",
+          "texto": "Arsia Mons",
+          "ancho_max": 700
+        }
+      ],
+      "frases": [
+        {
+          "at": 0.4,
+          "texto": "Esto es la Puna de Catamarca, en la Argentina."
+        },
+        {
+          "at": 3.5,
+          "texto": "Y esto es Arsia Mons, un volcán de Marte."
+        },
+        {
+          "at": 6.7,
+          "texto": "¿Se parecen?"
+        }
+      ]
+    },
+    {
+      "id": "titulo",
+      "src": "pdf-nuevo/slides-video/s-1.png",
+      "ref": 1920,
+      "dur": 9,
+      "cam": [
+        [
+          0,
+          960.0,
+          540.0,
+          1920
+        ]
+      ],
+      "frases": [
+        {
+          "at": 0.3,
+          "texto": "Preparar una misión a la Luna o a Marte implica costos, riesgos y decisiones complejas. Elegir dónde probar sus tecnologías en la Tierra es una de ellas."
+        }
+      ],
+      "chips": []
+    },
+    {
+      "id": "problema",
+      "src": "pdf-nuevo/slides-video/s-2.png",
+      "ref": 1920,
+      "dur": 10,
+      "cam": [
+        [
+          0,
+          960.0,
+          540.0,
+          1920
+        ]
+      ],
+      "frases": [
+        {
+          "at": 1.3,
+          "texto": "Creamos HexAstra para simplificar esa decisión: conectar destinos espaciales con lugares terrestres mediante datos abiertos."
+        }
+      ],
+      "chips": []
+    },
+    {
+      "id": "solucion",
+      "src": "pdf-nuevo/slides-video/s-3.png",
+      "ref": 1920,
+      "dur": 8,
+      "cam": [
+        [
+          0,
+          960.0,
+          540.0,
+          1920
+        ]
+      ],
+      "frases": [
+        {
+          "at": 0.2,
+          "texto": "Nuestro objetivo es ayudar a los equipos a acotar la búsqueda, enfocar sus recursos y entender qué pueden probar en cada lugar."
+        }
+      ],
+      "chips": []
+    },
+    {
+      "id": "dimensiones",
+      "ref": 1920,
+      "cam": [
+        [
+          0,
+          960,
+          540,
+          1920
+        ]
+      ],
+      "chips": [],
+      "dur": 17,
+      "frases": [
+        {
+          "at": 0.2,
+          "texto": "Diseñamos TASI, nuestro propio índice de cinco dimensiones."
+        },
+        {
+          "at": 4.0,
+          "texto": "Geología: qué rocas hay."
+        },
+        {
+          "at": 5.9,
+          "texto": "Terreno: relieve y rugosidad."
+        },
+        {
+          "at": 8.0,
+          "texto": "Clima: temperatura y luz."
+        },
+        {
+          "at": 9.9,
+          "texto": "Recursos: agua y hielo."
+        },
+        {
+          "at": 11.8,
+          "texto": "Operación: condiciones para trabajar."
+        },
+        {
+          "at": 13.8,
+          "texto": "El puntaje combina los datos comparables."
+        }
+      ],
+      "src": "elevenlabs/ignacio-pitch-refinado/dimensiones.png"
+    },
+    {
+      "id": "presentacion-demo",
+      "ref": 1920,
+      "cam": [
+        [
+          0,
+          960,
+          540,
+          1920
+        ]
+      ],
+      "chips": [],
+      "dur": 3,
+      "frases": [
+        {
+          "at": 0.2,
+          "texto": "Ahora sí: veamos HexAstra en acción."
+        }
+      ],
+      "src": "elevenlabs/ignacio-pitch-refinado/dimensiones.png"
+    },
+    {
+      "id": "demo-facil",
+      "src": "modo-facil.mp4",
+      "video": true,
+      "ref": 1280,
+      "dur": 28,
+      "cam": [
+        [
+          0,
+          640,
+          360,
+          1280
+        ]
+      ],
+      "frases": [
+        {
+          "at": 0.2,
+          "texto": "Modo fácil: elegimos Marte."
+        },
+        {
+          "at": 2.5,
+          "texto": "Arsia Mons es un volcán de Marte. En dos mil siete, NASA publicó imágenes de Mars Odyssey con posibles entradas a cuevas."
+        },
+        {
+          "at": 11.1,
+          "texto": "Priorizamos que se parezca el terreno."
+        },
+        {
+          "at": 13.5,
+          "texto": "Podés buscar en todo el mundo, por continente o por país. Acá elegimos Argentina."
+        },
+        {
+          "at": 18.5,
+          "texto": "Lanzamos la misión en la Tierra para encontrar los mejores análogos."
+        },
+        {
+          "at": 23.8,
+          "texto": "La app nos lleva a Laguna de Antofagasta, el mejor candidato."
+        }
+      ],
+      "chips": [],
+      "retiming_anchors": [
+        [
+          0,
+          0
+        ],
+        [
+          2.3,
+          5
+        ],
+        [
+          11.1,
+          9.5
+        ],
+        [
+          13.5,
+          14.5
+        ],
+        [
+          19,
+          17.2
+        ],
+        [
+          23.5,
+          21.7
+        ],
+        [
+          28,
+          28
+        ]
+      ]
+    },
+    {
+      "id": "resultado",
+      "src": "v2/shots/resultado-facil.png",
+      "ref": 1920,
+      "dur": 11,
+      "cam": [
+        [
+          0,
+          960,
+          540,
+          1920
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.3,
+          "texto": "Setenta y dos coma siete sobre cien."
+        },
+        {
+          "at": 3,
+          "texto": "Coincide el tipo de roca."
+        },
+        {
+          "at": 5,
+          "texto": "Pero la amplitud térmica diaria cambia: sesenta y cinco grados en Marte; quince acá."
+        }
+      ]
+    },
+    {
+      "id": "demo-avanzada",
+      "src": "modo-avanzado.mp4",
+      "video": true,
+      "ref": 1280,
+      "dur": 22,
+      "cam": [
+        [
+          0,
+          640.0,
+          360.0,
+          1280
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.3,
+          "texto": "Desarrollamos un modo avanzado para que vos decidas qué pesa más en cada comparación."
+        },
+        {
+          "at": 6.1,
+          "texto": "Priorizamos el terreno."
+        },
+        {
+          "at": 7.7,
+          "texto": "Y el resto se ajusta automáticamente."
+        },
+        {
+          "at": 10.8,
+          "texto": "Revisamos los filtros."
+        },
+        {
+          "at": 13.7,
+          "texto": "Volvemos a buscar: setenta coma nueve. Mismo lugar, una comparación hecha a medida."
+        },
+        {
+          "at": 19,
+          "texto": "Los dos mapas, siempre lado a lado."
+        }
+      ],
+      "continuidad": {
+        "mantener_resultado_facil_hasta_s": 86.16666666666667,
+        "fundido_al_avanzado_s": 0.3333333333333333,
+        "sin_cambiar_tiempos_de_clics": true
+      },
+      "revelar_desde": 0.3
+    },
+    {
+      "id": "capas-menu",
+      "src": "v2/shots/capas-menu.png",
+      "ref": 3200,
+      "dur": 1.2,
+      "cam": [
+        [
+          0,
+          1600.0,
+          900.0,
+          3200
+        ]
+      ],
+      "frases": [
+        {
+          "at": 0.1,
+          "texto": "Explorá las capas."
+        }
+      ],
+      "chips": []
+    },
+    {
+      "id": "capa-esri",
+      "src": "v2/shots/capa-layer-esri-menu.png",
+      "ref": 3200,
+      "dur": 2.2,
+      "cam": [
+        [
+          0,
+          1600.0,
+          900.0,
+          3200
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.1,
+          "texto": "Satélite: el paisaje."
+        }
+      ]
+    },
+    {
+      "id": "capa-osm",
+      "src": "v2/shots/capa-layer-osm-menu.png",
+      "ref": 3200,
+      "dur": 2.2,
+      "cam": [
+        [
+          0,
+          1600.0,
+          900.0,
+          3200
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.1,
+          "texto": "Mapas: caminos y accesos."
+        }
+      ]
+    },
+    {
+      "id": "capa-tc",
+      "src": "v2/shots/capa-layer-gibs-tc-menu.png",
+      "ref": 3200,
+      "dur": 2.2,
+      "cam": [
+        [
+          0,
+          1600.0,
+          900.0,
+          3200
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.1,
+          "texto": "MODIS: vegetación y nieve."
+        }
+      ]
+    },
+    {
+      "id": "capa-lst",
+      "src": "v2/shots/capa-layer-gibs-lst-menu.png",
+      "ref": 3200,
+      "dur": 2.2,
+      "cam": [
+        [
+          0,
+          1600.0,
+          900.0,
+          3200
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.1,
+          "texto": "Y temperatura del suelo."
+        }
+      ]
+    },
+    {
+      "id": "datos",
+      "src": "v2/shots/avanzado-datos-hd.png",
+      "ref": 3200,
+      "dur": 8,
+      "cam": [
+        [
+          0,
+          1600.0,
+          900.0,
+          3200
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.2,
+          "texto": "Cada valor viene con su fuente."
+        },
+        {
+          "at": 3.2,
+          "texto": "Y lo que falta queda identificado. No inventamos números."
+        }
+      ]
+    },
+    {
+      "id": "arquitectura",
+      "src": "pdf-nuevo/slides-video/s-5.png",
+      "ref": 1920,
+      "dur": 11,
+      "cam": [
+        [
+          0,
+          960.0,
+          540.0,
+          1920
+        ]
+      ],
+      "frases": [
+        {
+          "at": 0.2,
+          "texto": "Relieve LOLA y MOLA, temperaturas Diviner y datos abiertos de la Tierra. El TASI promedia sólo lo que tiene dato. Es nuestra propuesta, no un índice oficial."
+        }
+      ],
+      "chips": []
+    },
+    {
+      "id": "limites",
+      "src": "pdf-nuevo/slides-video/s-6.png",
+      "ref": 1920,
+      "dur": 19,
+      "cam": [
+        [
+          0,
+          960.0,
+          540.0,
+          1920
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.3,
+          "texto": "La Tierra no reproduce la gravedad, el vacío ni la radiación de otros mundos."
+        },
+        {
+          "at": 5.2,
+          "texto": "Por eso el puntaje mide parecido, no aptitud para una misión."
+        },
+        {
+          "at": 9.2,
+          "texto": "Rutas y aeródromos ayudan a planear una campaña; se muestran como contexto."
+        },
+        {
+          "at": 14.1,
+          "texto": "El próximo paso: sumar datos, detectar nuevos lugares y validar en el terreno."
+        }
+      ]
+    },
+    {
+      "id": "cierre",
+      "src": "pdf-nuevo/slides-video/s-7.png",
+      "ref": 1920,
+      "dur": 15,
+      "cam": [
+        [
+          0,
+          960.0,
+          540.0,
+          1920
+        ]
+      ],
+      "chips": [],
+      "frases": [
+        {
+          "at": 0.4,
+          "texto": "HexAstra transforma datos abiertos en un punto de partida para explorar."
+        },
+        {
+          "at": 5.2,
+          "texto": "Los análogos del espacio esperaban ser vistos."
+        },
+        {
+          "at": 9,
+          "texto": "Entrá, elegí tu misión y descubrí qué te devuelve la Tierra."
+        }
+      ]
+    }
+  ]
+}

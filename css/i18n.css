@@ -1,0 +1,8 @@
+/* Compact, keyboard-accessible language choice, shared by both interfaces. */
+.language-choice{display:inline-flex;align-items:center;gap:.35rem;color:var(--hx-texto-2);font:600 .75rem 'Open Sans',sans-serif;white-space:nowrap}
+.language-choice select{appearance:auto;width:auto;min-width:5.3rem;min-height:36px;margin:0;padding:.35rem .45rem;background:var(--hx-noche-2);color:var(--hx-texto);border:1px solid var(--hx-linea);border-radius:8px;font:inherit}
+.language-choice select:focus-visible{outline:2px solid var(--hx-cian);outline-offset:3px}
+.orbit-header>.language-choice{margin-left:auto;margin-right:.75rem;pointer-events:auto}
+.orbit-header .orbit-mission{margin-left:0}
+@media(max-width:600px){.orbit-header>.language-choice{margin-right:.4rem}.language-choice select{min-width:4.2rem;font-size:.65rem}.language-choice>span{display:none}}
+@media(max-width:360px){.orbit-header .orbit-brand>span{display:none}.orbit-header{gap:8px}.orbit-header>.language-choice{margin-right:0}.language-choice select{min-width:4rem}}

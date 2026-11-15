@@ -1,89 +1,86 @@
-# Manual de marca — HexAstra
+# HexAstra brand guide
 
-Fuente de verdad de la identidad visual. Todo front, slide, gráfico o captura del proyecto lo respeta. Si una herramienta de diseño (por ejemplo Hallmark) propone otro tema, manda este manual: se puede tomar la estructura, nunca la paleta ni la tipografía.
+This guide is the source of truth for visual identity. Every interface, slide, chart, and project screenshot must follow it. If a design tool suggests another theme, this guide takes precedence: borrow structure, not its palette or typography.
 
-Piezas de origen: el logo ([`assets/brand/hexastra-logo.png`](../assets/brand/hexastra-logo.png)) y la portada ([`docs/marca/referencia-portada.jpg`](marca/referencia-portada.jpg)). Todos los colores están **medidos en esas imágenes** (14 de noviembre de 2026), no elegidos a ojo. Los tokens están en [`css/brand.css`](../css/brand.css).
+Source assets: the [logo](../assets/brand/hexastra-logo.png) and [cover reference](marca/referencia-portada.jpg). Colors were **measured from these images** on November 14, 2026, rather than selected by eye. Tokens are defined in [`css/brand.css`](../css/brand.css). Asset provenance and publication permissions must be confirmed separately; this guide does not establish their licensing.
 
 ## 1. Logo
 
-![Logo HexAstra](../assets/brand/hexastra-logo-512.png)
+![HexAstra logo](../assets/brand/hexastra-logo-512.png)
 
-Parche de misión: obelisco de Buenos Aires sobre la Tierra de noche, Luna y Marte a los lados, satélite, galaxia, cinta celeste y blanca con el Sol de Mayo, y la palabra HexAstra.
+The mission-patch composition includes the Buenos Aires Obelisk over Earth at night, the Moon and Mars, a satellite, a galaxy, an Argentine-colored ribbon with the Sun of May, and the HexAstra wordmark.
 
-- **Archivos:** `hexastra-logo.png` (original 1254 px), `hexastra-logo-512.png` (web), `apple-touch-icon.png` (180), `favicon-64.png` y `favicon-32.png`.
-- **Fondo:** siempre sobre `--hx-noche` o negro. No ponerlo sobre fotos ni sobre fondos claros.
-- **Tamaño mínimo:** 96 px de ancho en pantalla. Por debajo, usar solo la palabra HexAstra en Montserrat 700.
-- **Aire:** dejar alrededor al menos un cuarto del ancho del logo libre.
-- **No:** recortarlo, deformarlo, recolorearlo, ponerle sombras ni rehacer la palabra con otra letra.
+- **Files:** `hexastra-logo.png` (1254 px original), `hexastra-logo-512.png` (web), `apple-touch-icon.png` (180 px), `favicon-64.png`, and `favicon-32.png`.
+- **Background:** always `--hx-noche` or black. Do not place it on photographs or light backgrounds.
+- **Minimum size:** 96 px wide on screen. Below that, use the HexAstra wordmark in Montserrat 700.
+- **Clear space:** at least one quarter of the logo's width on every side.
+- **Do not:** crop, distort, recolor, add shadows, or redraw the wordmark in a different typeface.
 
 ## 2. Color
 
-### Base (de la portada)
+### Base palette from the cover
 
-| Token | Hex | Uso | Contraste sobre `--hx-noche` |
+| Token | Hex | Use | Contrast on `--hx-noche` |
 |---|---|---|---|
-| `--hx-noche` | `#070915` | Fondo de todo | — |
-| `--hx-noche-2` | `#121830` | Paneles, tarjetas, fichas (derivado del fondo) | — |
-| `--hx-linea` | `#2A3250` | Divisores y bordes (como la barra de la portada) | 1,58 (decorativo) |
-| `--hx-texto` | `#F6F7FE` | Titulares y texto principal | 18,56 |
-| `--hx-texto-2` | `#A9B0CA` | Texto secundario, pies, ayudas | 9,21 |
-| `--hx-cian` | `#65D0EA` | **Acento principal:** subtítulos, enlaces, foco, etiqueta superior | 11,11 |
+| `--hx-noche` | `#070915` | Overall background | — |
+| `--hx-noche-2` | `#121830` | Panels, cards, controls | — |
+| `--hx-linea` | `#2A3250` | Dividers and borders | 1.58, decorative |
+| `--hx-texto` | `#F6F7FE` | Headings and primary text | 18.56 |
+| `--hx-texto-2` | `#A9B0CA` | Secondary text, captions, help | 9.21 |
+| `--hx-cian` | `#65D0EA` | Primary accent: subtitles, links, focus, top label | 11.11 |
 
-### De la imagen de la portada (red hexagonal sobre el terreno)
+### Cover network palette
 
-| Token | Hex | Uso | Contraste |
+| Token | Hex | Use | Contrast |
 |---|---|---|---|
-| `--hx-marte` | `#D87E4E` | Marte, puntaje alto ("muy parecido") | 6,62 |
-| `--hx-violeta` | `#8651D3` | Puntaje bajo ("poco parecido"), nodos de la red | 3,90 → **solo gráficos o texto ≥ 24 px** |
-| `--hx-cian-brillo` | `#56B2DE` | Líneas de la red, brillos, "menos estudiado" | 8,33 |
+| `--hx-marte` | `#D87E4E` | Mars and high similarity | 6.62 |
+| `--hx-violeta` | `#8651D3` | Low similarity and network nodes | 3.90: graphics or text at least 24 px |
+| `--hx-cian-brillo` | `#56B2DE` | Network lines, highlights, less-studied sites | 8.33 |
 
-### Del logo (Argentina)
+### Logo palette
 
-| Token | Hex | Uso | Contraste |
+| Token | Hex | Use | Contrast |
 |---|---|---|---|
-| `--hx-azul-orbita` | `#2B77E1` | Anillos, bordes destacados, botón primario con texto blanco grande | 4,56 → texto ≥ 18 px |
-| `--hx-celeste` | `#729CD8` | La Tierra en mapas y leyendas; dato modelado | 7,05 |
-| `--hx-sol` | `#D4964E` | "Dato a completar", avisos, la brecha de lo que la Tierra no imita | 7,81 |
-| `--hx-luna` | `#B6AEB7` | La Luna en mapas y leyendas | 9,19 |
+| `--hx-azul-orbita` | `#2B77E1` | Rings, emphasized borders, large white button text | 4.56: text at least 18 px |
+| `--hx-celeste` | `#729CD8` | Earth on maps and legends; modeled data | 7.05 |
+| `--hx-sol` | `#D4964E` | Missing data, warnings, physical analogy limits | 7.81 |
+| `--hx-luna` | `#B6AEB7` | Moon on maps and legends | 9.19 |
 
-### Reglas de color
+### Color rules
 
-- **Fondo oscuro siempre** (azul noche, como pide el documento del proyecto). No hay tema claro en la app. Para imprimir, la marca va sobre blanco solo en texto negro + un acento.
-- **Escala de puntaje:** de violeta (poco parecido) a naranja óxido (muy parecido), el mismo par de colores que la red de la portada. Nunca rojo/verde.
-- **Cuerpos:** la Tierra en celeste, Marte en óxido y la Luna en gris luna, en mapas, chips y leyendas, siempre con nombre escrito (el color no es la única señal).
-- **Calidad del dato:** medido en cian, modelado en celeste y a completar en dorado del sol, siempre con la palabra en el chip.
-- El cian es el único acento de interfaz. Óxido, violeta, celeste, sol y luna son **semánticos**: solo aparecen cuando significan algo.
+- Keep the application dark, using midnight blue. There is no light theme. Printed brand text may use black on white with one accent.
+- Similarity runs from violet to rust orange, never red/green.
+- Identify Earth in light blue, Mars in rust, and the Moon in lunar gray. Always include a written name; color is not the only signal.
+- Data quality uses cyan for measured, light blue for modeled, and solar gold for pending data, always with a written label.
+- Cyan is the single interface accent. Other palette colors have semantic roles and appear only when they communicate that meaning.
 
-## 3. Tipografía
+## 3. Typography
 
-| Rol | Familia | Peso | Ejemplo en la portada |
+| Role | Family | Weight/style | Example meaning |
 |---|---|---|---|
-| Titulares, marca escrita | **Montserrat** | 700 | "HexAstra" |
-| Subtítulos | Montserrat | 500, en `--hx-cian` | "Análogos terrestres de la Luna y Marte" |
-| Etiqueta superior | Montserrat | 600, mayúsculas, espaciado 0,14 em, en `--hx-cian` | "NASA SPACE APPS · EQUIPO" |
-| Texto y datos | **Open Sans** | 400 y 600 | "Mapa interactivo para entrenamiento…" |
+| Headlines and wordmark | Montserrat | 700 | HexAstra |
+| Subtitles | Montserrat | 500, cyan | Earth analogs for the Moon and Mars |
+| Top label | Montserrat | 600, uppercase, 0.14 em spacing, cyan | NASA Space Apps / team |
+| Text and data | Open Sans | 400 and 600 | Explanation, measurements, units |
 
-- Las dos familias vienen de Google Fonts (`css/brand.css`). No se suma una tercera.
-- Una sola etiqueta superior por pantalla (la de la marca o la sección principal), no arriba de cada título. Es un rasgo de la portada, no un adorno repetible.
-- Cifras con unidad y fuente: los datos se escriben en Open Sans 600, con la unidad al lado.
+Both families are loaded from Google Fonts through `css/brand.css`. Do not introduce a third interface family. Use a single top label per screen rather than one above every heading. Set numeric data in Open Sans 600 with the unit beside the value, and retain its source.
 
-## 4. Imagen y recursos gráficos
+## 4. Imagery and graphics
 
-- **Motivo de marca:** la red de líneas finas entre nodos (hexágonos) sobre el terreno, en cian y violeta brillantes. Se usa como textura sutil o para unir puntos análogos (Tierra ↔ Luna/Marte), nunca como relleno decorativo sin sentido.
-- **Fotografía e imágenes de satélite:** reales y con crédito (NASA, ESA, JAXA, USGS…). No usar imágenes generadas por IA como si fueran datos.
-- **Mapas:** los mapas base tienen que convivir con el fondo noche (versiones oscuras o satelitales). Los puntos se marcan con el color del cuerpo y un anillo `--hx-cian` cuando están seleccionados.
+- **Brand motif:** thin connections between hexagonal nodes over terrain, in bright cyan and violet. Use subtly or to connect Earth and planetary analogs, not as meaningless filler.
+- **Photography and satellite imagery:** use real, credited imagery from sources such as NASA, ESA, JAXA, and USGS. Never present AI-generated imagery as scientific data.
+- **Maps:** basemaps must work with the dark background. Mark points with the body's color and a cyan selection ring.
 
-## 5. Voz
+## 5. Voice
 
-- En español rioplatense claro, sin jerga innecesaria.
-- Honesta: dice qué se parece, cuánto, qué no, y qué dato falta. Nada de cifras sin fuente.
-- El objetivo se dice simple: "Análogos terrestres de la Luna y Marte".
+The application speaks clear English or Rioplatense Spanish, following browser/manual language preference, without unnecessary jargon. Explain what matches, how closely, what differs, and what evidence is missing. Never state an unsourced number. The product purpose is simple: Earth analogs for the Moon and Mars. Documentation is written in English.
 
-## 6. Checklist antes de publicar
+## 6. Publication checklist
 
-- [ ] Fondo `--hx-noche`, acento `--hx-cian` y solo colores de esta lista.
-- [ ] Montserrat para titulares y Open Sans para texto, sin otras familias.
-- [ ] Logo sin modificar, sobre fondo oscuro y con aire.
-- [ ] Texto con contraste ≥ 4,5:1 (violeta y azul órbita solo grandes o en gráficos).
-- [ ] Puntaje de violeta a óxido; cuerpos y calidad del dato con su color y su palabra.
-- [ ] Comparativa Tierra | destino visible (decisión de producto, `CLAUDE.md`).
+- [ ] Use the midnight background, cyan accent, and approved palette only.
+- [ ] Use Montserrat for headings and Open Sans for text.
+- [ ] Preserve the logo on a dark background with clear space.
+- [ ] Maintain text contrast of at least 4.5:1; reserve violet and orbit blue for appropriate large text/graphics.
+- [ ] Preserve the violet-to-rust score scale and written body/data-quality labels.
+- [ ] Keep Earth and destination visible together after selection, following `CLAUDE.md`.
+- [ ] Confirm publication rights and retain required attribution for every supplied or external asset.

@@ -155,8 +155,11 @@
 
   function setMode(mode) {
     const easy = mode === "easy";
+    const modeURL=new URL(location.href);modeURL.searchParams.set('mode',easy?'easy':'advanced');
+    history.replaceState(null,'',modeURL);
     document.body.classList.toggle("mode-easy", easy);
     document.body.classList.toggle("mode-advanced", !easy);
+    document.querySelectorAll('.adv-menu, .layers-menu').forEach(d=>d.open=false);
     const easyBtn = $("#mode-easy");
     const advBtn = $("#mode-advanced");
     if (easyBtn) {
@@ -192,14 +195,14 @@
         '<nav class="easy-steps" aria-label="Pasos del modo fácil">' +
           '<ol class="easy-stepper" id="easy-stepper"></ol>' +
         '</nav>' +
-        '<section class="easy-featured" aria-label="Lugares destacados">' +
+        '<details class="easy-featured" aria-label="Lugares destacados">' +
+          '<summary>Lugares destacados</summary>' +
           '<div class="easy-featured-head">' +
-            '<h2>Lugares destacados</h2>' +
             '<p>Atajos a sitios de referencia. Tocá uno para ir al mapa. Los que dicen «análogo clásico» (Antártida, Atacama, Hawái, Haughton…) están muy estudiados: el desafío pide también buscar análogos menos conocidos.</p>' +
           '</div>' +
           '<div id="easy-featured-groups"></div>' +
           '<div id="easy-featured-panel" class="easy-feat-panel" hidden></div>' +
-        '</section>' +
+        '</details>' +
           '<section class="easy-main" id="easy-main" aria-live="polite"></section>' +
           '</div>' +
           '<section class="easy-compare" id="easy-compare" aria-labelledby="easy-compare-title">' +
@@ -255,6 +258,14 @@
     if (!maps.length) return;
     requestAnimationFrame(function () { maps.forEach(function (m) { m.invalidateSize(); }); });
     setTimeout(function () { maps.forEach(function (m) { m.invalidateSize(); }); }, 200);
+  }
+
+  function observeMapSize(map, element) {
+    if (typeof ResizeObserver === "undefined") return;
+    // La ficha puede crecer al elegir un resultado sin que cambie el tamaño de la ventana.
+    new ResizeObserver(function () {
+      if (element.clientWidth && element.clientHeight) map.invalidateSize({ pan: false });
+    }).observe(element);
   }
 
   function renderFeatured() {
@@ -374,6 +385,20 @@
     });
   }
 
+  function plotFeaturedSites() {
+    if (!state.map || !state.featured) return;
+    if (state.featuredPins) state.map.removeLayer(state.featuredPins);
+    state.featuredPins = L.layerGroup().addTo(state.map);
+    allFeaturedPlaces().forEach(function (site) {
+      if (site.lat == null || site.lon == null) return;
+      const marker = L.marker([site.lat, site.lon], { icon: featuredIcon(false), title: site.name });
+      marker.hexastraSite = site;
+      marker.on("click", function () { selectFeatured(site.id); });
+      marker.bindTooltip(site.short_name || site.name);
+      marker.addTo(state.featuredPins);
+    });
+  }
+
   function clearFeaturedMarker() {
     if (state.map && state.featuredMarker) {
       state.map.removeLayer(state.featuredMarker);
@@ -398,6 +423,7 @@
         keyboard: true,
         alt: pl.name
       }).addTo(state.map);
+      marker.hexastraSite = pl;
       marker.bindTooltip(pl.short_name || pl.name);
       state.featuredMarker = marker;
       const z = Math.abs(pl.lat) > 70 ? 5 : 7;
@@ -424,7 +450,7 @@
       list = '<ol class="easy-rank easy-rank-compact">' + matches.map(function (m, i) {
         const site = m.site || {};
         const body = site.body === "moon" ? "Luna" : site.body === "mars" ? "Marte" : "";
-        const score = m.score == null ? "—" : Number(m.score).toLocaleString("es-AR", {
+        const score = m.score == null ? "—" : Number(m.score).toLocaleString(globalThis.HexastraI18n?.locale || "es-AR", {
           maximumFractionDigits: 1,
           minimumFractionDigits: Number(m.score) % 1 ? 1 : 0
         });
@@ -990,7 +1016,7 @@
         const site = m.site || {};
         const active = site.id === state.selectedResultId ? " is-selected" : "";
         const place = [site.province, site.country_name || site.country].filter(Boolean).join(", ");
-        const score = m.score == null ? "—" : Number(m.score).toLocaleString("es-AR", {
+        const score = m.score == null ? "—" : Number(m.score).toLocaleString(globalThis.HexastraI18n?.locale || "es-AR", {
           maximumFractionDigits: 1,
           minimumFractionDigits: Number(m.score) % 1 ? 1 : 0
         });
@@ -1107,6 +1133,19 @@
     );
     state.tileEsri.addTo(map);
     state.map = map;
+    if (window.HexastraGlobe) {
+      state.globe = window.HexastraGlobe.attach(map, {
+        tools: $(".easy-map-tools"),
+        getContext: (marker) => ({
+          site: marker.hexastraSite,
+          target: currentTarget(),
+          match: ((state.results && state.results.matches) || []).find(function (m) {
+            return m.site && m.site.id === marker.hexastraSite?.id;
+          }) || null,
+        }),
+      });
+    }
+    observeMapSize(map, el);
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
@@ -1150,6 +1189,7 @@
       )
     };
     state.destMap = map;
+    observeMapSize(map, el);
     setDestBody(state.body || "moon");
     setTimeout(function () { map.invalidateSize(); }, 200);
   }
@@ -1303,7 +1343,7 @@
     if (lat == null || lon == null) return "coordenadas a completar";
     const la = Number(lat);
     const lo = Number(lon);
-    const fmt = function (v) { return Math.abs(v).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    const fmt = function (v) { return Math.abs(v).toLocaleString(globalThis.HexastraI18n?.locale || "es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
     return fmt(la) + "° " + (la < 0 ? "S" : "N") + ", " + fmt(lo) + "° " + (lo < 0 ? "O" : "E");
   }
 
@@ -1330,6 +1370,10 @@
 
   function plotResults(data) {
     if (!state.map) return;
+    if (state.featuredPins) {
+      state.map.removeLayer(state.featuredPins);
+      state.featuredPins = null;
+    }
     Object.keys(state.markers).forEach(function (id) {
       state.map.removeLayer(state.markers[id]);
     });
@@ -1345,6 +1389,7 @@
         keyboard: true,
         alt: "Análogo " + (i + 1) + ": " + site.name
       }).addTo(state.map);
+      marker.hexastraSite = site;
       marker.bindTooltip(site.short_name || site.name);
       marker.on("click", function () { selectResult(site.id); });
       state.markers[site.id] = marker;
@@ -1414,7 +1459,7 @@
         shown = sc == null ? "sin dato (se omitió y se repartieron los pesos)" : formatScore(Math.round(sc * 10) / 10) + " de 100";
       }
       return "<tr><th scope='row'>" + escapeHtml(labels[key]) + "</th><td>" +
-        Math.round(w * 100).toLocaleString("es-AR") + " %</td><td>" + escapeHtml(shown) + "</td></tr>";
+        Math.round(w * 100).toLocaleString(globalThis.HexastraI18n?.locale || "es-AR") + " %</td><td>" + escapeHtml(shown) + "</td></tr>";
     };
     const m = state.method;
     const methodText = m
@@ -1501,7 +1546,7 @@
     }
 
     buildShell();
-    setMode("easy");
+    setMode(new URLSearchParams(location.search).get('mode')==='advanced'?'advanced':'easy');
 
     $("#mode-easy").addEventListener("click", function () { setMode("easy"); });
     $("#mode-advanced").addEventListener("click", function () { setMode("advanced"); });
@@ -1529,6 +1574,7 @@
     renderFeatured();
 
     state.body = "moon";
+    plotFeaturedSites();
     state.loadingTargets = true;
     renderMain();
     await loadTargets("moon");
@@ -1548,4 +1594,7 @@
   } else {
     boot();
   }
+  window.addEventListener('hexastra:languagechange',()=>{
+    renderStepper();renderMain();renderResultsBlock();renderPair();
+  });
 })();

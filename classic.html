@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HexAstra: análogos terrestres de la Luna y Marte</title>
+  <meta name="description" content="HexAstra, NASA Space Apps Challenge 2026: buscá lugares de la Tierra que se parecen a sitios de la Luna y de Marte, con datos citados y lo que la Tierra no puede imitar.">
+  <script src="js/locales/en.js"></script>
+  <script src="js/i18n.js"></script>
+  <link rel="stylesheet" href="css/i18n.css">
+  <meta name="theme-color" content="#070915">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/brand/favicon-64.png">
+  <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="css/brand.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/easy.css">
+  <link rel="stylesheet" href="css/globe.css">
+  <link rel="stylesheet" href="css/advanced.css">
+</head>
+<body class="mode-easy">
+  <script>if(new URLSearchParams(location.search).get('mode')==='advanced')document.body.className='mode-advanced';</script>
+  <div class="app">
+    <header class="header">
+      <div class="topbar">
+        <a href="./" class="advanced-identity" id="advanced-globe-link"><strong>HexAstra</strong><span>← Globo 3D</span></a>
+        <div class="mode-switch" role="tablist" aria-label="Modo de la interfaz">
+          <button type="button" role="tab" id="mode-easy" aria-selected="true" class="is-active">Modo fácil</button>
+          <button type="button" role="tab" id="mode-advanced" aria-selected="false">Modo avanzado</button>
+        </div>
+        <label class="language-choice" translate="no"><span aria-hidden="true">◎</span><select data-language-select aria-label="Language / Idioma"><option value="en">English</option><option value="es">Español</option></select></label>
+        <div class="header-actions">
+          <button type="button" id="btn-limites" aria-haspopup="dialog">Límites de la Tierra</button>
+          <button type="button" id="btn-metodo">Cómo se calcula</button>
+          <button type="button" id="btn-fuentes">Fuente</button>
+          <a class="btn" href="https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/" target="_blank" rel="noopener">El desafío</a>
+        </div>
+      </div>
+      <div class="masthead">
+        <div class="brand">
+          <img class="brand-logo" src="assets/brand/hexastra-logo-512.png" width="112" height="112" alt="HexAstra, parche de misión del equipo">
+          <div class="brand-text">
+            <p class="brand-tag">NASA Space Apps 2026 · Equipo HexAstra</p>
+            <h1>Análogos terrestres de la Luna y Marte</h1>
+            <p class="subtitle">Elegí un destino, buscá análogos terrestres y compará la evidencia.</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div id="easy-app"></div>
+
+    <section class="adv" aria-label="Comparativa Tierra y destino">
+      <div class="adv-bar" role="search" aria-label="Destino, región y misión">
+        <label class="adv-field">
+          <span>Destino</span>
+          <select id="finder-target" disabled></select>
+        </label>
+        <label class="adv-field">
+          <span>Región</span>
+          <select id="finder-region" disabled></select>
+        </label>
+        <label class="adv-field">
+          <span>Enfoque</span>
+          <select id="finder-mission" disabled></select>
+        </label>
+        <details class="adv-menu" id="weights-menu">
+          <summary>Ajustar pesos</summary>
+          <div class="adv-menu-panel">
+            <div class="adv-menu-heading"><h2>Importancia de cada dimensión</h2><button type="button" data-close-menu aria-label="Cerrar ajuste de pesos">×</button></div>
+            <div id="finder-features"></div>
+          </div>
+        </details>
+        <details class="adv-menu" id="options-menu">
+          <summary>Opciones avanzadas</summary>
+          <div class="adv-menu-panel">
+            <div class="adv-menu-heading"><h2>Opciones de comparación</h2><button type="button" data-close-menu aria-label="Cerrar opciones avanzadas">×</button></div>
+            <label class="adv-option" for="finder-gamma">
+              <span>γ del terreno <span id="finder-gamma-val"></span></span>
+              <input type="range" id="finder-gamma" min="0.1" max="3" step="0.1" value="1">
+            </label>
+            <label class="adv-check"><input type="checkbox" id="finder-mask" checked> Descartar sitios con vegetación (NDVI mayor que <span id="finder-mask-ndvi">el umbral del servicio</span>) o agua líquida</label>
+          </div>
+        </details>
+        <button type="button" id="btn-buscar" class="easy-btn-primary" disabled>Buscar</button>
+        <p class="api-status" id="api-status" role="status">Buscando la API…</p>
+      </div>
+
+      <nav class="advanced-view-tabs" aria-label="Vista del explorador avanzado">
+        <button type="button" data-advanced-view="maps" aria-pressed="true">Mapas</button>
+        <button type="button" data-advanced-view="sites" aria-pressed="false">Sitios y ranking</button>
+        <button type="button" data-advanced-view="detail" aria-pressed="false">Ficha del sitio</button>
+      </nav>
+      <div class="workspace">
+        <aside class="sitelist" aria-label="Sitios en la Tierra">
+          <div class="sitelist-head">
+            <h2>Sitios en la Tierra</h2>
+          </div>
+          <div id="finder-results" class="adv-results" aria-live="polite"></div>
+          <div id="site-buttons"></div>
+        </aside>
+
+        <section class="map-frame" aria-label="Mapa de la Tierra">
+          <div class="map-label"><h2>Tierra</h2></div>
+          <details class="layers-menu">
+            <summary>Capas</summary>
+            <div class="layers-panel earth-layers-panel">
+              <div class="adv-menu-heading"><h2>Capas de la Tierra</h2><button type="button" data-close-menu aria-label="Cerrar capas de la Tierra">×</button></div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-esri" aria-describedby="layer-esri-help" checked> Satélite (Esri)</label>
+                <p id="layer-esri-help">Observá formas y texturas del paisaje: cráteres, dunas y coladas de lava.</p>
+              </div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-osm" aria-describedby="layer-osm-help"> Mapa (OpenStreetMap)</label>
+                <p id="layer-osm-help">Ubicá caminos, localidades y accesos para preparar una visita al sitio.</p>
+              </div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-gibs-tc" aria-describedby="layer-gibs-tc-help"> NASA GIBS, color verdadero</label>
+                <p id="layer-gibs-tc-help">Compará paisaje, vegetación, nieve y nubes con imágenes MODIS de la fecha elegida.</p>
+              </div>
+              <div class="map-layer-option">
+                <label><input type="checkbox" id="layer-gibs-lst" aria-describedby="layer-gibs-lst-help"> NASA GIBS, temperatura de superficie</label>
+                <p id="layer-gibs-lst-help">Explorá contrastes térmicos del suelo durante el día. Es <a href="https://science.nasa.gov/earth/earth-observatory/global-maps/land-surface-temperature/" target="_blank" rel="noopener">temperatura de la superficie</a>, no del aire.</p>
+              </div>
+              <div class="layer-date-control">
+                <label class="layers-date">Fecha de las capas NASA <input type="date" id="gibs-date" value="2026-11-10" aria-describedby="layer-date-help"></label>
+                <p id="layer-date-help">Se aplica a color verdadero y temperatura.</p>
+              </div>
+              <p class="layers-terrain-guide">Para comparar relieve, pendiente y rugosidad, consultá sus valores en la ficha del sitio.</p>
+            </div>
+          </details>
+          <div id="map-earth" class="map"></div>
+        </section>
+
+        <section class="map-frame" aria-label="Mapa del destino">
+          <div class="map-label"><h2 id="map-right-label">Marte</h2></div>
+          <details class="layers-menu" id="layers-dest">
+            <summary>Capas</summary>
+            <div class="layers-panel">
+              <label><input type="radio" name="marsbase" id="layer-opm" checked> OpenPlanetary</label>
+              <label><input type="radio" name="marsbase" id="layer-mola"> MOLA (color)</label>
+              <label><input type="radio" name="marsbase" id="layer-shaded"> Relieve sombreado</label>
+              <p class="layers-note" id="layers-dest-note" hidden>La Luna tiene una sola capa base (OpenPlanetary).</p>
+            </div>
+          </details>
+          <div id="map-mars" class="map"></div>
+        </section>
+
+        <aside class="panel" id="panel" aria-label="Ficha del par">
+          <div class="panel-head"><h2>Ficha</h2></div>
+          <p class="placeholder-msg">Elegí un sitio de la lista o del mapa de la Tierra.</p>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <dialog class="limits-dialog" id="limits-dialog" aria-labelledby="limits-title">
+    <form method="dialog"><button type="submit">Cerrar</button></form>
+    <section class="limits" aria-labelledby="limits-title">
+      <h2 id="limits-title">Lo que la Tierra no puede imitar</h2>
+      <p class="limits-lead">Quedan fuera del puntaje. Las mostramos como brecha.</p>
+      <table class="limits-table">
+        <caption class="visually-hidden">Valores de referencia de la Tierra, Marte y la Luna, según el servicio planetary</caption>
+        <thead>
+          <tr><th scope="col">Magnitud</th><th scope="col" class="num">Tierra</th><th scope="col" class="num">Marte</th><th scope="col" class="num">Luna</th></tr>
+        </thead>
+        <tbody id="limits-rows">
+          <tr><td colspan="4" class="limits-pending" role="status">Cargando los valores de referencia del servicio…</td></tr>
+        </tbody>
+      </table>
+      <details class="limits-sources">
+        <summary>Fuentes y datos a completar</summary>
+        <div id="limits-notes"></div>
+      </details>
+    </section>
+  </dialog>
+
+  <div class="modal-bg" id="modal-bg" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <button type="button" class="close">Cerrar</button>
+      <h2 id="modal-title">Cómo se calcula</h2>
+      <div id="method-body">
+        <p class="muted">El método se carga desde el servicio earth (/method) al abrir esta ventana.</p>
+      </div>
+      <h3 id="fuentes-anchor">Fuentes</h3>
+      <ul>
+        <li>Sitios terrestres: cada ficha muestra la fuente de sus coordenadas, tal como la devuelve el servicio earth (/candidates).</li>
+        <li>Destinos de la Luna y de Marte: servicio planetary (/sites), con la fuente de cada punto.</li>
+        <li>Lo que la Tierra no puede imitar: servicio planetary (/bodies), con la fuente de cada valor en «Límites de la Tierra».</li>
+        <li>Teselas de los mapas: OpenStreetMap, Esri, NASA GIBS, OpenPlanetaryMap y WhereOnMars/Carto (MOLA y relieve).</li>
+      </ul>
+      <h3>Servicios</h3>
+      <p>El buscador pide el vector del destino a <code>planetary-service</code> y el ranking TASI a <code>earth-service</code>, a través de <code>js/api.js</code>. Las direcciones se configuran en <code>js/config.js</code> o con <code>?planetary=…&amp;earth=…</code> en el link. Sin servicios, la página avisa que no están disponibles y no muestra datos.</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    window.HEXASTRA_API_READY = new Promise(function (resolve) {
+      window.__hexastraResolveApi = resolve;
+    });
+  </script>
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/api-stub.js"></script>
+  <script src="js/explain.js"></script>
+  <script src="js/navigation.js"></script>
+  <script src="js/vendor/globe.bundle.js"></script>
+  <script src="js/limits.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/easy.js"></script>
+</body>
+</html>

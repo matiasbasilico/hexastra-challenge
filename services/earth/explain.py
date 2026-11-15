@@ -71,6 +71,11 @@ def _metric_text(part: Dict[str, Any]) -> Optional[str]:
 def _component_line(key: str, comp: Dict[str, Any], best: bool) -> str:
     head = "%s, %s de 100" % (COMPONENT_LABELS[key], format_number(comp.get("score")))
     detail = comp.get("detail") or {}
+    if key == "G":
+        labels = {"composition": "tipo de roca", "impact": "origen por impacto"}
+        blocks = detail.get("blocks") or {}
+        body = _join([labels[k] for k in blocks])
+        return "%s: se comparan %s (%s de 2 bloques geológicos)." % (head, body, len(blocks))
     if key == "T":
         used = [T_LABELS.get(u, u) for u in detail.get("used") or []]
         dm = detail.get("D_M")
@@ -95,7 +100,7 @@ def explain_match(match: Dict[str, Any]) -> Dict[str, Any]:
         (k, comps[k]) for k in COMPONENT_KEYS
         if k in comps and comps[k].get("available") and comps[k].get("score") is not None
     ]
-    missing = [COMPONENT_LABELS[k] for k in COMPONENT_KEYS if k in comps and (k, comps[k]) not in scored]
+    missing = [COMPONENT_LABELS[k] for k in COMPONENT_KEYS if k in comps and (k, comps[k]) not in scored and not comps[k].get("data_available")]
     if not scored:
         return {
             "why": None,

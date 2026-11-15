@@ -72,8 +72,8 @@ test("formatScore usa coma decimal y no muestra NaN", () => {
   assert.equal(formatScore("x"), "sin puntaje");
 });
 
-test("index.html conserva los ids que leen app.js y easy.js", () => {
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+test("classic.html conserva los ids que leen app.js y easy.js", () => {
+  const html = readFileSync(join(ROOT, "classic.html"), "utf8");
   const ids = [
     "mode-easy", "mode-advanced", "btn-metodo", "btn-fuentes", "easy-app",
     "layer-osm", "layer-esri", "layer-gibs-tc", "layer-gibs-lst", "gibs-date",
@@ -89,8 +89,8 @@ test("index.html conserva los ids que leen app.js y easy.js", () => {
   assert.ok(order.every((i, k) => i > 0 && (k === 0 || i > order[k - 1])), "orden de scripts roto");
 });
 
-test("la tabla de lo que la Tierra no puede imitar sale de /bodies: index.html no trae cifras", () => {
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+test("la tabla de lo que la Tierra no puede imitar sale de /bodies: classic.html no trae cifras", () => {
+  const html = readFileSync(join(ROOT, "classic.html"), "utf8");
   const start = html.indexOf('<section class="limits"');
   const table = html.slice(start, html.indexOf("</section>", start));
   assert.ok(!/\d,\d/.test(table), "quedó una cifra escrita a mano en la tabla de límites");
@@ -108,13 +108,34 @@ test("limits.js formatea en es-AR y escribe los valores muy chicos en notación 
   assert.equal(formatValue(3.73), "3,73");
   assert.equal(formatValue(1014), "1014");
   assert.equal(formatValue(3e-12), "3×10<sup>−12</sup>");
+  assert.equal(formatValue(0.001), "1×10<sup>−3</sup>");
+  assert.equal(formatValue(0.009), "9×10<sup>−3</sup>");
   assert.equal(formatValue(null), null);
+});
+
+test("la tabla conserva la dosis lunar y el día solar, con fuentes y sin pendientes", () => {
+  const src = readFileSync(join(ROOT, "js", "limits.js"), "utf8");
+  const bodies = JSON.parse(readFileSync(join(ROOT, "services", "planetary", "data", "bodies.json"), "utf8"));
+  const elements = { "limits-rows": {}, "limits-notes": {} };
+  const ctx = {};
+  const document = { readyState: "loading", addEventListener() {}, getElementById: (id) => elements[id] };
+  new Function("window", "document", src)(ctx, document);
+  ctx.HexastraLimits.render(bodies);
+  const rows = elements["limits-rows"].innerHTML;
+  assert.match(rows, /9×10<sup>−4<\/sup>/);
+  assert.match(rows, /1,369/);
+  assert.match(rows, /708,7/);
+  assert.match(rows, /día solar/);
+  assert.doesNotMatch(rows, /A completar/);
+  assert.match(elements["limits-notes"].innerHTML, /UNSCEAR/);
+  assert.match(elements["limits-notes"].innerHTML, /PMC7518862/);
+  assert.match(elements["limits-notes"].innerHTML, /magnitudes distintas/);
 });
 
 test("nada inventado en el front: sin sites.json, sin el índice viejo, sin presets ni γ propios", () => {
   const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
   const easy = readFileSync(join(ROOT, "js", "easy.js"), "utf8");
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const html = readFileSync(join(ROOT, "classic.html"), "utf8");
   for (const [name, src] of [["app.js", app], ["easy.js", easy], ["index.html", html]]) {
     assert.ok(!/sites\.json|catalog\.json|qualitative_scores|paired_mars_ids/.test(src), name + " usa datos del prototipo viejo");
     assert.ok(!/índice ambiental|\btMars\b|\bdiurnalRef\b|\bprecipScale\b|\belevScale\b/.test(src), name + " conserva el índice ambiental propio");
@@ -143,21 +164,19 @@ test("el avanzado arranca con los pares documentados de /examples, con su texto 
   assert.match(app, /Documentado en la literatura/);
   assert.match(app, /getTargetVector\(target\.id\)/);
   assert.match(app, /why_es/);
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const html = readFileSync(join(ROOT, "classic.html"), "utf8");
   assert.ok(html.indexOf('id="finder-target"') < html.indexOf('class="workspace"'), "la barra de controles va arriba de los mapas");
 });
 
 test("avanzado minimalista: tres desplegables, pesos y opciones plegados, capas en un menú por mapa", () => {
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const html = readFileSync(join(ROOT, "classic.html"), "utf8");
   for (const id of ["finder-target", "finder-region", "finder-mission"]) assert.match(html, new RegExp('<select id="' + id + '"'));
   assert.match(html, /<details class="adv-menu" id="weights-menu">\s*<summary>Ajustar pesos<\/summary>/);
   assert.match(html, /<details class="adv-menu" id="options-menu">\s*<summary>Opciones avanzadas<\/summary>/);
   assert.ok(!/<details class="adv-menu"[^>]*open/.test(html), "los menús arrancan cerrados");
   assert.equal((html.match(/<details class="layers-menu"/g) || []).length, 2, "un menú Capas por mapa");
   const app = readFileSync(join(ROOT, "js", "app.js"), "utf8");
-  assert.match(app, /sin datos todavía/);
   assert.match(app, /function refreshEffectiveWeights\(/);
-  assert.match(app, /function componentAvailable\(/);
 });
 
 test("los archivos del prototipo viejo ya no están en data/", () => {
@@ -167,7 +186,7 @@ test("los archivos del prototipo viejo ya no están en data/", () => {
 });
 
 test("la identidad sigue el manual de marca: brand.css primero, logo y favicons, sin otras familias", () => {
-  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const html = readFileSync(join(ROOT, "classic.html"), "utf8");
   const brand = html.indexOf('href="css/brand.css"');
   assert.ok(brand > 0 && brand < html.indexOf('href="css/style.css"'), "brand.css tiene que cargarse antes");
   assert.match(html, /src="assets\/brand\/hexastra-logo-512\.png"/);

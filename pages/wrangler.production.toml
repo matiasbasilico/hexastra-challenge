@@ -1,0 +1,6 @@
+name = "hexastra"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-11-15"
+
+[vars]
+HEXASTRA_RUNTIME = "standalone"

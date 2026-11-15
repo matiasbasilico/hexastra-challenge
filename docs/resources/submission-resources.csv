@@ -1,0 +1,103 @@
+Submission field,Link Text,URL,Use
+Space Agency Partner & Other Data,ESA Permafrost_cci L4 v5.0 — CEDA,https://catalogue.ceda.ac.uk/uuid/d235665772ec4b558e9a89ac85595e71/,Permafrost extent for the ice/resources component.
+Space Agency Partner & Other Data,Mars Climate Database — LMD / ESA / CNES,https://www-mars.lmd.jussieu.fr/mars/access.html,Martian climate modeling; MCD scientific-use conditions apply.
+Space Agency Partner & Other Data,MGS MOLA / Mars Express HRSC blended DEM 200 m — USGS,https://astrogeology.usgs.gov/search/map/mars_mgs_mola_mex_hrsc_blended_dem_global_200m,Combined NASA/ESA Martian terrain product distributed by USGS.
+Space Agency Partner & Other Data,Open-Meteo Historical Weather API,https://open-meteo.com/en/docs/historical-weather-api,Historical Earth temperature and precipitation.
+Space Agency Partner & Other Data,Copernicus / ECMWF ERA5,https://confluence.ecmwf.int/pages/viewpage.action?pageId=488287070,Earth climate reanalysis accessed through Open-Meteo.
+Space Agency Partner & Other Data,OpenTopoData — ASTER GDEM,https://www.opentopodata.org/,"Earth elevations and terrain; ASTER GDEM v3, 7 × 7 samples at 120 m."
+Space Agency Partner & Other Data,Natural Earth,https://www.naturalearthdata.com/,Country boundaries and continent/country assignment.
+Space Agency Partner & Other Data,Macrostrat API,https://macrostrat.org/api,Earth geological units; retain underlying map attribution.
+Space Agency Partner & Other Data,Macrostrat — Peters et al. 2018,https://doi.org/10.1029/2018GC007467,Methodological reference for Macrostrat.
+Space Agency Partner & Other Data,USGS Geologic Map of Mars — SIM 3292,https://pubs.usgs.gov/sim/3292/,Martian geological units; Tanaka et al. 2014.
+Space Agency Partner & Other Data,USGS Unified Geologic Map of the Moon,https://astrogeology.usgs.gov/search/map/unified_geologic_map_of_the_moon_1_5m_2020,"Lunar geological units; Fortezzo, Spudis and Harrel 2020."
+Space Agency Partner & Other Data,Impact Earth — Osinski et al. 2022,https://doi.org/10.1016/j.earscirev.2022.104112,Confirmed impact-structure catalog used in geological classification.
+Space Agency Partner & Other Data,"McSween, Taylor & Wyatt 2009",https://doi.org/10.1126/science.1165871,Reference for interpreting Martian volcanic units as basaltic.
+Space Agency Partner & Other Data,OurAirports Open Data,https://davidmegginson.github.io/ourairports-data/,Airfields for Earth access and operational context.
+Space Agency Partner & Other Data,OpenStreetMap,https://www.openstreetmap.org/copyright,"Basemap, inland water, and geocoding; attribution and ODbL apply."
+Space Agency Partner & Other Data,Overpass API,https://wiki.openstreetmap.org/wiki/Overpass_API,OpenStreetMap inland-water queries.
+Space Agency Partner & Other Data,Nominatim,https://nominatim.org/,Alternative reverse geocoding based on OpenStreetMap.
+Space Agency Partner & Other Data,IAU / USGS Gazetteer of Planetary Nomenclature,https://planetarynames.wr.usgs.gov/,Coordinates and nomenclature of lunar and Martian destinations.
+Space Agency Partner & Other Data,Smithsonian Global Volcanism Program,https://volcano.si.edu/,Volcano references and catalog coordinates.
+Space Agency Partner & Other Data,COMNAP Antarctic Facilities — PGC archive,https://github.com/PolarGeospatialCenter/comnap-antarctic-facilities,Antarctic facility coordinates; archived COMNAP 2024 data. Review noncommercial-use conditions and attribution.
+Space Agency Partner & Other Data,SCAR Composite Gazetteer of Antarctica,https://placenames.aq/,Antarctic names and coordinates.
+Space Agency Partner & Other Data,IGN Argentina — Active volcanoes,https://www.ign.gob.ar/NuestrasActividades/Geografia/DatosArgentina/VolcanesActivos,Official Argentine volcano reference.
+Space Agency Partner & Other Data,UNESCO — Ischigualasto / Talampaya,https://whc.unesco.org/en/list/966/,Official reference for the terrestrial site.
+Space Agency Partner & Other Data,Ischigualasto Provincial Park,https://www.ischigualasto.gob.ar/?page_id=507,Local park reference for the catalog.
+Space Agency Partner & Other Data,Wikipedia,https://www.wikipedia.org/,Last-resort coordinates and descriptions; specific pages appear in the per-site register.
+Space Agency Partner & Other Data,Wikidata — Campo de Piedra Pómez,https://www.wikidata.org/wiki/Q23833026,Protected-area coordinates.
+Space Agency Partner & Other Data,"UNSCEAR 2024 Report, volume II",https://www.unscear.org/unscear/uploads/documents/unscear-reports/UNSCEAR_2024_Report_Vol.II.pdf#page=52,Earth radiation reference for analogy limits.
+Space Agency Partner & Other Data,Zhang et al. 2020 — Chang’e-4 lunar radiation,https://doi.org/10.1126/sciadv.aaz1334,"Lunar radiation measurements; physical context, not similarity scoring."
+Space Agency Partner & Other Data,Hassler et al. 2014 — Mars surface radiation,https://doi.org/10.1126/science.1244797,RAD/Curiosity radiation measurements; also associated with a NASA mission.
+Space Agency Partner & Other Data,Ledoit & Wolf 2004,https://www.ledoit.net/Well-conditioned2004.pdf,Covariance regularization method implemented for terrain comparison.
+Space Agency Partner & Other Data,Haruyama et al. 2009 — Lunar lava-tube skylight,https://doi.org/10.1029/2009GL040635,Published reference for the Marius Hills destination.
+Space Agency Partner & Other Data,JAXA / ISAS — Lunar hole discovery,https://www.isas.jaxa.jp/j/topics/topics/2009/1105.shtml,Exploration history of the Marius Hills pit.
+Space Agency Partner & Other Data,ESA Mars Express — Medusae Fossae water ice,https://www.esa.int/ESA_Multimedia/Images/2024/01/Mars_Express_radar_data_indicating_heaps_of_water_ice_at_Mars_s_equator,Historical/descriptive reference; not a claim of MARSIS raster ingestion.
+Space Agency Partner & Other Data,Munguira et al. 2024 — Jezero meteorology,https://doi.org/10.1029/2024JE008385,Published Jezero thermal reference.
+Space Agency Partner & Other Data,Leaflet,https://leafletjs.com/,Interactive 2D mapping library.
+Space Agency Partner & Other Data,Three.js,https://threejs.org/,3D Earth and planetary rendering; MIT license retained in the repository.
+Space Agency Partner & Other Data,Earth3D — mitchcamza,https://github.com/mitchcamza/Earth3D,Visual reference; HexAstra integration is its own implementation.
+Space Agency Partner & Other Data,Solar System Scope — Planet textures,https://www.solarsystemscope.com/textures/,"Illustrative Earth, cloud, Mars and Moon textures; CC BY 4.0."
+Space Agency Partner & Other Data,OpenPlanetaryMap — Basemaps,https://openplanetarymap.org/docs/basemaps/,Lunar and Martian basemaps.
+Space Agency Partner & Other Data,OpenPlanetaryMap / WhereOnMars / CARTO,https://github.com/openplanetary/opm-website/wiki/OPM-Basemaps,Planetary relief/color layers and provider documentation.
+Space Agency Partner & Other Data,Esri World Imagery,https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer,Earth satellite basemap; provider terms and attribution apply. Not public-domain imagery.
+Space Agency Partner & Other Data,Google Fonts — Montserrat,https://fonts.google.com/specimen/Montserrat,Interface typography.
+Space Agency Partner & Other Data,Google Fonts — Open Sans,https://fonts.google.com/specimen/Open+Sans,Interface typography.
+Space Agency Partner & Other Data,esbuild,https://esbuild.github.io/,Bundling the 3D renderer.
+Space Agency Partner & Other Data,FastAPI,https://fastapi.tiangolo.com/,Earth and planetary service APIs.
+Space Agency Partner & Other Data,Uvicorn,https://www.uvicorn.org/,ASGI server.
+Space Agency Partner & Other Data,Pydantic,https://docs.pydantic.dev/,Model and response validation.
+Space Agency Partner & Other Data,HTTPX,https://www.python-httpx.org/,HTTP client for services and ingestion.
+Space Agency Partner & Other Data,NumPy,https://numpy.org/,Numerical computation and TASI.
+Space Agency Partner & Other Data,Psycopg 3,https://www.psycopg.org/psycopg3/,Python PostgreSQL connectivity.
+Space Agency Partner & Other Data,PostgreSQL,https://www.postgresql.org/,Catalog database.
+Space Agency Partner & Other Data,PostGIS,https://postgis.net/,Geospatial database extension.
+Space Agency Partner & Other Data,Rasterio,https://rasterio.readthedocs.io/,Scientific raster reading and sampling.
+Space Agency Partner & Other Data,Pyogrio,https://pyogrio.readthedocs.io/,Geological vector-data ingestion.
+Space Agency Partner & Other Data,Shapely,https://shapely.readthedocs.io/,Geometry operations.
+Space Agency Partner & Other Data,PyShp,https://github.com/GeospatialPython/pyshp,Geological shapefile ingestion.
+Space Agency Partner & Other Data,GDAL,https://gdal.org/,Geospatial infrastructure underlying ingestion tools.
+Space Agency Partner & Other Data,pytest,https://docs.pytest.org/,Project tests.
+Space Agency Partner & Other Data,eval_type_backport,https://pypi.org/project/eval-type-backport/,Declared Python service dependency.
+Space Agency Partner & Other Data,Docker,https://www.docker.com/,Local database environment.
+Space Agency Partner & Other Data,Cloudflare Pages,https://developers.cloudflare.com/pages/,Public frontend hosting.
+Space Agency Partner & Other Data,Cloudflare Tunnel,https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/,API exposure through tunnels.
+Space Agency Partner & Other Data,Python,https://www.python.org/,Service and ingestion-script language.
+NASA Data,NASA GIBS,https://nasa-gibs.github.io/gibs-api-docs/,Earth MODIS map layers: imagery and surface temperature.
+NASA Data,MODIS MOD13Q1 v6.1,https://doi.org/10.5067/MODIS/MOD13Q1.061,NDVI for the vegetation mask.
+NASA Data,MODIS MOD44W v6.1,https://doi.org/10.5067/MODIS/MOD44W.061,Earth water mask.
+NASA Data,NASA AppEEARS,https://appeears.earthdatacloud.nasa.gov/,Earth-product extraction; data download can require Earthdata Login.
+NASA Data,NASA / METI ASTER GDEM v3,https://www.opentopodata.org/,"Earth terrain, distributed through OpenTopoData."
+NASA Data,NASA LRO / LOLA — LDEM 118 m,https://planetarymaps.usgs.gov/mosaic/Lunar_LRO_LOLA_Global_LDEM_118m_Mar2014.tif,Numeric lunar terrain raster.
+NASA Data,NASA LRO / Diviner derived data,https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_gcp/,Lunar thermal products.
+NASA Data,NASA LRO / Diviner polar resource product,https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab,Lunar polar resource product.
+NASA Data,NASA Mars Odyssey / GRS water-equivalent hydrogen,https://pds-geosciences.wustl.edu/ody/ody-m-grs-5-elements-v1/odgm_xxxx/data/smoothed/h2o_sr_5x5.tab,Martian water-equivalent hydrogen reference.
+NASA Data,NASA Mars Global Surveyor MOLA / ESA Mars Express HRSC,https://astrogeology.usgs.gov/search/map/mars_mgs_mola_mex_hrsc_blended_dem_global_200m,Combined terrain DEM for Mars.
+NASA Data,NASA GISS Mars24 — Landers,https://www.giss.nasa.gov/tools/mars24/help/landers.html,"Mission positions, dates, and landing references."
+NASA Data,NASA NSSDC — Earth Fact Sheet,https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html,Earth physical references used to explain analogy limits.
+NASA Data,NASA NSSDC — Moon Fact Sheet,https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html,Lunar physical references.
+NASA Data,NASA NSSDC — Mars Fact Sheet,https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html,Martian physical references.
+NASA Data,NASA Trek,https://trek.nasa.gov/,Planetary WMTS clients; no numeric elevations inferred from image colors.
+NASA Data,NASA SEDAC / CIESIN / ITOS — gROADS v1,https://doi.org/10.7927/H4VD6WCT,Road network for Earth operational context.
+NASA Data,NASA SEDAC / CIESIN — GPWv4 Population Count rev. 11,https://doi.org/10.7927/H4JW8BX5,Population for Earth operational context.
+NASA Data,NASA — Seven Possible Cave Skylights on Mars,https://science.nasa.gov/resource/seven-possible-cave-skylights-on-mars/,Arsia Mons historical reference; 2007 observations.
+NASA Data,NASA — Artemis candidate landing regions (2022),https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/,Historical lunar candidate-region reference.
+NASA Data,NASA NTRS — Shackleton / Zuber et al. 2012,https://ntrs.nasa.gov/citations/20120013758,Published lunar terrain reference.
+NASA Data,NASA NTRS — Río Cuarto,https://ntrs.nasa.gov/citations/19940011723,Bibliography for an Earth example; does not establish a confirmed impact origin.
+Video and PDF production — if submitted,Canva,https://www.canva.com/,"Authoring tool for the supplied PDF. Provenance and licenses of images, backgrounds and logo still require confirmation."
+Video and PDF production — if submitted,ElevenLabs — Ignacio,https://elevenlabs.io/,Synthetic pitch narration. Confirm generation-time plan and applicable publishing/attribution terms.
+Video and PDF production — if submitted,FFmpeg,https://ffmpeg.org/,"Video editing, audio processing, and export."
+Video and PDF production — if submitted,OpenCV,https://opencv.org/,Frame processing.
+Video and PDF production — if submitted,Pillow,https://python-pillow.org/,Image composition and graphics.
+Video and PDF production — if submitted,faster-whisper,https://github.com/SYSTRAN/faster-whisper,Narration transcription and alignment for editing.
+Video and PDF production — if submitted,Playwright,https://playwright.dev/,Captures of the actual application demo.
+Video and PDF production — if submitted,Poppler,https://poppler.freedesktop.org/,PDF rendering for the video.
+Video and PDF production — if submitted,ReportLab,https://www.reportlab.com/,Supporting script documents.
+Video and PDF production — if submitted,Google Fonts — Mulish,https://fonts.google.com/specimen/Mulish,Video-label typography.
+Video and PDF production — if submitted,Google Fonts — League Spartan,https://fonts.google.com/specimen/League+Spartan,Font identified in the supplied PDF; confirm original-template terms.
+AI assistance — also disclose in Use of Super Intelligence,OpenAI Codex,https://openai.com/codex/,"Assistance with code, review, scripts and production automation; human review by the team."
+AI assistance — also disclose in Use of Super Intelligence,Anthropic Claude,https://www.anthropic.com/claude,"Assistance with development and early pitch production, including the agent requested by the team."
+AI assistance — also disclose in Use of Super Intelligence,Grok,https://grok.com/,Pitch-format research and drafts according to the team's supplied record; confirm final scope.
+NASA Data,NASA — Pavonis Mons / Mars Global Surveyor,https://science.nasa.gov/photojournal/pavonis-mons/,Historical reference shown for the Pavonis Mons destination.
+Space Agency Partner & Other Data,Impeccable — design-review playbooks,https://github.com/pbakaus/impeccable,Design-review guidance; Apache-2.0. HexAstra brand rules remain authoritative.
+Video and PDF production — if submitted,OpenAI Whisper models,https://github.com/openai/whisper,Speech-recognition model underlying the local narration-alignment workflow.
+Video and PDF production — if submitted,edge-tts,https://github.com/rany2/edge-tts,Optional development-voice path in the original compositor; the approved final audio uses ElevenLabs.

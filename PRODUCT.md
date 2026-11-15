@@ -4,58 +4,64 @@
 
 ## Platform
 
-web
+Web.
 
 ## Users
 
-- **Primario: el jurado de NASA Space Apps Challenge 2026 y el propio equipo HexAstra.** Tienen minutos, no horas: necesitan entender qué sitio de la Tierra se parece a un destino de la Luna o de Marte, cuánto, en qué no, y de dónde sale cada dato. Confirmado por el usuario el 14/11/2026.
-- El modo fácil (3 pasos) es la puerta de entrada; el modo avanzado (comparativa lado a lado) es la evidencia que el jurado revisa.
+- **Primary users:** NASA Space Apps Challenge 2026 judges and Team HexAstra, confirmed by the team on November 14, 2026. They have minutes to understand which Earth site resembles a lunar or Martian target, how closely, where the analogy fails, and where each value comes from.
+- The immersive interface opens with full-screen 3D Earth. Users explore sites through globe points or a floating list; selecting one reveals the comparison. The classic interface retains guided and advanced modes.
 
-## Product Purpose
+## Product purpose
 
-Identificar y caracterizar análogos terrestres nuevos, poco estudiados, de las posibles bases lunares permanentes y de los sitios de aterrizaje y exploración en Marte, con datos abiertos de NASA y de otras agencias (desafío oficial: `docs/desafio.md`). El éxito es que alguien pueda justificar una analogía con datos, por dimensión, y ver qué no se puede imitar en la Tierra.
+Identify and characterize new, less-studied terrestrial analogs for candidate permanent lunar bases and Martian landing/exploration sites using open NASA and other agency data. The [official challenge](docs/desafio.md) defines the objective. Success means a user can justify an analogy with evidence by dimension and understand what Earth cannot reproduce.
 
 ## Positioning
 
-- No es un mapa de análogos famosos: busca los menos estudiados (Atacama, Haughton, Islandia, Hawái y la Antártida sirven como línea de base, no como hallazgo).
-- La analogía se justifica por dimensión con la matriz V = [G, T, E, Vo, O] y el índice TASI (propuesta del equipo), con cobertura explícita: un componente sin dato en los dos lados no puntúa.
-- Lo que la Tierra no puede imitar (gravedad, vacío lunar, atmósfera marciana fina, radiación) se muestra como brecha cuantificada, fuera del puntaje.
+- Seek less-studied analogs. Familiar sites such as Atacama, Haughton, Iceland, Hawaii, and Antarctica serve as baselines, not new discoveries.
+- Explain similarity by dimension using **V = [G, T, E, Vo, O]** and TASI, the team's proposed index. Report coverage; a component requires comparable data on both sides.
+- Show gravity, lunar vacuum, the thin Martian atmosphere, and radiation differences separately from the similarity score.
 
-## Operating Context
+## Operating context
 
-- Demo en vivo y link público (Cloudflare Pages) con servicios en la Mac del equipo vía túnel o proxy del mismo origen.
-- Flujo principal: elegir destino (Luna o Marte), elegir un enfoque de misión, buscar en el mundo o por continente y país, y leer el par Tierra | destino con su ficha.
-- Modo avanzado: arranca con los pares documentados en la literatura (`GET {earth}/examples`) y permite la búsqueda completa sobre los sitios del catálogo.
+- The definitive public demonstration runs entirely on Cloudflare Pages/Functions with a verified, versioned catalog snapshot. No local computer or tunnel is required. Python APIs remain the development/reference implementation.
+- Main flow: choose Moon or Mars, choose a destination, choose a mission focus, optionally filter by continent/country, then inspect the Earth | destination comparison.
+- `index.html` uses the globe as its full canvas. Mission, list, help, and comparison panels open on demand. `classic.html` retains the earlier interface and a direct advanced-mode entry.
+- The advanced interface can begin from published literature pairs (`GET {earth}/examples`) and supports searches across the full candidate catalog.
 
-## Capabilities and Constraints
+## Capabilities and constraints
 
-- Front estático vanilla (HTML, CSS, JS) con Leaflet; MVP de mapa de puntos. Sin framework, sin Cesium, sin grilla H3 (`CLAUDE.md` §2).
-- **Todo el contenido sale de la API** (planetary-service y earth-service sobre PostGIS): sitios, destinos, ranking TASI, why/breaks, método y presets (`/method`), valores físicos de referencia (`/bodies`), ejemplos (`/examples`). El front solo tiene textos de interfaz.
-- Sin servicios, la página avisa «servicio no disponible» y no muestra datos.
-- La comparativa lado a lado Tierra | destino, con los dos puntos marcados y sincronizados, es decisión de producto: ningún rediseño la saca ni la esconde.
-- Contratos que no se rompen: `js/api.js`, `js/config.js` y los ids que lee el JS.
-- Abierto: dosis de radiación en superficie de la Tierra y de la Luna (la API las devuelve null hasta tener fuente primaria).
+- Static vanilla HTML/CSS/JavaScript frontend. Earth uses Three.js, visually inspired by Earth3D, with a Leaflet 2D fallback. Planetary maps use Leaflet. There is no Cesium, H3 grid, or framework migration; see `CLAUDE.md`.
+- Selecting a globe point opens the site, destination map, TASI score, similarity explanation, differences, available evidence, and sources. The globe remains visible and interactive. Unavailable pairs never inherit another site's or mission's score.
+- **Scientific content comes from the APIs:** catalogs, target vectors, ranking, explanations, method/presets (`/method`), physical references (`/bodies`), and literature examples (`/examples`). The frontend supplies interface copy and presentation.
+- Without services, display a clear unavailability state rather than fabricated points or scores.
+- After selection, Earth and target remain visible with synchronized marked positions. Closing the comparison restores the full globe.
+- Geological categories are sourced map interpretations, not measured spectra. Earth access information is planning context; it is not a planetary counterpart.
+- Keep `js/api.js`, `js/config.js`, and JavaScript-dependent element IDs compatible.
+- `/bodies` radiation references include UNSCEAR 2024 for modeled Earth outdoor exposure, Zhang et al. (2020) for Chang'e-4/LND on the Moon, and RAD/MSL for Mars. Preserve source-specific definitions, daily conversions, and effective-versus-equivalent-dose differences. These are not site-specific measurements or similarity terms.
 
-## Brand Commitments
+## Brand commitments
 
-- Identidad HexAstra según `docs/marca.md` y `css/brand.css`: fondo azul noche, acento cian, Montserrat + Open Sans, logo de `assets/brand/` sin modificar, puntaje de violeta a óxido, cuerpos con su color (Tierra celeste, Marte óxido, Luna gris) y calidad del dato con su color y su palabra. Ninguna herramienta de diseño reemplaza paleta, tipografía ni logo.
-- Voz: español rioplatense claro, honesta («qué se parece, cuánto, qué no, y qué dato falta»), sin cifras sin fuente.
+Follow [`docs/marca.md`](docs/marca.md) and `css/brand.css`: midnight background, cyan accent, Montserrat + Open Sans, unchanged brand logo, violet-to-rust score scale, and semantic body/data-quality colors with written labels. Tools must not replace the palette, typefaces, or logo.
 
-## Evidence on Hand
+The application supports clear, honest English and Rioplatense Spanish, selected from the browser or a saved manual preference. Documentation is in English. Avoid unsourced figures, unsupported claims of global novelty, or measured savings that have not been demonstrated.
 
-- Catálogo terrestre de 60 sitios y destinos de la Luna y Marte servidos por la API, cada uno con su fuente de coordenadas.
-- Cinco pares documentados en la literatura con fuentes (`services/earth/data/literature_examples.json`, vía `/examples`).
-- Valores NSSDC y RAD/MSL con fuente en `/bodies`.
-- No hay testimonios, usuarios, métricas de uso ni premios: no se inventan.
+## Evidence on hand
 
-## Product Principles
+- 60 Earth candidates and 14 Moon/Mars targets, each with coordinate provenance.
+- Five published literature pairs in `services/earth/data/literature_examples.json`, exposed through `/examples`.
+- Versioned terrain, environment, geology, masking, ice, and Earth-access measurements in `data/measurements/`.
+- Sourced physical reference values in `/bodies`.
+- No verified testimonials, usage metrics, awards, or measured cost reductions; do not invent them.
 
-1. Nada inventado: todo valor lleva fuente; lo no verificado se muestra como «dato a completar».
-2. Decir qué se parece, cuánto y qué no, por dimensión, antes que dar un número solo.
-3. La comparación Tierra | destino siempre a la vista.
-4. Lo que la Tierra no puede imitar se ve, pero no entra al puntaje.
-5. Escala local (un cráter, un valle), no regiones enteras.
+## Product principles
 
-## Accessibility & Inclusion
+1. Never invent values. Preserve sources and honest missing-data states.
+2. Explain what matches, how closely, and what differs before relying on a single score.
+3. Keep Earth and destination visible together after selection.
+4. Show physical analogy limits separately from similarity.
+5. Work at site scale—a crater, valley, or local terrain—not an entire region.
+6. Keep evidence coverage distinct from similarity and mission suitability.
 
-Contraste mínimo 4,5:1 en texto (el violeta y el azul órbita solo en gráficos o texto grande), foco visible, movimiento reducido respetado, y uso en celular a 320 px sin scroll horizontal.
+## Accessibility and inclusion
+
+Maintain text contrast of at least 4.5:1, visible focus, keyboard operation, reduced-motion support, and a usable 320 px layout without horizontal page scrolling. Keep essential mission actions visible within the viewport.
