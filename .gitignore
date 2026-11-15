@@ -15,3 +15,5 @@ __pycache__/
 
 # Dependencias del bundle del globo (se versiona el JS listo para servir).
 node_modules/
+/node_modules
+/services/.venv

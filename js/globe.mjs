@@ -1,10 +1,11 @@
 /* Globo geográfico HexAstra: referencia visual Earth3D (mitchcamza), integración propia.
  * La imagen es ilustrativa; los puntos y los puntajes siguen viniendo de las APIs.
- * La geometría no gira sola: la longitud del sitio debe permanecer sobre su textura. */
+ * La cámara reproduce la rotación sideral; textura y coordenadas permanecen solidarias. */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import { latLonToXYZ, matchDialogHTML } from './globe-data.mjs';
+import { latLonToXYZ, matchDialogHTML, earthRotationAngle } from './globe-data.mjs';
+import { createPlanetCards } from './planet-cards.mjs';
 
 function openMatch(context) {
   let dialog = document.getElementById('match-dialog');
@@ -27,6 +28,11 @@ export function attach(map, options = {}) {
   host.append(shell);
   const canvas = shell.querySelector('canvas');
   const pins = shell.querySelector('.globe-pins');
+  const rotationButton = document.createElement('button');
+  rotationButton.type = 'button';
+  rotationButton.dataset.rotation = 'earth';
+  rotationButton.innerHTML = '<span aria-hidden="true">Ⅱ</span>';
+  if (options.immersive) shell.querySelector('.globe-zoom').append(rotationButton);
   const tools = options.tools || document.createElement('div');
   if (!options.tools) {
     tools.className = 'globe-view-switch';
@@ -43,14 +49,37 @@ export function attach(map, options = {}) {
 
   let scene, camera, renderer, controls, observer;
   let desired = true, failed = false, frame = 0, tween = null, fitDistance = 3.5;
+  let rotating = !!options.immersive, interacting = false, rotationTimer = 0, lastRotation = null, pausedUntil = 0;
+  const earthAxis = new THREE.Vector3(0, 1, 0);
   const entries = new Map();
   const projected = new THREE.Vector3();
   const horizon = new THREE.Vector3();
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const visible = () => host.clientWidth > 0 && host.clientHeight > 0 && desired && !failed && !document.hidden;
   const schedule = () => { if (!frame && renderer && visible()) frame = requestAnimationFrame(draw); };
+  function rotationAllowed(now) {
+    return rotating && !reduced() && !interacting && !tween && now >= pausedUntil &&
+      !document.querySelector('dialog[open]') && !document.body.classList.contains('comparison-open') &&
+      !pins.matches(':hover, :focus-within');
+  }
+  function updateRotationButton() {
+    const active = rotating && !reduced();
+    rotationButton.setAttribute('aria-pressed', String(active));
+    rotationButton.setAttribute('aria-label', active ? 'Pausar rotación terrestre real' : 'Activar rotación terrestre real');
+    rotationButton.title = reduced() ? 'Rotación pausada por movimiento reducido' : `${active ? 'Pausar' : 'Activar'} rotación real · una vuelta en 23 h 56 min`;
+    rotationButton.disabled = reduced();
+    rotationButton.firstElementChild.textContent = active ? 'Ⅱ' : '▷';
+  }
+  function pauseInteraction() { pausedUntil = performance.now() + 10000; lastRotation = null; }
+  rotationButton.addEventListener('click', () => {
+    rotating = !rotating; lastRotation = null; pausedUntil = 0;
+    updateRotationButton(); schedule();
+  });
+  updateRotationButton();
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { lastRotation = null; updateRotationButton(); schedule(); });
 
   function setMode(globe) {
+    clearTimeout(rotationTimer); lastRotation = null;
     desired = globe && !failed;
     if (desired) initialize();
     const active = desired && !!renderer;
@@ -92,9 +121,10 @@ export function attach(map, options = {}) {
       controls.maxDistance = 5.5;
       controls.rotateSpeed = 0.6;
       controls.addEventListener('change', schedule);
-      controls.addEventListener('start', () => { tween = null; });
-      scene.add(new THREE.AmbientLight(0xffffff, 2.0));
-      const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+      controls.addEventListener('start', () => { tween = null; interacting = true; pauseInteraction(); });
+      controls.addEventListener('end', () => { interacting = false; pauseInteraction(); schedule(); });
+      scene.add(new THREE.AmbientLight(0xffffff, options.immersive ? 1.6 : 2.0));
+      const sun = new THREE.DirectionalLight(0xffffff, options.immersive ? 2.2 : 2.4);
       sun.position.set(-3, 4, 5);
       scene.add(sun);
       const material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 8 });
@@ -109,6 +139,14 @@ export function attach(map, options = {}) {
       material.map = texture;
       const geometry = new THREE.SphereGeometry(1, 64, 48);
       scene.add(new THREE.Mesh(geometry, material));
+      if (options.immersive) {
+        const clouds = new THREE.TextureLoader().load('assets/globe/earth-clouds.jpg', schedule);
+        const cloudLayer = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+          color: 0xffffff, alphaMap: clouds, transparent: true, opacity: 0.18, depthWrite: false,
+        }));
+        cloudLayer.scale.setScalar(1.003);
+        scene.add(cloudLayer);
+      }
       const accent = getComputedStyle(host).getPropertyValue('--hx-cian').trim();
       const atmosphere = new THREE.Mesh(geometry, new THREE.ShaderMaterial({
         uniforms: { glow: { value: new THREE.Color(accent) } },
@@ -126,6 +164,7 @@ export function attach(map, options = {}) {
       canvas.addEventListener('keydown', e => {
         if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','Home'].includes(e.key)) return;
         e.preventDefault();
+        pauseInteraction();
         const sph = new THREE.Spherical().setFromVector3(camera.position);
         if (e.key === 'ArrowLeft') sph.theta -= 0.1;
         if (e.key === 'ArrowRight') sph.theta += 0.1;
@@ -178,6 +217,7 @@ export function attach(map, options = {}) {
       entry.button.classList.toggle('is-selected', /(?:is-active|\bactive\b)/.test(html));
       entry.button.dataset.lat = ll.lat;
       entry.button.dataset.lon = ll.lng;
+      if (layer.hexastraSite?.id) entry.button.dataset.siteId = layer.hexastraSite.id;
     });
     remaining.forEach(layer => { entries.get(layer).button.remove(); entries.delete(layer); });
     schedule();
@@ -185,6 +225,7 @@ export function attach(map, options = {}) {
 
   function focus() {
     if (!camera) return;
+    pauseInteraction();
     const center = map.getCenter();
     const to = new THREE.Vector3().fromArray(latLonToXYZ(center.lat, center.lng, fitDistance));
     if (reduced() || !visible()) { camera.position.copy(to); controls.update(); }
@@ -206,18 +247,27 @@ export function attach(map, options = {}) {
     }
     camera.aspect = host.clientWidth / host.clientHeight;
     const nextFit = 1.08 / Math.sin(Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(1, camera.aspect)));
-    camera.position.multiplyScalar(nextFit / fitDistance);
+    const scale = nextFit / fitDistance;
+    camera.position.multiplyScalar(scale);
+    if (tween) { tween.from.multiplyScalar(scale); tween.to.multiplyScalar(scale); }
     fitDistance = nextFit;
     controls.maxDistance = Math.max(5.5, fitDistance * 1.8);
-    tween = null;
     camera.updateProjectionMatrix();
     renderer.setSize(host.clientWidth, host.clientHeight, false);
-    schedule();
+    // setSize borra el canvas: dibujar en el mismo ciclo evita un planeta vacío al abrir una pieza flotante.
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    if (visible()) draw(performance.now());
   }
 
   function draw(now) {
     frame = 0;
+    clearTimeout(rotationTimer);
     if (!visible()) return;
+    if (rotationAllowed(now)) {
+      if (lastRotation !== null) camera.position.applyAxisAngle(earthAxis, -earthRotationAngle(now - lastRotation));
+      lastRotation = now;
+    } else lastRotation = null;
     if (tween) {
       const t = Math.min(1, (now - tween.start) / 700);
       camera.position.copy(tween.from).lerp(tween.to, t*t*(3-2*t));
@@ -239,10 +289,13 @@ export function attach(map, options = {}) {
       }
     });
     if (tween) schedule();
+    // A esta velocidad, un dibujo por segundo evita un loop 3D continuo innecesario.
+    else if (rotating && !reduced()) rotationTimer = window.setTimeout(schedule, 1000);
   }
 
   shell.querySelectorAll('[data-zoom]').forEach(button => button.addEventListener('click', () => {
     if (!camera) return;
+    pauseInteraction();
     tween = null;
     const action = button.dataset.zoom;
     const distance = action === 'home' ? fitDistance : camera.position.length() * (action === 'in' ? 0.8 : 1.25);
@@ -258,9 +311,9 @@ export function attach(map, options = {}) {
     observer = new ResizeObserver(resize);
     observer.observe(host);
   }
-  document.addEventListener('visibilitychange', schedule);
+  document.addEventListener('visibilitychange', () => { lastRotation = null; clearTimeout(rotationTimer); schedule(); });
   initialize(); setMode(true); sync();
   return { setMode, sync, focus, resize, openMatch };
 }
 
-if (typeof window !== 'undefined') window.HexastraGlobe = { attach, openMatch };
+if (typeof window !== 'undefined') window.HexastraGlobe = { attach, openMatch, createPlanetCards };

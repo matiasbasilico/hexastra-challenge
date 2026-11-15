@@ -5,6 +5,13 @@ export function latLonToXYZ(lat, lon, radius = 1) {
   return [radius * Math.cos(phi) * Math.cos(theta), radius * Math.sin(phi), -radius * Math.cos(phi) * Math.sin(theta)];
 }
 
+// NASA NSSDCA, Earth Fact Sheet: período sideral 23,9345 h. Consulta: 2026-11-14.
+// https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
+export const EARTH_SIDEREAL_SECONDS = 23.9345 * 3600;
+export function earthRotationAngle(elapsedMs) {
+  return Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) / (EARTH_SIDEREAL_SECONDS * 1000) * 2 * Math.PI : 0;
+}
+
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function matchDialogHTML({ match, site, target }, explain) {

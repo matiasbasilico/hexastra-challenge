@@ -4,6 +4,10 @@ Referencia visual: [Earth3D, de mitchcamza](https://github.com/mitchcamza/Earth3
 
 `earth-day.jpg` es la textura Earth Day Map 2K de **Solar System Scope**, distribuida bajo [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Descargada sin cambios desde el [archivo usado por Earth3D](https://github.com/mitchcamza/Earth3D/blob/main/static/textures/2k_earth_daymap.jpg). Fuente y condiciones: https://www.solarsystemscope.com/textures/. Consulta: 2026-11-14 (America/Argentina/Buenos_Aires).
 
+`earth-clouds.jpg` es Earth Clouds 2K, del mismo autor y con la misma licencia, descargada sin cambios del [archivo usado por Earth3D](https://github.com/mitchcamza/Earth3D/blob/main/static/textures/2k_earth_clouds.jpg). Se usa como capa ilustrativa de nubes fijas en la vista inmersiva, no como observación meteorológica actual. Consulta: 2026-11-14 (America/Argentina/Buenos_Aires).
+
+`mars.jpg` y `moon.jpg` son Mars y Moon 2K de **Solar System Scope**, bajo CC BY 4.0, descargadas sin modificaciones desde https://www.solarsystemscope.com/textures/download/2k_mars.jpg y https://www.solarsystemscope.com/textures/download/2k_moon.jpg. Son las texturas ilustrativas de las cards de selección, renderizadas en esferas con Three.js; no se usan como mediciones de los destinos ni en TASI. Consulta: 2026-11-14 (America/Argentina/Buenos_Aires).
+
 Es una imagen ilustrativa, no un dataset de mediciones ni una capa científica de NASA. No modifica coordenadas, componentes ni puntajes. Los sitios conservan las fuentes de las APIs de HexAstra.
 
 Three.js 0.167.0 se distribuye bajo MIT. Licencia completa en `js/vendor/THREE-LICENSE.txt`. El bundle se reconstruye con `npm ci && npm run build:globe`; se versiona para mantener el despliegue estático actual sin un build obligatorio en producción.

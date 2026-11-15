@@ -36,3 +36,13 @@ test('un sitio sin comparación nunca hereda ni inventa un puntaje', () => {
   assert.match(html,/buscá análogos/);
   assert.doesNotMatch(html,/de 100, TASI/);
 });
+
+test('la rotación sideral usa tiempo real, conserva su velocidad entre frames y pausa sin retroceder', async () => {
+  const {earthRotationAngle,EARTH_SIDEREAL_SECONDS}=await import('../globe-data.mjs');
+  assert.equal(EARTH_SIDEREAL_SECONDS,23.9345*3600);
+  assert.ok(Math.abs(earthRotationAngle(EARTH_SIDEREAL_SECONDS*1000)-2*Math.PI)<1e-12);
+  assert.ok(Math.abs(earthRotationAngle(1000)+earthRotationAngle(9000)-earthRotationAngle(10000))<1e-12);
+  assert.ok(earthRotationAngle(1000)<0.00008);
+  assert.equal(earthRotationAngle(-1),0);
+  assert.equal(earthRotationAngle(NaN),0);
+});

@@ -93,7 +93,7 @@ La fuente de verdad de la identidad es [`docs/marca.md`](docs/marca.md) y sus to
 
 ## Overview
 
-Una herramienta de evidencia, no una landing. El fondo azul noche de la portada sostiene dos mapas (la Tierra y el destino) que son los protagonistas, y una ficha que explica el par: qué se parece, cuánto, qué no y qué dato falta. La marca vive en detalles precisos (el cian del foco y la selección, los colores de cada cuerpo, el puntaje de violeta a óxido), no en ornamento. Modo: Operate en el avanzado; el fácil guía en tres pasos.
+Una herramienta de evidencia. En la variante inmersiva (`index.html`) la Tierra 3D completa es el lienzo y todos los sitios del catálogo están marcados. Los controles son piezas flotantes: elegir un punto abre la comparación, y misión, lista y explicación se revelan al presionarlas. El planeta conserva su volumen completo y se acomoda para que el sitio y el destino permanezcan visibles. La marca vive en el cian del foco y la selección, los colores de cada cuerpo y el puntaje de violeta a óxido. La variante clásica (`classic.html`) conserva el avanzado y el fácil de tres pasos.
 
 ## Colors
 
@@ -108,8 +108,9 @@ Montserrat 700 para titulares y la marca escrita; Montserrat 600 en mayúsculas 
 
 ## Layout
 
-- Contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
-- **Comparativa lado a lado siempre:** Tierra | destino con los dos mapas a la vez y los puntos marcados; bajo 560 px los mapas se apilan, más anchos, y siguen visibles a la vez.
+- **Inmersivo:** lienzo de 100dvw × 100dvh, sin scroll de página. Globo completo, sin corte por los bordes, piezas flotantes con margen de 32 px (20 px bajo 1100, 16 px en celular). Los puntos son círculos discretos; el seleccionado muestra su posición en el ranking y un anillo cian.
+- **Con un sitio seleccionado:** globo Tierra a la izquierda y ficha flotante del destino a la derecha, ambos puntos marcados. Bajo 760 px, globo arriba y ficha debajo, sin superposición; solo el detalle de la ficha se desplaza. Cerrar recupera el lienzo completo y devuelve el foco al punto.
+- **Clásico:** contenedor hasta 1520 px con gutter de 40 px (24 px bajo 60 rem, 16 px bajo 40 rem).
 - Escritorio desde 960 × 640 px: cabecera compacta y espacio de trabajo ajustado al alto disponible, sin scroll de página; listas y fichas largas se desplazan dentro de sus paneles. En ventanas menores vuelve el flujo de documento.
 - Los límites físicos se abren desde «Límites de la Tierra» en un diálogo con foco contenido, cierre con Escape y retorno al botón. Los lugares destacados del modo fácil son desplegables.
 - Avanzado: barra compacta de controles arriba de los mapas; lista de sitios, mapa de la Tierra, mapa del destino y ficha del par con scroll interno; el resumen de búsqueda queda al pie.
@@ -131,8 +132,13 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - **Fila seleccionable (sitio, resultado, destino):** `noche-2` con borde `linea`; seleccionada con fondo cian al 12 % y borde cian.
 - **Puntaje:** cifra Montserrat 700 coloreada en la escala violeta → óxido y barra de 4 px con el mismo degradado.
 - **Mapa:** marco `noche-2` con etiqueta del cuerpo y su punto de color; controles de Leaflet en `noche-2`.
-- **Globo terrestre:** textura ilustrativa de Earth3D con crédito visible, halo cian tenue y los mismos pines del mapa 2D. No rota automáticamente; la selección centra el sitio y mantiene su longitud sobre la textura. Flechas y controles de zoom accesibles, movimiento reducido respetado. Sin WebGL vuelve a Leaflet.
-- **Modal del punto:** cifra TASI grande a la izquierda, sitio y destino a la derecha, explicación de analogía y brecha, componentes sin datos en chips dorados. Se abre con clic o teclado; Escape y Cerrar devuelven el foco al punto. En celular se apila y permite desplazamiento interno.
+- **Globo terrestre:** textura ilustrativa de Earth3D con crédito visible, halo cian tenue y los mismos pines del mapa 2D. En la vista inmersiva rota a velocidad sideral real (23,9345 h por vuelta), con pausa manual, durante la interacción y al abrir una misión o comparativa. Con movimiento reducido queda detenido. La selección centra el sitio y mantiene su longitud sobre la textura. Flechas y controles de zoom accesibles, movimiento reducido respetado. Sin WebGL vuelve a Leaflet.
+- **Mayor similitud:** hasta cinco sitios con los mayores TASI positivos de la misión emiten dos anillos cian suaves, con fases escalonadas. Se actualizan con destino, enfoque, región y máscara; al recalcular desaparece el pulso anterior. Es una posición relativa en el ranking, no un umbral de analogía fuerte. Con movimiento reducido se muestra un anillo fijo.
+- **Selección de mundo:** Marte y Luna en cards cuadradas, cada una con una esfera 3D texturada, color de cuerpo y selección cian con tilde. Radios nativos accesibles, también operables con teclado. Un canvas compartido renderiza ambas cards; sin WebGL se mantienen las imágenes esféricas. La configuración tiene tres pasos: cuerpo celeste, destino y enfoque. Los pasos completados muestran sus selecciones con una tilde; el enfoque usa cards con iconos de equilibrado, terreno, clima y robots. Región y filtros tienen una pestaña propia dentro del último paso. Atrás conserva el borrador y cerrar lo descarta; solo el último paso aplica la misión. Cada paso entra completo en el viewport, incluidos región y filtros abiertos.
+- **Ficha del destino:** descripción breve, tipo de terreno y coordenadas desde el catálogo; contexto histórico con fecha y enlace a NASA cuando está verificado. Las regiones anunciadas en 2022 se identifican como un anuncio histórico, no como aterrizajes. Los 14 destinos tienen un hito fechado; la etiqueta distingue aterrizaje, adquisición orbital, publicación y anuncio. Un destino futuro sin fuente conserva el estado a completar. La ficha no incorpora datos al cálculo TASI.
+- **Comparables:** filtro visual activo por defecto, disponible en un botón flotante y en la misión. Oculta los sitios sin TASI para el destino, región y máscara actuales. Al quitarlo, esos puntos se muestran más pequeños y tenues, sin pulso. Un puntaje válido de cero sigue siendo comparable. Si el sitio está fuera de la región, la ficha permite quitar ese filtro y calcular el par.
+- **Responsive:** cards cuadradas desde 320 px, controles dentro del viewport y áreas seguras de móviles con notch. En horizontal se conserva Tierra | destino lado a lado con ficha compacta; en vertical se apilan, con scroll solo en sus piezas. La misión avanza por pantallas completas sin scroll, manteniendo cierre y acciones visibles en cada paso.
+- **Ficha flotante del punto:** sitio, mapa del destino marcado, TASI grande, cobertura, explicación de analogía y brecha, componentes sin datos en chips dorados y datos/fuentes plegables. Se abre con clic o teclado, permite seguir girando la Tierra y se cierra con Escape o Cerrar. El clásico conserva el modal del punto.
 - **Texto de literatura:** bloque con borde punteado celeste, rotulado «Documentado en la literatura», separado del puntaje.
 
 ## Do's and Don'ts
@@ -141,4 +147,19 @@ Radio 8 px en controles, 10 px en paneles y fichas, píldora en chips. Pines de 
 - Do: foco visible cian inmediato, `prefers-reduced-motion` respetado, 320 px sin scroll horizontal.
 - Don't: colores fuera de `css/brand.css`, una tercera tipografía, el logo recoloreado o sobre fondos claros.
 - Don't: más de una etiqueta superior por pantalla, cajas dentro de cajas, sombras decorativas.
-- Don't: esconder la comparativa Tierra | destino ni mezclar el texto de literatura con el puntaje.
+- Don't: esconder un lado de la comparativa mientras hay un sitio seleccionado ni mezclar el texto de literatura con el puntaje. En el arranque inmersivo se muestra solo el globo, según el pedido del usuario.
+
+### Fuentes del contexto de misión y rotación
+
+- NASA GISS, [Mars24 — Mars Lander Missions](https://www.giss.nasa.gov/tools/mars24/help/landers.html), actualizado 2023-12-09: Perseverance (18/02/2021), Curiosity (06/08/2012, UTC), Opportunity (25/01/2004) y Viking 2 (03/09/1976).
+- NASA, [comunicado 22-089](https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/), 19/08/2022: anuncio histórico de regiones candidatas cercanas al polo sur. Los puntos del catálogo son anclas geográficas, no sitios de aterrizaje confirmados.
+- NASA NSSDCA, [Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html), actualizado 15/11/2024: período de rotación sideral de 23,9345 horas. La animación reproduce esa velocidad; no representa la orientación astronómica ni la iluminación actuales.
+
+Consulta de las tres fuentes: 14/11/2026 (America/Argentina/Buenos_Aires). Contexto editorial de interfaz; no son nuevas mediciones ni cambian los puntajes.
+
+- NASA, [Pavonis Mons, PIA05243](https://science.nasa.gov/photojournal/pavonis-mons/): publicación fechada 18/01/2004 de una imagen MOC/Mars Global Surveyor adquirida en diciembre de 2003. Se muestra la fecha de publicación, no un aterrizaje.
+- NASA, [Seven Possible Cave Skylights on Mars](https://science.nasa.gov/resource/seven-possible-cave-skylights-on-mars/): publicación del 21/09/2007 de observaciones THEMIS/Mars Odyssey sobre posibles pozos en Arsia Mons.
+- ESA, [radar de Medusae Fossae](https://www.esa.int/ESA_Multimedia/Images/2024/01/Mars_Express_radar_data_indicating_heaps_of_water_ice_at_Mars_s_equator): publicación del 18/01/2024. La fecha corresponde al material publicado sobre MARSIS/Mars Express, no a una visita a la superficie.
+- JAXA/ISAS, [hallazgo con SELENE/Kaguya](https://www.isas.jaxa.jp/j/topics/topics/2009/1105.shtml): publicación del 05/11/2009 sobre el pozo de Marius Hills. Consulta de estas cuatro fuentes: 14/11/2026 (America/Argentina/Buenos_Aires).
+
+La primera visita abre una versión breve del cartel del proyecto con tres instrucciones y un botón para elegir la misión. Al cerrarla se guarda `hexastra.onboarding.v1=seen` en el almacenamiento local de ese navegador y origen. La ayuda completa sigue accesible desde el proyecto. El onboarding no bloquea la interacción cuando se lo cierra y respeta la configuración de movimiento reducido.
