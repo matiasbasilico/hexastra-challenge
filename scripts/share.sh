@@ -72,9 +72,6 @@ start_tunnel earth "$EARTH_PORT"
 P_URL="$(tunnel_url planetary)" || { echo "No obtuve la URL del túnel de planetary; ver ${LOGDIR}" >&2; exit 1; }
 E_URL="$(tunnel_url earth)" || { echo "No obtuve la URL del túnel de earth; ver ${LOGDIR}" >&2; exit 1; }
 
-wait_for "${P_URL}/health" 60 || echo "Aviso: ${P_URL}/health todavía no responde desde esta Mac (suele ser la caché DNS local; desde afuera normalmente ya anda)." >&2
-wait_for "${E_URL}/health" 60 || echo "Aviso: ${E_URL}/health todavía no responde desde esta Mac (suele ser la caché DNS local; desde afuera normalmente ya anda)." >&2
-
 KV_ID="$(sed -n 's/^id = "\(.*\)"/\1/p' "$PAGES_CONFIG" | head -1)"
 if [ -n "$KV_ID" ] && [ "${SKIP_KV:-0}" != "1" ]; then
   if npx --yes wrangler@3 kv key put --namespace-id="$KV_ID" planetary "$P_URL" >/dev/null 2>&1 \
@@ -84,6 +81,11 @@ if [ -n "$KV_ID" ] && [ "${SKIP_KV:-0}" != "1" ]; then
     echo "Aviso: no pude escribir las URLs en Cloudflare KV (¿npx wrangler@3 login?). El proxy de Pages no las va a ver." >&2
   fi
 fi
+
+# Actualizar el proxy antes de las comprobaciones que pueden esperar por DNS local.
+wait_for "${P_URL}/health" 60 || echo "Aviso: ${P_URL}/health todavía no responde desde esta Mac (suele ser la caché DNS local; desde afuera normalmente ya anda)." >&2
+wait_for "${E_URL}/health" 60 || echo "Aviso: ${E_URL}/health todavía no responde desde esta Mac (suele ser la caché DNS local; desde afuera normalmente ya anda)." >&2
+
 
 echo
 echo "planetary-service  ${P_URL}"
