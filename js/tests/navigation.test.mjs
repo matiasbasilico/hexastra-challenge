@@ -12,3 +12,6 @@ test('un acceso sin misión abre el avanzado directamente y el regreso vuelve al
  const globe=new URL(N.modeURL(advanced.href,'globe'));
  assert.equal(globe.pathname,'/');assert.equal(globe.search,'');
 });
+test('las regiones del globo se traducen al selector existente del avanzado',()=>{
+ assert.equal(N.advancedRegion('country:AR'),'p:AR');assert.equal(N.advancedRegion('continent:South America'),'c:South America');assert.equal(N.advancedRegion('p:AR'),'p:AR');assert.equal(N.advancedRegion(null),'');
+});

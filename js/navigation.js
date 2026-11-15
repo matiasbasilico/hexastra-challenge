@@ -11,6 +11,7 @@
     }
     return url.href;
   }
-  const api={modeURL};root.HexastraNavigation=api;
+  function advancedRegion(region){return String(region || '').replace(/^country:/,'p:').replace(/^continent:/,'c:');}
+  const api={modeURL,advancedRegion};root.HexastraNavigation=api;
   if(typeof module!=='undefined' && module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:this);

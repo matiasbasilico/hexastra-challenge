@@ -890,7 +890,8 @@
       if(incomingTarget){
         $('#finder-target').value=incomingTarget.id;
         if(incomingPreset){$('#finder-mission').value=incomingPreset.id;renderWeights(incomingPreset.weights);}
-        if(Array.from($('#finder-region').options).some(o=>o.value===incoming.get('region')))$('#finder-region').value=incoming.get('region');
+        const incomingRegion=window.HexastraNavigation.advancedRegion(incoming.get('region'));
+        if(Array.from($('#finder-region').options).some(o=>o.value===incomingRegion))$('#finder-region').value=incomingRegion;
         if(incoming.has('mask'))$('#finder-mask').checked=incoming.get('mask')!=='false';
         focusTarget(incomingTarget);
         if(incomingPreset)await runSearch();
