@@ -1,0 +1,8 @@
+# Demo inmersiva independiente. Se selecciona con HEXASTRA_PAGES_CONFIG.
+name = "hexastra-globo-inmersivo"
+pages_build_output_dir = "./dist"
+compatibility_date = "2024-09-23"
+
+[[kv_namespaces]]
+binding = "HEXASTRA_TUNNELS"
+id = "79dd039d17c948ddb49bec204ad0accc"

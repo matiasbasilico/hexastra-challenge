@@ -10,7 +10,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PROJECT="${HEXASTRA_PAGES_PROJECT:-hexastra-analogos}"
+PAGES_CONFIG="${HEXASTRA_PAGES_CONFIG:-${ROOT}/pages/wrangler.toml}"
+[[ "$PAGES_CONFIG" = /* ]] || PAGES_CONFIG="${ROOT}/${PAGES_CONFIG}"
+[[ -f "$PAGES_CONFIG" ]] || { echo "No existe la configuración de Pages: $PAGES_CONFIG" >&2; exit 1; }
+PROJECT="${HEXASTRA_PAGES_PROJECT:-$(sed -n 's/^name = "\(.*\)"/\1/p' "$PAGES_CONFIG" | head -1)}"
+[[ -n "$PROJECT" ]] || { echo "Falta el nombre del proyecto de Pages." >&2; exit 1; }
 BRANCH="${1:-$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)}"
 COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/hexastra-pages.XXXXXX")"
@@ -45,7 +49,7 @@ fi
 
 # Pages Functions (same-origin proxy to the tunnels) and their KV binding.
 cp -R "$ROOT/pages/functions" "$STAGE/functions"
-cp "$ROOT/pages/wrangler.toml" "$STAGE/wrangler.toml"
+cp "$PAGES_CONFIG" "$STAGE/wrangler.toml"
 cd "$STAGE"
 
 "${WRANGLER[@]}" pages deploy "$DIST" \

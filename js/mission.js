@@ -47,13 +47,13 @@
   function create({getState,coordinates,onStep}) {
     const $=id=>document.getElementById(id),dialog=$('mission-dialog');
     let step=0,furthest=0;
-    const titles=['Elegí tu mundo','Conocé tu destino','Definí el enfoque'];
+    const titles=['¿Marte o la Luna?','Conocé tu destino','Definí el enfoque'];
     const actions=['Elegir destino','Elegir enfoque','Explorar esta misión'];
     function describeTarget() {
       const target=getState().targets.find(t=>t.id===$('world-target').value);
       if(!target)return;
       const body=target.body==='moon'?'Luna':'Marte';
-      $('mission-world-label').textContent=`Tu mundo · ${body}`;
+      $('mission-world-label').textContent=`Cuerpo celeste · ${body}`;
       $('mission-selection-label').textContent=`${body} · ${target.short_name || target.name}`;
       $('mission-target-info').dataset.body=target.body;
       $('mission-target-info').innerHTML=targetHTML(target,coordinates(target));

@@ -19,7 +19,6 @@
 #mission-form { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 24px; margin: 0; min-height: 0; }
 #mission-form .mission-step { min-width: 0; }
 #mission-form [hidden] { display: none !important; }
-.mission-world-step > .dialog-lead { margin: 0 0 20px; text-align: center; }
 #mission-dialog .body-options { grid-template-columns: repeat(2, minmax(0, var(--mission-card-size))); gap: 16px; }
 #mission-dialog .planet-card-caption { display: block; }
 .mission-actions { display: flex; gap: 12px; align-items: stretch; }
@@ -65,7 +64,6 @@
   #mission-dialog[open] { gap: 12px; }
   #mission-form { gap: 16px; }
   #mission-dialog .float-heading h2 { font-size: 22px; }
-  .mission-world-step > .dialog-lead { margin-bottom: 12px; font-size: 12px; }
   .mission-target-info { padding: 14px; margin-top: 12px; }
   .mission-target-info h3 { font-size: 18px; }
   .mission-target-intro { margin-top: 8px; font-size: 12px; line-height: 1.5; }
@@ -82,7 +80,6 @@
   #mission-dialog .float-heading h2 { font-size: 18px; }
   #mission-dialog .float-heading > button { width: 32px; min-height: 32px; }
   .mission-progress button { min-height: 28px; padding: 2px; }
-  .mission-world-step > .dialog-lead { display: none; }
   #mission-dialog .planet-card-caption { display: none; }
   #mission-dialog .planet-card { padding: 6px; }
   #mission-dialog .planet-card-name { font-size: 14px; }

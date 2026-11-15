@@ -56,17 +56,16 @@
       <div class="compare-scroll" id="compare-content" aria-live="polite"></div>
     </aside>
     <dialog id="mission-dialog" class="orbit-dialog mission-wizard" data-mission-step="0" aria-labelledby="mission-title">
-      <div class="float-heading"><div><p class="float-kicker" id="mission-step-label">Tu exploración · Paso 1 de 3</p><h2 id="mission-title" tabindex="-1">Elegí tu mundo</h2></div><button type="button" data-close-dialog aria-label="Cerrar configuración">×</button></div>
+      <div class="float-heading"><div><p class="float-kicker" id="mission-step-label">Tu exploración · Paso 1 de 3</p><h2 id="mission-title" tabindex="-1">¿Marte o la Luna?</h2></div><button type="button" data-close-dialog aria-label="Cerrar configuración">×</button></div>
       <ol class="mission-progress" aria-label="Pasos de la misión">
-        <li><button type="button" data-mission-go="0" aria-current="step"><span>01</span> Mundo</button></li>
+        <li><button type="button" data-mission-go="0" aria-current="step"><span>01</span> Cuerpo</button></li>
         <li><button type="button" data-mission-go="1" disabled><span>02</span> Destino</button></li>
         <li><button type="button" data-mission-go="2" disabled><span>03</span> Enfoque</button></li>
       </ol>
       <form id="mission-form">
         <section class="mission-step mission-world-step" data-mission-page="0">
-          <p class="dialog-lead">La exploración empieza acá. ¿A dónde querés ir?</p>
           <fieldset class="body-options">
-            <legend class="visually-hidden">Tu destino</legend>
+            <legend class="visually-hidden">Cuerpo celeste</legend>
             <label class="planet-card planet-card-mars">
               <input type="radio" name="body" value="mars" checked>
               <span class="planet-check" aria-hidden="true">✓</span>
