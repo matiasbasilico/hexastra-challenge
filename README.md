@@ -54,6 +54,8 @@ Si los servicios no están, el buscador se deshabilita y el mapa (fichas de la A
 
 ### Tests
 
+Los tests de ingesta (DEM, accesibilidad) necesitan además `services/planetary/requirements-ingest.txt` y `services/earth/requirements-ingest.txt` (rasterio, pyogrio, shapely).
+
 ```bash
 cd hexastra-analogos
 ./services/run_tests.sh
