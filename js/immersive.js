@@ -71,6 +71,7 @@
   }
   function updateIcons(){state.markers.forEach((marker,id)=>marker.setIcon(siteIcon(state.sites.find(s=>s.id===id))));}
   function renderSites(){
+    $('open-advanced').href=window.HexastraNavigation.modeURL(location.href,'advanced',state.missionActive?{target:state.target?.id,preset:state.preset?.id,region:state.region,mask:state.mask,site:state.selected?.id}:{});
     const query=$('site-query').value.trim().toLocaleLowerCase('es');
     const ranking=state.ranking?.matches || [];
     const scores=new Map(ranking.map(m=>[m.site.id,m.score]));

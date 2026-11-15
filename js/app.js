@@ -345,7 +345,7 @@
     if (state.earthMarkers[site.id] || site.lat == null || site.lon == null || !state.earthMap) return;
     const m = L.marker([site.lat, site.lon], { icon: earthIconFor(site.id), title: site.name });
     m.hexastraSite = site;
-    m.on("click", () => selectSite(site.id));
+      m.on("click", () => { selectSite(site.id); setAdvancedView('detail'); });
     m.bindTooltip(site.short_name || site.name);
     m.addTo(state.earthMap);
     state.earthMarkers[site.id] = m;
@@ -397,7 +397,7 @@
         " (" + sites.length + " sitios)</h3>" +
       ranked.concat(rest).map((site) => siteButton(site)).join("");
     box.querySelectorAll(".site-btn").forEach((btn) => {
-      btn.addEventListener("click", () => selectSite(btn.getAttribute("data-id"), true));
+      btn.addEventListener("click", () => { selectSite(btn.getAttribute("data-id"), true); setAdvancedView('detail'); });
     });
   }
 
@@ -659,7 +659,7 @@
     document.querySelectorAll("#finder-features [data-wv]").forEach((el) => {
       const k = el.dataset.wv;
       const rng = document.querySelector('#finder-features input[data-w="' + k + '"]');
-      if (rng && rng.disabled) { el.textContent = "sin datos todavía"; return; }
+      if (rng && rng.disabled) { el.textContent = k==='O'?'Fuera del TASI':'Sin contraparte'; return; }
       el.textContent = total > 0 ? Math.round((w[k] / total) * 100) + " %" : "0 %";
     });
   }
@@ -884,7 +884,18 @@
       });
       // Arranque: el primer par documentado (sitio + su destino marcados); si no hay, el primer destino de la API.
       const firstExample = state.examples.find((e) => state.sites[e.earth_id] && (e.target_ids || []).length);
-      if (firstExample) {
+      const incoming=new URLSearchParams(location.search);
+      const incomingTarget=state.targets.find(t=>t.id===incoming.get('target'));
+      const incomingPreset=(state.method.presets || []).find(p=>p.id===incoming.get('preset'));
+      if(incomingTarget){
+        $('#finder-target').value=incomingTarget.id;
+        if(incomingPreset){$('#finder-mission').value=incomingPreset.id;renderWeights(incomingPreset.weights);}
+        if(Array.from($('#finder-region').options).some(o=>o.value===incoming.get('region')))$('#finder-region').value=incoming.get('region');
+        if(incoming.has('mask'))$('#finder-mask').checked=incoming.get('mask')!=='false';
+        focusTarget(incomingTarget);
+        if(incomingPreset)await runSearch();
+        if(state.sites[incoming.get('site')])selectSite(incoming.get('site'));
+      } else if (firstExample) {
         selectSite(firstExample.earth_id, true);
       } else {
         const first = state.targets.find((x) => x.id === $("#finder-target").value);
@@ -937,11 +948,32 @@
   }
 
   // Menús plegables (pesos, opciones, capas): se cierran con Escape o al tocar afuera; uno abierto a la vez.
+  function setAdvancedView(view){
+    document.body.dataset.advancedView=view;
+    document.querySelectorAll('[data-advanced-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.advancedView===view)));
+    requestAnimationFrame(()=>window.HexastraApp?.invalidateMaps());
+  }
   function bindMenus() {
     const menus = () => Array.from(document.querySelectorAll(".adv-menu, .layers-menu"));
+    function positionMenu(d){
+      if(!d.open)return;
+      const panel=d.querySelector('.adv-menu-panel, .layers-panel'),anchor=d.querySelector('summary').getBoundingClientRect();
+      if(!panel)return;
+      const width=innerWidth,height=innerHeight,r=panel.getBoundingClientRect(),edge=12;
+      const below=anchor.bottom+8,above=anchor.top-r.height-8;
+      const top=below+r.height<=height-edge?below:above>=edge?above:Math.max(edge,(height-r.height)/2);
+      panel.style.left=Math.max(edge,Math.min(anchor.left,width-r.width-edge))+'px';
+      panel.style.top=Math.max(edge,Math.min(top,height-r.height-edge))+'px';
+    }
     menus().forEach((d) => d.addEventListener("toggle", () => {
-      if (d.open) menus().forEach((o) => { if (o !== d) o.open = false; });
+      if (d.open) {menus().forEach((o) => { if (o !== d) o.open = false; });positionMenu(d);}
     }));
+    document.querySelectorAll('[data-close-menu]').forEach(b=>b.addEventListener('click',()=>{const d=b.closest('details');d.open=false;d.querySelector('summary').focus();}));
+    document.querySelectorAll('[data-advanced-view]').forEach(b=>b.addEventListener('click',()=>setAdvancedView(b.dataset.advancedView)));
+    setAdvancedView('maps');
+    $('#advanced-globe-link').href=window.HexastraNavigation.modeURL(location.href,'globe');
+    window.addEventListener('resize',()=>requestAnimationFrame(()=>menus().forEach(positionMenu)));
+    document.addEventListener('scroll',()=>menus().forEach(positionMenu),true);
     document.addEventListener("click", (e) => {
       menus().forEach((d) => { if (d.open && !d.contains(e.target)) d.open = false; });
     });

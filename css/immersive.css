@@ -58,9 +58,9 @@ body.immersive { --compare-width: 460px; --float-margin: 32px; background: var(-
 .orbit-intro { position: absolute; z-index: 460; left: 50%; bottom: 42px; transform: translateX(-50%); width: max-content; max-width: 40%; pointer-events: none; }
 .orbit-intro > span { display: block; padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--hx-noche) 88%, transparent); font: 400 var(--text-xs)/1.6 var(--font-body); color: var(--hx-texto-2); text-align: center; }
 .orbit-dock { position: absolute; z-index: 600; bottom: 36px; left: var(--float-margin); display: flex; gap: var(--space-xs); padding: 6px; background: color-mix(in srgb, var(--hx-noche-2) 92%, transparent); border: 1px solid var(--hx-linea); border-radius: var(--radius-card); backdrop-filter: blur(16px); }
-.orbit-dock button { min-height: 42px; border-color: transparent; background: transparent; gap: var(--space-xs); padding-inline: var(--space-sm); font-size: var(--text-sm); }
-.orbit-dock button:hover, .orbit-dock button[aria-expanded="true"] { color: var(--hx-cian); background: var(--color-selected); }
-.orbit-dock button > span:first-child { font: 400 var(--text-lg)/1 var(--font-body); color: var(--hx-cian); }
+.orbit-dock :is(button, .orbit-advanced-link) { min-height: 42px; border-color: transparent; background: transparent; gap: var(--space-xs); padding-inline: var(--space-sm); font-size: var(--text-sm); }
+.orbit-dock :is(button, .orbit-advanced-link):hover, .orbit-dock :is(button, .orbit-advanced-link)[aria-expanded="true"] { color: var(--hx-cian); background: var(--color-selected); }
+.orbit-dock :is(button, .orbit-advanced-link) > span:first-child { font: 400 var(--text-lg)/1 var(--font-body); color: var(--hx-cian); }
 .dock-count { font-variant-numeric: tabular-nums; color: var(--hx-texto-2); font: 400 var(--text-xs)/1 var(--font-body); }
 .orbit-status { position: absolute; bottom: 110px; left: var(--float-margin); z-index: 460; max-width: 28ch; font: 400 var(--text-xs)/1.5 var(--font-body); color: var(--hx-texto-2); pointer-events: none; }
 .orbit-status.is-error { color: var(--hx-sol); max-width: 50ch; padding: var(--space-sm); background: var(--hx-noche-2); border-radius: var(--radius-card); }
@@ -184,7 +184,7 @@ body.immersive { --compare-width: 460px; --float-margin: 32px; background: var(-
   .orbit-intro { top: 132px; }
   .comparison-open .orbit-filter { top: 68px; left: 12px; }
   .orbit-dock { bottom: 30px; left: 50%; transform: translateX(-50%); gap: 0; padding: 4px; width: max-content; max-width: calc(100% - 2 * var(--float-margin)); }
-  .orbit-dock button { min-height: 40px; padding-inline: var(--space-xs); font-size: var(--text-xs); }
+  .orbit-dock :is(button, .orbit-advanced-link) { min-height: 40px; padding-inline: var(--space-xs); font-size: var(--text-xs); }
   .orbit-status { bottom: 96px; max-width: 25ch; }
   .immersive .globe-zoom { bottom: 100px; right: 12px; }
   .immersive .globe-zoom button { width: 32px; min-height: 32px; }
@@ -247,7 +247,7 @@ body.immersive {
 }
 @media (max-width: 400px) {
   .orbit-dock { width: calc(100% - 32px - var(--safe-left) - var(--safe-right)); }
-  .orbit-dock button { flex: 1; min-width: 0; padding-inline: 6px; gap: 6px; white-space: normal; line-height: 1.25; }
+  .orbit-dock :is(button, .orbit-advanced-link) { flex: 1; min-width: 0; padding-inline: 6px; gap: 6px; white-space: normal; line-height: 1.25; }
   .orbit-dock #open-sites { flex: 0 0 auto; }
 }
 /* En horizontal mantenemos la composición Tierra | destino de escritorio, con una ficha más compacta. */
@@ -296,3 +296,5 @@ body.immersive {
 @media (max-height: 500px) and (min-width: 480px) {
   .comparison-open .world-stage { top: var(--safe-top); width: calc(100% - var(--compare-width) - var(--edge-right) - var(--safe-left)); height: calc(100% - var(--safe-top) - var(--safe-bottom)); }
 }
+
+.orbit-advanced-link { display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: var(--radius-pill); font-family: var(--font-display); color: var(--hx-texto); text-decoration: none; }

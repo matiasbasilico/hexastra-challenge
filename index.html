@@ -39,6 +39,7 @@
       <button type="button" id="open-sites" aria-controls="sites-panel" aria-expanded="false"><span aria-hidden="true">◉</span> Sitios <span class="dock-count" id="site-count">…</span></button>
       <button type="button" id="open-settings" aria-haspopup="dialog"><span aria-hidden="true">☷</span> Misión</button>
       <button type="button" id="open-help" aria-haspopup="dialog"><span aria-hidden="true">ⓘ</span> El proyecto</button>
+      <a href="classic.html?mode=advanced" id="open-advanced" class="orbit-advanced-link"><span aria-hidden="true">☷</span> Modo avanzado <span aria-hidden="true">↗</span></a>
     </nav>
     <p class="orbit-status" id="world-status" role="status">Conectando con los catálogos…</p>
     <button type="button" class="orbit-filter" id="toggle-comparable" hidden aria-pressed="true" title="Mostrar también los sitios sin puntaje en esta misión"><span aria-hidden="true">✓</span><span id="comparable-label">Solo comparables</span></button>
@@ -132,7 +133,7 @@
       <details class="help-method"><summary>Cómo se calcula TASI</summary><div id="world-method"></div></details>
       <button type="button" id="btn-limites">Lo que la Tierra no puede imitar ↗</button>
       <p class="dialog-note">La textura del globo es ilustrativa. Los valores, fuentes y puntajes salen de las APIs. Gravedad, presión y radiación se muestran fuera del puntaje.</p>
-      <a href="classic.html" class="classic-link">Abrir la vista clásica</a>
+      <a href="classic.html?mode=advanced" class="classic-link">Abrir modo avanzado ↗</a>
       <button type="button" id="toggle-earth-view">Cambiar a mapa 2D</button>
     </dialog>
   </main>
@@ -167,6 +168,7 @@
   <script src="js/api.js"></script>
   <script src="js/api-stub.js"></script>
   <script src="js/explain.js"></script>
+  <script src="js/navigation.js"></script>
   <script src="js/vendor/globe.bundle.js"></script>
   <script src="js/limits.js"></script>
   <script src="js/immersive-data.js"></script>

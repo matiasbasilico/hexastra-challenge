@@ -155,8 +155,11 @@
 
   function setMode(mode) {
     const easy = mode === "easy";
+    const modeURL=new URL(location.href);modeURL.searchParams.set('mode',easy?'easy':'advanced');
+    history.replaceState(null,'',modeURL);
     document.body.classList.toggle("mode-easy", easy);
     document.body.classList.toggle("mode-advanced", !easy);
+    document.querySelectorAll('.adv-menu, .layers-menu').forEach(d=>d.open=false);
     const easyBtn = $("#mode-easy");
     const advBtn = $("#mode-advanced");
     if (easyBtn) {
@@ -1543,7 +1546,7 @@
     }
 
     buildShell();
-    setMode("easy");
+    setMode(new URLSearchParams(location.search).get('mode')==='advanced'?'advanced':'easy');
 
     $("#mode-easy").addEventListener("click", function () { setMode("easy"); });
     $("#mode-advanced").addEventListener("click", function () { setMode("advanced"); });

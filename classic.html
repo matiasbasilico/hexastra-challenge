@@ -16,11 +16,14 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/easy.css">
   <link rel="stylesheet" href="css/globe.css">
+  <link rel="stylesheet" href="css/advanced.css">
 </head>
 <body class="mode-easy">
+  <script>if(new URLSearchParams(location.search).get('mode')==='advanced')document.body.className='mode-advanced';</script>
   <div class="app">
     <header class="header">
       <div class="topbar">
+        <a href="./" class="advanced-identity" id="advanced-globe-link"><strong>HexAstra</strong><span>← Globo 3D</span></a>
         <div class="mode-switch" role="tablist" aria-label="Modo de la interfaz">
           <button type="button" role="tab" id="mode-easy" aria-selected="true" class="is-active">Modo fácil</button>
           <button type="button" role="tab" id="mode-advanced" aria-selected="false">Modo avanzado</button>
@@ -57,19 +60,21 @@
           <select id="finder-region" disabled></select>
         </label>
         <label class="adv-field">
-          <span>Misión</span>
+          <span>Enfoque</span>
           <select id="finder-mission" disabled></select>
         </label>
         <details class="adv-menu" id="weights-menu">
           <summary>Ajustar pesos</summary>
           <div class="adv-menu-panel">
-            <p class="adv-menu-note">Porcentaje efectivo después de renormalizar sobre los componentes con dato para este destino.</p>
+            <div class="adv-menu-heading"><h2>Importancia de cada dimensión</h2><button type="button" data-close-menu aria-label="Cerrar ajuste de pesos">×</button></div>
+            <p class="adv-menu-note">Ajustá qué querés comparar. Los porcentajes se reparten entre los componentes comparables; pueden variar según los datos de cada par.</p>
             <div id="finder-features"></div>
           </div>
         </details>
         <details class="adv-menu" id="options-menu">
           <summary>Opciones avanzadas</summary>
           <div class="adv-menu-panel">
+            <div class="adv-menu-heading"><h2>Opciones de comparación</h2><button type="button" data-close-menu aria-label="Cerrar opciones avanzadas">×</button></div>
             <label class="adv-option" for="finder-gamma">
               <span>γ del terreno <span id="finder-gamma-val"></span></span>
               <input type="range" id="finder-gamma" min="0.1" max="3" step="0.1" value="1">
@@ -81,11 +86,17 @@
         <p class="api-status" id="api-status" role="status">Buscando la API…</p>
       </div>
 
+      <nav class="advanced-view-tabs" aria-label="Vista del explorador avanzado">
+        <button type="button" data-advanced-view="maps" aria-pressed="true">Mapas</button>
+        <button type="button" data-advanced-view="sites" aria-pressed="false">Sitios y ranking</button>
+        <button type="button" data-advanced-view="detail" aria-pressed="false">Ficha del sitio</button>
+      </nav>
       <div class="workspace">
         <aside class="sitelist" aria-label="Sitios en la Tierra">
           <div class="sitelist-head">
             <h2>Sitios en la Tierra</h2>
           </div>
+          <div id="finder-results" class="adv-results" aria-live="polite"></div>
           <div id="site-buttons"></div>
         </aside>
 
@@ -123,7 +134,6 @@
           <p class="placeholder-msg">Elegí un sitio de la lista o del mapa de la Tierra.</p>
         </aside>
       </div>
-      <div id="finder-results" class="adv-results" aria-live="polite"></div>
     </section>
   </div>
 
@@ -177,6 +187,7 @@
   <script src="js/api.js"></script>
   <script src="js/api-stub.js"></script>
   <script src="js/explain.js"></script>
+  <script src="js/navigation.js"></script>
   <script src="js/vendor/globe.bundle.js"></script>
   <script src="js/limits.js"></script>
   <script src="js/app.js"></script>
