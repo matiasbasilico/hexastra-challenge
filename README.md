@@ -11,7 +11,7 @@ The application supports English and Rioplatense Spanish. The browser language s
 
 ## Team
 
-Team members, preserving the current list on `main`:
+Team members:
 
 - Matias Basilico
 - Juan Martín Verna
