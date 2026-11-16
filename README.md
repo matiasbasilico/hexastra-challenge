@@ -17,6 +17,7 @@ Team members, preserving the current list on `main`:
 - Juan Martín Verna
 - Marcela Gutiérrez
 - Nicole Arias
+- Nicolás Castillo
 - Kevin Agustin Ruiz
 
 ## What it does
